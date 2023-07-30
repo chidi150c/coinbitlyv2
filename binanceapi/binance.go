@@ -106,11 +106,11 @@ func fetchHistoricalCandlesticks(symbol, interval string, startTime, endTime tim
 
 		candlestick := Candlestick{
 			Timestamp: int64(timestamp),
-			Open:      parseStringToFloat(open),
-			High:      parseStringToFloat(high),
-			Low:       parseStringToFloat(low),
-			Close:     parseStringToFloat(close),
-			Volume:    parseStringToFloat(volume),
+			Open:      ParseStringToFloat(open),
+			High:      ParseStringToFloat(high),
+			Low:       ParseStringToFloat(low),
+			Close:     ParseStringToFloat(close),
+			Volume:    ParseStringToFloat(volume),
 		}
 
 		result = append(result, candlestick)
@@ -119,8 +119,8 @@ func fetchHistoricalCandlesticks(symbol, interval string, startTime, endTime tim
 	return result, nil
 }
 
-// parseStringToFloat parses a string to a float64 value
-func parseStringToFloat(str string) float64 {
+// ParseStringToFloat parses a string to a float64 value
+func ParseStringToFloat(str string) float64 {
 	val, _ := strconv.ParseFloat(str, 64)
 	return val
 }
