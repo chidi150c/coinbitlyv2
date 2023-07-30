@@ -29,31 +29,20 @@ func main() {
 	// Go routine to handle the SIGINT signal
 	go func() {
 		<-sigintCh
-		fmt.Println("\nReceived SIGINT signal. Flushing data and exiting...")
-
-		// Flush the data to InfluxDB before exiting the application
-		client.WriteAPI(influxdb.InfluxDBOrgID, "nmarket_data").Flush()
-
-		// Give some time for the data to be flushed
-		time.Sleep(1 * time.Second)
-
-		// Delete the bucket in InfluxDB
-		influxdb.DeleteBucket(client)
-
+		fmt.Println("\nReceived SIGINT signal...")
 		// Exit the application
 		os.Exit(0)
-
 		// Signal the main goroutine to exit
 		doneCh <- struct{}{}
 	}()
 
 	Exchange := "Binance"
-	interval := "1h"
+	interval := "1m"
 	// List of cryptocurrency symbols to fetch data for
 	symbols := []string{"BTCUSDT"}
 	
 	// Define the time interval for historical data (e.g., last 30 days)
-	startTime := time.Now().Add(-10 * 24 * time.Hour) // 30 days ago
+	startTime := time.Now().Add(-1 * time.Hour) // 30 days ago
 	endTime := time.Now()
 	
 	// Fetch and store market data for each symbol in a loop
