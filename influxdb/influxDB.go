@@ -6,14 +6,13 @@ import (
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"github.com/influxdata/influxdb-client-go/v2/api"
 )
 
 const (
-	InfluxDBOrgID = "Resoledge"
-	influxDBURL    = "http://localhost:8086" // Replace with your InfluxDB URL
-	influxDBToken  = "aXDeT9-0EX6K81D_94L-6q5G-w2eHS_4FJTIbsanUNqHlziMrFTOD3JULdCkCWgCTtVPvIuBhxUB0asbt8_AYw=="   // Replace with your InfluxDB token
-	influxDBBucket = "market_data"           // Use "market_data" as the bucket/measurement name
+	InfluxDBOrgID  = "020144d8fa96bb60"
+	influxDBURL    = "http://localhost:8086"                                                                    // Replace with your InfluxDB URL
+	influxDBToken  = "aXDeT9-0EX6K81D_94L-6q5G-w2eHS_4FJTIbsanUNqHlziMrFTOD3JULdCkCWgCTtVPvIuBhxUB0asbt8_AYw==" // Replace with your InfluxDB token
+	influxDBBucket = "newmarket_data"                                                                              // Use "newmarket_data" as the bucket/measurement name
 )
 
 type MarketData struct {
@@ -30,8 +29,12 @@ type MarketData struct {
 
 func NewMarketData(exname, symbol string) *MarketData {
 	return &MarketData{
-		Exchange: exname,
-		Symbol:   symbol,
+		Exchange:    exname,
+		Symbol:      symbol,
+		BidPrice:    30588.54,
+		BidQuantity: 30588.54,
+		AskPrice:    30588.54,
+		AskQuantity: 30588.54,
 	}
 }
 
@@ -51,7 +54,10 @@ func NewDB() (influxdb2.Client, error) {
 }
 
 // WriteDataPoint writes the market data point to InfluxDB
-func WriteDataPoint(writeAPI api.WriteAPI, data *MarketData) error {
+func WriteDataPoint(client influxdb2.Client, data *MarketData) error {
+	// Create a write API
+	writeAPI := client.WriteAPI(InfluxDBOrgID, "newmarket_data") // Use "newmarket_data" as the measurement name
+
 	// Create a new data point
 	p := influxdb2.NewPointWithMeasurement(influxDBBucket).
 		AddTag("exchange", data.Exchange).
@@ -66,9 +72,27 @@ func WriteDataPoint(writeAPI api.WriteAPI, data *MarketData) error {
 
 	// Write the data point to InfluxDB
 	writeAPI.WritePoint(p)
-
-	// Flush writes
-    writeAPI.Flush()
-
 	return nil
+}
+
+func DeleteBucket(client influxdb2.Client) {
+	// Get the query API
+	queryAPI := client.QueryAPI(InfluxDBOrgID)
+
+	// Execute the DROP query to delete the bucket
+	query := fmt.Sprintf("DROP BUCKET \"%s\"", influxDBBucket)
+	response, err := queryAPI.Query(context.Background(), query)
+	if err != nil {
+		fmt.Println("Error executing query:", err)
+		return
+	}
+
+	// Check if the query was successful
+	if response.Err != nil {
+		fmt.Println("Error deleting bucket:", response.Err)
+		return
+	}
+
+	// Bucket deleted successfully
+	fmt.Printf("Bucket %s deleted successfully!\n", influxDBBucket)
 }

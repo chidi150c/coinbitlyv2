@@ -2,8 +2,8 @@ package binanceapi
 
 import (
 	"fmt"
+	"time"
 )
-
 
 // fetchAndDisplayTickerData fetches and displays real-time market data for the given symbol
 func FetchAndDisplayTickerData(symbol string) (*TickerData, error) {
@@ -51,4 +51,15 @@ func FetchAndDisplayOrderBook(symbol string, limit int) (*OrderBookData, error) 
 		fmt.Printf("Price: %s, Quantity: %s\n", ask[0], ask[1])
 	}
 	return orderBook, nil
+}
+
+// FetchHistoricalCandlesticks fetches historical candlestick data for the given symbol and time interval
+func FetchHistoricalCandlesticks(symbol, interval string, startTime, endTime time.Time) ([]Candlestick, error) {
+	ticker, err := fetchHistoricalCandlesticks(symbol, interval, startTime, endTime)
+	if err != nil {
+		fmt.Println("Error fetching Candle data:", err)
+		return []Candlestick{}, err
+	}
+
+	return ticker, nil
 }

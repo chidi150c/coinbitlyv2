@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 	"time"
-
+	"os"
+	"os/signal"
+	"syscall"
 	"coinbitly.com/binanceapi"
 	"coinbitly.com/influxdb"
 )
@@ -16,107 +17,72 @@ func main() {
 		fmt.Println("Error Connecting to InfluxDB:", err)
 		return
 	}
-	
+
 	// Close the InfluxDB client before exiting the application
 	defer client.Close()
 
-	// Create a write API
-	writeDB := client.WriteAPI(influxdb.InfluxDBOrgID, "market_data") // Use "market_data" as the measurement name
-	Exchange := "Binance"
-	// List of cryptocurrency symbols to fetch data for
-	symbols := []string{"BTCUSDT", "ETHUSDT", "ADAUSDT", "XRPUSDT"}
+	// Create a channel to receive the SIGINT signal
+	sigintCh := make(chan os.Signal, 1)
+	signal.Notify(sigintCh, os.Interrupt, syscall.SIGTERM)
+	// Create a channel to signal the main goroutine to exit
+	doneCh := make(chan struct{})
+	// Go routine to handle the SIGINT signal
+	go func() {
+		<-sigintCh
+		fmt.Println("\nReceived SIGINT signal. Flushing data and exiting...")
 
-	// Fetch and store market data for each symbol in a loop
-	for _, symbol := range symbols {
-		// Fetch and display real-time market data
-		fmt.Println("Real-Time Market Data for", symbol, ":")
-			ticker, err := binanceapi.FetchAndDisplayTickerData(symbol)
-		if err != nil {
-			fmt.Println("Error Fetching real-time market data for", symbol, ":", err)
-			continue
-		}
-		fmt.Println()
+		// Flush the data to InfluxDB before exiting the application
+		client.WriteAPI(influxdb.InfluxDBOrgID, "newmarket_data").Flush()
 
-		// Fetch and display 24-hour price change statistics
-		fmt.Println("24-Hour Price Change Statistics for", symbol, ":")
-		ticker24C, err := binanceapi.FetchAndDisplay24hrTickerData(symbol)
-		if err != nil {
-			fmt.Println("Error Fetching 24-hour price change statistics for", symbol, ":", err)
-				continue
-		}
-		fmt.Println()
+		// Give some time for the data to be flushed
+		time.Sleep(1 * time.Second)
 
-		// Fetch and display order book depth
-		fmt.Println("Order Book Depth for", symbol, ":")
-		orderBook, err := binanceapi.FetchAndDisplayOrderBook(symbol, 5) // Fetch top 5 bids and asks
-		if err != nil {
-			fmt.Println("Error Fetching order book depth for", symbol, ":", err)
-			continue
-		}
-
-		// Convert the price from string to float64
-		price, err := strconv.ParseFloat(ticker.Price, 64)
-		if err != nil {
-			fmt.Println("Error converting price to float64 for", symbol, ":", err)
-			continue
-		}
-
-		// Convert the ticker24C.Volume from string to float64
-		volume, err := strconv.ParseFloat(ticker24C.Volume, 64)
-		if err != nil {
-			fmt.Println("Error converting volume to float64 for", symbol, ":", err)
-			continue
-		}
-
-		// Create a new MarketData instance for the symbol
-		marketData := influxdb.NewMarketData(Exchange, symbol)
+		// Exit the application
+		os.Exit(0)
 		
-		// Iterate through the top 5 bids and asks and store them in MarketData struct
-		for i := 0; i < 5; i++ {
-			// Convert the bid and ask prices from string to float64
-			bidPrice, err := strconv.ParseFloat(orderBook.Bids[i][0], 64)
-			if err != nil {
-				fmt.Println("Error converting bid price to float64 for", symbol, ":", err)
-				continue
-			}
-			askPrice, err := strconv.ParseFloat(orderBook.Asks[i][0], 64)
-			if err != nil {
-				fmt.Println("Error converting ask price to float64 for", symbol, ":", err)
-				continue
-			}
+		// Signal the main goroutine to exit
+		doneCh <- struct{}{}
+	}()
 
-			// Convert the bid and ask quantities from string to float64
-			bidQuantity, err := strconv.ParseFloat(orderBook.Bids[i][1], 64)
-			if err != nil {
-				fmt.Println("Error converting bid quantity to float64 for", symbol, ":", err)
-				continue
-			}
-			askQuantity, err := strconv.ParseFloat(orderBook.Asks[i][1], 64)
-			if err != nil {
-				fmt.Println("Error converting ask quantity to float64 for", symbol, ":", err)
-				continue
-			}
+	Exchange := "Binance"
+	interval := "5m"
+	// List of cryptocurrency symbols to fetch data for
+	symbols := []string{"BTCUSDT"}
 
-			// Assign the converted values to the MarketData struct
-			marketData.BidPrice = bidPrice
-			marketData.AskPrice = askPrice
-			marketData.BidQuantity = bidQuantity
-			marketData.AskQuantity = askQuantity
-			marketData.Price = price
-			marketData.Volume = volume
-			marketData.Exchange = Exchange
-	
-			// Assign the converted price to the MarketData struct
-			marketData.Timestamp = time.Now()
+	// Define the time interval for historical data (e.g., last 30 days)
+	startTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days ago
+	endTime := time.Now()
+
+	// Fetch and store historical market data for each symbol in a loop
+	for _, symbol := range symbols {
+		// Fetch historical candlestick data
+		fmt.Println("Historical Candlestick Data for", symbol, ":")
+		candlesticks, err := binanceapi.FetchHistoricalCandlesticks(symbol, interval, startTime, endTime)
+		if err != nil {
+			fmt.Println("Error Fetching historical candlestick data for", symbol, ":", err)
+			continue
+		}
+
+		// Iterate through the fetched candlesticks and store them in InfluxDB
+		for _, cs := range candlesticks {
+			// Convert the candlestick data to MarketData struct
+			marketData := influxdb.NewMarketData(Exchange, symbol)
+			marketData.Price = cs.Close
+			marketData.Volume = cs.Volume
+			marketData.Timestamp = time.Unix(int64(cs.Timestamp)/1000, 0)
+
+			// Print the values of marketData for debugging purposes
+			fmt.Println("Market Data for", symbol, ":", marketData)
 
 			// Write the data point to InfluxDB
-			err = influxdb.WriteDataPoint(writeDB, marketData)
+			err = influxdb.WriteDataPoint(client, marketData)
 			if err != nil {
 				fmt.Println("Error writing data point:", err)
 				return
 			}
 		}
-	}	
+	}
 	fmt.Println("Data point written successfully!")
+	<-doneCh
+	influxdb.DeleteBucket(client)
 }
-
