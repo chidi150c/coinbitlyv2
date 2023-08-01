@@ -5,31 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strconv"
-	"time"
+
+	"coinbitly.com/helper"
 )
-
-const (
-	baseURL    = "https://api.binance.com"
-	apiVersion = "api/v3"
-)
-
-var (
-	apiKey    = "1CHA2mXswJdHjfossO43t4WRa82HPzFaeZOt2entAgajkAYIUaf55f7CepLt58YK" // Replace with your Binance API key
-	secretKey = "0DiulGqjlOuQlQHcVQYLYjKfpkq6Qs2rNxNVHHTtF1s2uy7n5clugQRxTXltjqFj" // Replace with your Binance API secret key
-)
-
-// rateLimitedTransport is a custom transport that handles API rate limiting
-type rateLimitedTransport struct {
-	base http.RoundTripper
-}
-
-func (t rateLimitedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	// Implement rate limiting logic here (e.g., using a rate limiter)
-	// For simplicity, we'll use a simple time.Sleep to limit the rate
-	time.Sleep(100 * time.Millisecond)
-	return t.base.RoundTrip(req)
-}
 
 // TickerData represents the ticker data structure
 type TickerData struct {
@@ -55,20 +33,25 @@ type Candlestick struct {
 	Volume    float64 `json:"volume"`
 }
 
+// OrderBookData represents the order book data structure
+type OrderBookData struct {
+	Bids [][2]string `json:"bids"` // [price, quantity]
+	Asks [][2]string `json:"asks"` // [price, quantity]
+}
+
 // FetchHistoricalCandlesticks fetches historical candlestick data for the given symbol and time interval
-func fetchHistoricalCandlesticks(symbol, interval string, startTime, endTime time.Time) ([]Candlestick, error) {
+func fetchHistoricalCandlesticks(symbol, baseURL, apiVersion, apiKey, interval string, startTime, endTime int64) ([]Candlestick, error) {
 	// Initialize HTTP client with a custom transport to handle rate limiting
 	client := &http.Client{
-		Transport: rateLimitedTransport{base: http.DefaultTransport},
+		Transport: helper.RateLimitedTransport{Base: http.DefaultTransport},
 	}
 
 	// Convert time to milliseconds
-	startTimeUnix := startTime.Unix() * 1000
-	endTimeUnix := endTime.Unix() * 1000
+	startTimeUnix := startTime * 1000
+	endTimeUnix := endTime * 1000
 
 	// Construct the API URL
-	url := fmt.Sprintf("https://api.binance.com/api/v1/klines?symbol=%s&interval=%s&startTime=%d&endTime=%d", symbol, interval, startTimeUnix, endTimeUnix)
-
+	url := fmt.Sprintf("%s/%s/klines?symbol=%s&interval=%s&startTime=%d&endTime=%d", baseURL, apiVersion, symbol, interval, startTimeUnix, endTimeUnix)
 	// Send the HTTP GET request
 	resp, err := client.Get(url)
 	if err != nil {
@@ -78,7 +61,7 @@ func fetchHistoricalCandlesticks(symbol, interval string, startTime, endTime tim
 
 	// Check if the API request was successful
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request failed with status: %s", resp.Status)
+		return nil, fmt.Errorf("API request client.Get(%s) failed with status: %s", url, resp.Status)
 	}
 
 	// Read the response body
@@ -106,41 +89,23 @@ func fetchHistoricalCandlesticks(symbol, interval string, startTime, endTime tim
 
 		candlestick := Candlestick{
 			Timestamp: int64(timestamp),
-			Open:      ParseStringToFloat(open),
-			High:      ParseStringToFloat(high),
-			Low:       ParseStringToFloat(low),
-			Close:     ParseStringToFloat(close),
-			Volume:    ParseStringToFloat(volume),
+			Open:      helper.ParseStringToFloat(open),
+			High:      helper.ParseStringToFloat(high),
+			Low:       helper.ParseStringToFloat(low),
+			Close:     helper.ParseStringToFloat(close),
+			Volume:    helper.ParseStringToFloat(volume),
 		}
 
 		result = append(result, candlestick)
 	}
-
 	return result, nil
 }
 
-// ParseStringToFloat parses a string to a float64 value
-func ParseStringToFloat(str string) float64 {
-	val, _ := strconv.ParseFloat(str, 64)
-	return val
-}
-
-
-
-
-
-
-// OrderBookData represents the order book data structure
-type OrderBookData struct {
-	Bids [][2]string `json:"bids"` // [price, quantity]
-	Asks [][2]string `json:"asks"` // [price, quantity]
-}
-
-// fetchTickerData fetches real-time market data for the given symbol
-func fetchTickerData(symbol string) (*TickerData, error) {
+// fetchTickerData fetches real-time of a given symbol
+func fetchTickerData(symbol, baseURL, apiVersion, apiKey string) (*TickerData, error) {
 	// Initialize HTTP client with a custom transport to handle rate limiting
 	client := &http.Client{
-		Transport: rateLimitedTransport{base: http.DefaultTransport},
+		Transport: helper.RateLimitedTransport{Base: http.DefaultTransport},
 	}
 	url := fmt.Sprintf("%s/%s/ticker/price?symbol=%s", baseURL, apiVersion, symbol)
 
@@ -159,7 +124,7 @@ func fetchTickerData(symbol string) (*TickerData, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request failed with status: %s", resp.Status)
+		return nil, fmt.Errorf("API request client.Get(%s) failed with status: %s", url, resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -177,9 +142,9 @@ func fetchTickerData(symbol string) (*TickerData, error) {
 }
 
 // fetch24hrTickerData fetches 24-hour price change statistics for the given symbol
-func fetch24hrTickerData(symbol string) (*Ticker24hrData, error) {// Initialize HTTP client with a custom transport to handle rate limiting
+func fetch24hrTickerData(symbol, baseURL, apiVersion, apiKey string) (*Ticker24hrData, error) {// Initialize HTTP client with a custom transport to handle rate limiting
 	client := &http.Client{
-		Transport: rateLimitedTransport{base: http.DefaultTransport},
+		Transport: helper.RateLimitedTransport{Base: http.DefaultTransport},
 	}
 	url := fmt.Sprintf("%s/%s/ticker/24hr?symbol=%s", baseURL, apiVersion, symbol)
 
@@ -198,7 +163,7 @@ func fetch24hrTickerData(symbol string) (*Ticker24hrData, error) {// Initialize 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request failed with status: %s", resp.Status)
+		return nil, fmt.Errorf("API request client.Get(%s) failed with status: %s", url, resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -216,10 +181,10 @@ func fetch24hrTickerData(symbol string) (*Ticker24hrData, error) {// Initialize 
 }
 
 // fetchOrderBook fetches order book depth for the given symbol
-func fetchOrderBook(symbol string, limit int) (*OrderBookData, error) {
+func fetchOrderBook(symbol, baseURL, apiVersion, apiKey string, limit int) (*OrderBookData, error) {
 	// Initialize HTTP client with a custom transport to handle rate limiting
 	client := &http.Client{
-		Transport: rateLimitedTransport{base: http.DefaultTransport},
+		Transport: helper.RateLimitedTransport{Base: http.DefaultTransport},
 	}
 	url := fmt.Sprintf("%s/%s/depth?symbol=%s&limit=%d", baseURL, apiVersion, symbol, limit)
 

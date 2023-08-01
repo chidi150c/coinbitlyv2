@@ -1,29 +1,31 @@
-package binanceapi
+package hitbtcapi
 
 import (
 	"errors"
 	"fmt"
 
 	"coinbitly.com/config"
+	"coinbitly.com/helper"
 	"coinbitly.com/model"
 )
 
 const (
-	exchname = "Binance"
+	exchname = "HitBTC"
 )
 type ExchServices struct{
 	*config.ExchConfig
 }
 
 func NewExchServices(exchConfig map[string]*config.ExchConfig)(*ExchServices, error){
-	// Check if the key "Binance" exists in the map
-	if val, ok := exchConfig["Binance"]; ok {		
+	// Check if the key "HitBTC" exists in the map
+	if val, ok := exchConfig["HitBTC"]; ok {		
 		return &ExchServices{val}, nil
 	} else {		
-		fmt.Println("Error Internal: Exch name not Binance")
-		return nil, errors.New("Exch name not Binance")
+		fmt.Println("Error Internal: Exch name not HitBTC")
+		return nil, errors.New("Exch name not HitBTC")
 	}
 }
+
 // FetchHistoricalCandlesticks fetches historical candlestick data for the given symbol and time interval
 func (e *ExchServices)FetchHistoricalCandlesticks(symbol, interval string, startTime, endTime int64) ([]model.Candlestick, error) {
 	if e.Name != exchname{
@@ -37,26 +39,24 @@ func (e *ExchServices)FetchHistoricalCandlesticks(symbol, interval string, start
 	}
 	mticker := make([]model.Candlestick, 0, len(ticker))
 	ct := model.Candlestick{}
-
 	for _, v := range ticker{
-		// fmt.Println(v)
 		ct = model.Candlestick{
 			ExchName: exchname,
-			Timestamp: v.Timestamp,
-			Open: v.Open,
-			High: v.High,
-			Low: v.Low,
-			Close: v.Close,
-			Volume: v.Volume, 
+			Timestamp: v.Timestamp.Unix(),
+			Open: helper.ParseStringToFloat(v.Open),
+			High: helper.ParseStringToFloat(v.High),
+			Low: helper.ParseStringToFloat(v.Low),
+			Close: helper.ParseStringToFloat(v.Close),
+			Volume: helper.ParseStringToFloat(v.Volume), 
 		}
 		mticker = append(mticker, ct)
 	}
 	return mticker, nil
 }
 
-// FetchTickerData fetches and displays real-time of a given symbol
+// // FetchTickerData fetches and displays real-time of a given symbol
 // func (e *ExchServices)FetchTickerData(symbol string) (*model.TickerData, error) {
-// 	ticker, err := fetchTickerData(symbol, e.Exch.BaseURL, e.Exch.ApiVersion, e.Exch.ApiKey)
+// 	ticker, err := fetchTickerData(symbol)
 // 	if err != nil {
 // 		fmt.Println("Error fetching ticker data:", err)
 // 		return &TickerData{}, err
