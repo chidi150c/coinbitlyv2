@@ -50,7 +50,10 @@ func (e *ExchServices)FetchHistoricalCandlesticks(symbol, interval string, start
 			Volume: v.Volume, 
 		}
 		mticker = append(mticker, ct)
-	}
+	}	
+	fmt.Println()
+	fmt.Println("Candles fetched =", mticker, " = ", len(mticker), "counts")
+	fmt.Println()
 	return mticker, nil
 }
 

@@ -29,8 +29,11 @@ func fetchHistoricalCandlesticks(symbol, baseURL, apiVersion, apiKey, interval s
 		Transport: helper.RateLimitedTransport{Base: http.DefaultTransport},
 	}
 
+    // Calculate the CandleCount
+	candleCount := helper.CalculateCandleCount(startTime, endTime, int64(helper.IntervalToDuration(interval)))
+	fmt.Println("Interval:", interval, "CandleCount:", candleCount)
     // Connect to the HitBTC websocket endpoint"
-	url := fmt.Sprintf("%s/%s/public/candles/%s?period=%s&from=%d&to=%d", baseURL, apiVersion, symbol, interval, startTime, endTime)
+	url := fmt.Sprintf("%s/%s/public/candles/%s?period=%s&limit=%d", baseURL, apiVersion, symbol, interval, candleCount)
 	resp, err := client.Get(url)
 	if err != nil {
 		return nil, err
@@ -39,7 +42,7 @@ func fetchHistoricalCandlesticks(symbol, baseURL, apiVersion, apiKey, interval s
 
 	// Check if the API request was successful
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request client.Get(%s) failed with status: %s", url, resp.Status)
+		return nil, fmt.Errorf("API request failed with status: %s", resp.Status)
 	}
 
 	// Read the response body
@@ -54,14 +57,6 @@ func fetchHistoricalCandlesticks(symbol, baseURL, apiVersion, apiKey, interval s
     if err != nil {
         log.Println("Error parsing candlestick data:", err)
         return nil, err
-    }
-
-    // Process the received candlestick data
-    for _, candle := range candles {
-        fmt.Printf(
-            "HITBTC CANDLE\n Timestamp: %s, Open: %f, Close: %f, High: %f, Low: %f, Volume: %f, Candle Count: %d\n",
-            candle.Timestamp, candle.Open, candle.Close, candle.High, candle.Low, candle.Volume, candle.CandleCount,
-        )
     }
     return candles, nil    
 }
