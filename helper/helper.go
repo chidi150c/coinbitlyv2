@@ -72,7 +72,15 @@ func IntervalToDuration(interval string) time.Duration {
 	}
 }
 
+func removeNegativeSign(value int64) int64 {
+	if value < 0 {
+		return -value
+	}
+	return value
+}
+
 func CalculateCandleCount(startTime, endTime int64, interval int64) int64 {
 	fmt.Printf("calculateCandleCount: startTime %v , endTime %v , interval %v\n",startTime, endTime, interval )
-    return (endTime - startTime) / interval
+	value := (endTime - startTime) / interval	
+    return removeNegativeSign(value)
 }

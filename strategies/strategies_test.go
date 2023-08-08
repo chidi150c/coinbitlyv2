@@ -7,22 +7,11 @@ import (
 )
 
 func TestBacktestStrategy(t *testing.T) {
-    
-	// Initialize the trading system.
-	ts := &TradingSystem{
-		ShortPeriod:        12, // Define moving average short period for the strategy.
-		LongPeriod:         26, // Define moving average long period for the strategy.
-	}
-
-    err := ts.Initialize()
+	ts, err := NewTradingSystem()
 	if err != nil {
 		log.Fatal("Error initializing trading system:", err)
 		return
 	}
-    fmt.Println(ts.ClosingPrices)
-	ts.Signals = make([]string, len(ts.ClosingPrices)) // Holder of generated trading signals
-
-	ts.Strategy.UseBollinger = true
 	
     //Test SMA
     sma := CalculateSimpleMovingAverage(ts.ClosingPrices, ts.LongPeriod)

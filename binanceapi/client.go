@@ -30,7 +30,7 @@ func (e *ExchServices)FetchHistoricalCandlesticks(symbol, interval string, start
 		fmt.Println("Error Missmatch Exchange Name:")
 		return []model.Candlestick{}, errors.New("Missmatch Exchange Name")		
 	}
-	ticker, err := fetchHistoricalCandlesticks(symbol, e.Exch.BaseURL, e.Exch.ApiVersion, e.Exch.ApiKey, interval, startTime, endTime)
+	ticker, err := fetchHistoricalCandlesticks(symbol, e.BaseURL, e.ApiVersion, e.ApiKey, interval, startTime, endTime)
 	if err != nil {
 		fmt.Println("Error fetching Candle data:", err)
 		return []model.Candlestick{}, err
@@ -59,7 +59,7 @@ func (e *ExchServices)FetchHistoricalCandlesticks(symbol, interval string, start
 
 // FetchTickerData fetches and displays real-time of a given symbol
 // func (e *ExchServices)FetchTickerData(symbol string) (*model.TickerData, error) {
-// 	ticker, err := fetchTickerData(symbol, e.Exch.BaseURL, e.Exch.ApiVersion, e.Exch.ApiKey)
+// 	ticker, err := fetchTickerData(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
 // 	if err != nil {
 // 		fmt.Println("Error fetching ticker data:", err)
 // 		return &TickerData{}, err
@@ -72,7 +72,7 @@ func (e *ExchServices)FetchHistoricalCandlesticks(symbol, interval string, start
 
 // fetchAndDisplay24hrTickerData fetches and displays 24-hour price change statistics for the given symbol
 // func (e *ExchServices)Fetch24hrChange(symbol string) (*model.Ticker24hrChange, error){
-// 	ticker, err := fetch24hrTickerData(symbol, e.Exch.BaseURL, e.Exch.ApiVersion, e.Exch.ApiKey)
+// 	ticker, err := fetch24hrTickerData(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
 // 	if err != nil {
 // 		fmt.Println("Error fetching 24-hour ticker data:", err)
 // 		return &Ticker24hrChange{}, err
@@ -86,7 +86,7 @@ func (e *ExchServices)FetchHistoricalCandlesticks(symbol, interval string, start
 
 // fetchAndDisplayOrderBook fetches and displays order book depth for the given symbol
 // func (e *ExchServices)FetchOrderBook(symbol string, limit int) (*model.OrderBookData, error) {
-// 	orderBook, err := fetchOrderBook(symbol, e.Exch.BaseURL, e.Exch.ApiVersion, e.Exch.ApiKey, limit)
+// 	orderBook, err := fetchOrderBook(symbol, e.BaseURL, e.ApiVersion, e.ApiKey, limit)
 // 	if err != nil {
 // 		fmt.Println("Error fetching order book data:", err)
 // 		return &OrderBookData{}, err

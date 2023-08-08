@@ -7,6 +7,7 @@ import (
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
+	"fmt"
 )
 
 func CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signals []string) error {
@@ -80,3 +81,67 @@ func CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signal
 	return nil
 }
 
+// PlotEMA compares the calculated EMAs with data obtained from HitBTC.
+func PlotEMA(timestamps []int64, m55 []float64, closingPrices []float64) error {
+	// Create a new plot.
+	p := plot.New()
+
+	// Add data to the plot.
+	emaData := plotter.XYs{}
+	for i, timestamp := range timestamps {
+		emaData = append(emaData, struct{ X, Y float64 }{float64(timestamp), m55[i]})
+	}
+	err := plotutil.AddLinePoints(p, "EMA55", emaData)
+	if err != nil {
+		return fmt.Errorf("error adding EMA55 to plot: %v", err)
+	}
+
+	closingPriceData := plotter.XYs{}
+	for i, timestamp := range timestamps {
+		closingPriceData = append(closingPriceData, struct{ X, Y float64 }{float64(timestamp), closingPrices[i]})
+	}
+	err = plotutil.AddLinePoints(p, "Closing Prices", closingPriceData)
+	if err != nil {
+		return fmt.Errorf("error adding closing prices to plot: %v", err)
+	}
+
+	// Save the plot to a file.
+	if err := p.Save(4*vg.Inch, 4*vg.Inch, "ema_plot.png"); err != nil {
+		return fmt.Errorf("error saving plot: %v", err)
+	}
+
+	return nil
+}
+
+func PlotRSI(stochRSI, smoothKRSI []float64) {
+
+	// Create a new plot
+	p := plot.New()
+
+	// Create line plots for Stochastic RSI and SmoothK RSI points
+	stochRSILine, err := plotter.NewLine(createPoints(stochRSI))
+	if err != nil {
+		panic(err)
+	}
+	smoothKRSILine, err := plotter.NewLine(createPoints(smoothKRSI))
+	if err != nil {
+		panic(err)
+	}
+
+	// Add the line plots to the plot
+	p.Add(stochRSILine, smoothKRSILine)
+
+	// Save the plot to a PNG file
+	if err := p.Save(4*vg.Inch, 4*vg.Inch, "stochastic_rsi_plot.png"); err != nil {
+		panic(err)
+	}
+}
+
+func createPoints(data []float64) plotter.XYs {
+	pts := make(plotter.XYs, len(data))
+	for i, value := range data {
+		pts[i].X = float64(i)
+		pts[i].Y = value
+	}
+	return pts
+}
