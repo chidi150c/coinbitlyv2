@@ -54,7 +54,8 @@ func (e *ExchServices)FetchHistoricalCandlesticks(symbol, interval string, start
 			Close: helper.ParseStringToFloat(v.Close),
 			Volume: helper.ParseStringToFloat(v.Volume), 
 		}
-		mticker = append(mticker, ct)
+		mticker = append([]model.Candlestick{ct}, mticker...)
+		// fmt.Println("time:", v.Timestamp, "close:", v.Close)
 	}
 	return mticker, nil
 }
