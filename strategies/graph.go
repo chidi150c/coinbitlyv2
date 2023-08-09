@@ -10,7 +10,7 @@ import (
 	"fmt"
 )
 
-func CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signals []string) error {
+func CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signals []string, graph string) error {
 	// Create a new plot with a title and axis labels.
 	p := plot.New()
 	p.Title.Text = "Line Chart with Trading Signals"
@@ -18,7 +18,7 @@ func CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signal
 	p.Y.Label.Text = "Data Value"
 
 	// Create a new set of points based on the data.
-	pts := make(plotter.XYs, len(timeSeries))
+	pts := make(plotter.XYs, len(dataSeries))
 	for i := range pts {
 		pts[i].X = float64(i)
 		pts[i].Y = dataSeries[i]
@@ -43,6 +43,97 @@ func CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signal
 	// Add custom tick marks for the X-axis (time labels).
 	p.NominalX(timeLabels...)
 
+	// Create separate scatter plots for Buy and Sell signals.
+	var buySignalPoints, sellSignalPoints plotter.XYs
+	for i, signal := range signals {
+		if i < len(dataSeries){
+			if signal == "Buy" {
+				buySignalPoints = append(buySignalPoints, plotter.XY{X: float64(i), Y: dataSeries[i]})
+			} else if signal == "Sell" {
+				sellSignalPoints = append(sellSignalPoints, plotter.XY{X: float64(i), Y: dataSeries[i]})
+			}			
+		}
+	}
+
+	// Create scatter plots for Buy and Sell signals.
+	buyScatter, err := plotter.NewScatter(buySignalPoints)
+	if err != nil {
+		return err
+	}
+	buyScatter.Shape = plotutil.Shape(3) // Triangle shape for Buy signals
+	buyScatter.Color = color.RGBA{R: 255, G: 0, B: 0, A: 255} // Green color for Buy signals
+	buyScatter.GlyphStyle.Radius = vg.Points(5)
+
+	sellScatter, err := plotter.NewScatter(sellSignalPoints)
+	if err != nil {
+		return err
+	}
+	sellScatter.Shape = plotutil.Shape(1) // Circle shape for Sell signals
+	sellScatter.Color = color.RGBA{R: 255, G: 0, B: 0, A: 255} // Red color for Sell signals
+	sellScatter.GlyphStyle.Radius = vg.Points(5)
+
+	// Add the scatter plots to the plot.
+	p.Add(buyScatter, sellScatter)
+
+	// Save the plot to a file (you can also display it in a window if you prefer).
+	if err := p.Save(10*vg.Inch, 6*vg.Inch, graph+"line_chart_with_signals.png"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateLineChartWithSignalsV2(timeSeries []int64, dataSeries []float64, greenDataSeries []float64, signals []string, graph string) error {
+	// Create a new plot with a title and axis labels.
+	p := plot.New()
+	p.Title.Text = "Line Chart with Trading Signals"
+	p.X.Label.Text = "Time"
+	p.Y.Label.Text = "Data Value"
+
+	// Create a new set of points based on the data.
+	pts := make(plotter.XYs, len(dataSeries))
+	for i := range pts {
+		pts[i].X = float64(i)
+		pts[i].Y = dataSeries[i]
+	}
+
+	// Create a new set of points based on the green data series.
+	greenPts := make(plotter.XYs, len(greenDataSeries))
+	for i := range greenPts {
+		greenPts[i].X = float64(i)
+		greenPts[i].Y = greenDataSeries[i]
+	}
+
+	// Create a new line plot and set its style.
+	line, err := plotter.NewLine(pts)
+	if err != nil {
+		return err
+	}
+	line.Color = color.RGBA{B: 255, A: 255} // Blue color
+
+	// Create a new line plot for the green data series and set its style.
+	greenLine, err := plotter.NewLine(greenPts)
+	if err != nil {
+		return err
+	}
+	greenLine.Color = color.RGBA{G: 255, A: 255} // Green color
+
+	// Add the line plot to the plot.
+	p.Add(line)
+
+	// Add the green line plot to the plot.
+	p.Add(greenLine)
+
+	// Convert UNIX timestamps to formatted strings for X-axis labels.
+	timeLabels := make([]string, len(timeSeries))
+	for i, timestamp := range timeSeries {
+		timeLabels[i] = time.Unix(timestamp, 0).Format("2006-01-02")
+	}
+
+	// Add custom tick marks for the X-axis (time labels).
+	p.NominalX(timeLabels...)
+
+	
 	// Create separate scatter plots for Buy and Sell signals.
 	var buySignalPoints, sellSignalPoints plotter.XYs
 	for i, signal := range signals {
@@ -74,13 +165,121 @@ func CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signal
 	p.Add(buyScatter, sellScatter)
 
 	// Save the plot to a file (you can also display it in a window if you prefer).
-	if err := p.Save(10*vg.Inch, 6*vg.Inch, "line_chart_with_signals.png"); err != nil {
+	if err := p.Save(10*vg.Inch, 6*vg.Inch, graph+"line_chart_with_signals.png"); err != nil {
 		return err
 	}
 
 	return nil
 }
 
+func CreateLineChartWithSignalsV3(timeSeries []int64, dataSeries []float64, greenDataSeries []float64, yellowDataSeries []float64, signals []string, graph string) error {
+	// Create a new plot with a title and axis labels.
+	p := plot.New()
+	p.Title.Text = "Line Chart with Trading Signals"
+	p.X.Label.Text = "Time"
+	p.Y.Label.Text = "Data Value"
+
+	// Create a new set of points based on the data.
+	pts := make(plotter.XYs, len(dataSeries))
+	for i := range pts {
+		pts[i].X = float64(i)
+		pts[i].Y = dataSeries[i]
+	}
+
+	// Create a new set of points based on the green data series.
+	greenPts := make(plotter.XYs, len(greenDataSeries))
+	for i := range greenPts {
+		greenPts[i].X = float64(i)
+		greenPts[i].Y = greenDataSeries[i]
+	}
+
+	// Create a new set of points based on the yellow data series.
+	yellowPts := make(plotter.XYs, len(yellowDataSeries))
+	for i := range yellowPts {
+		yellowPts[i].X = float64(i)
+		yellowPts[i].Y = yellowDataSeries[i]
+	}
+
+	// Create a new line plot and set its style.
+	line, err := plotter.NewLine(pts)
+	if err != nil {
+		return err
+	}
+	line.Color = color.RGBA{B: 255, A: 255} // Blue color
+
+	// Create a new line plot for the green data series and set its style.
+	greenLine, err := plotter.NewLine(greenPts)
+	if err != nil {
+		return err
+	}
+	greenLine.Color = color.RGBA{G: 255, A: 255} // Green color
+
+	// Create a new line plot for the yellow data series and set its style.
+	yellowLine, err := plotter.NewLine(yellowPts)
+	if err != nil {
+		return err
+	}
+	yellowLine.Color = color.RGBA{R: 255, G: 242, A: 255} // yellow color
+
+
+	// Add the line plot to the plot.
+	p.Add(line)
+
+	// Add the green line plot to the plot.
+	p.Add(greenLine)
+
+	// Add the yellow line plot to the plot.
+	p.Add(yellowLine)
+
+	// Convert UNIX timestamps to formatted strings for X-axis labels.
+	timeLabels := make([]string, len(timeSeries))
+	for i, timestamp := range timeSeries {
+		timeLabels[i] = time.Unix(timestamp, 0).Format("2006-01-02")
+	}
+
+	// Add custom tick marks for the X-axis (time labels).
+	p.NominalX(timeLabels...)
+
+
+	// Create separate scatter plots for Buy and Sell signals.
+	var buySignalPoints, sellSignalPoints plotter.XYs
+	for i, signal := range signals {
+		if i < len(dataSeries){
+			if signal == "Buy" {
+				buySignalPoints = append(buySignalPoints, plotter.XY{X: float64(i), Y: dataSeries[i]})
+			} else if signal == "Sell" {
+				sellSignalPoints = append(sellSignalPoints, plotter.XY{X: float64(i), Y: dataSeries[i]})
+			}
+		}
+	}
+
+	// Create scatter plots for Buy and Sell signals.
+	buyScatter, err := plotter.NewScatter(buySignalPoints)
+	if err != nil {
+		return err
+	}
+	buyScatter.Shape = plotutil.Shape(3) // Triangle shape for Buy signals
+	buyScatter.Color = color.RGBA{R: 255, G: 0, B: 0, A: 255} // Red color for Buy signals
+	buyScatter.GlyphStyle.Radius = vg.Points(5)
+
+	sellScatter, err := plotter.NewScatter(sellSignalPoints)
+	if err != nil {
+		return err
+	}
+	sellScatter.Shape = plotutil.Shape(1) // Circle shape for Sell signals
+	sellScatter.Color = color.RGBA{R: 255, G: 0, B: 0, A: 255} // Red color for Sell signals
+	sellScatter.GlyphStyle.Radius = vg.Points(5)
+
+	// Add the scatter plots to the plot.
+	p.Add(buyScatter, sellScatter)
+
+	// Save the plot to a file (you can also display it in a window if you prefer).
+	if err := p.Save(10*vg.Inch, 6*vg.Inch, graph+"line_chart_with_signals.png"); err != nil {
+		return err
+	}
+
+	return nil
+}
 // PlotEMA compares the calculated EMAs with data obtained from HitBTC.
 func PlotEMA(timestamps []int64, m55 []float64, closingPrices []float64) error {
 	// Create a new plot.
