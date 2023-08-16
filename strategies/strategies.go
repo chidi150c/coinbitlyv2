@@ -209,7 +209,7 @@ func (ts *TradingSystem) Backtest(loadFrom string) {
 
 			if  loadFrom != "InfluxDB" {
 				err := ts.APIServices.WriteCandleToDB(ts.HistoricalData[ts.DataPoint])
-				if !strings.Contains(fmt.Sprintf("%v", err), "Skipping write") {
+				if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
 					log.Fatalf("Error: writing to influxDB: %v", err)
 				}
 			}

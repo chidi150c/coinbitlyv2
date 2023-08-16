@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	loadFrom := "InfluxDB"
+	loadFrom := "HitBTC"
     ts, err := strategies.NewTradingSystem(loadFrom)
 	if err != nil {
 		log.Fatal("Error initializing trading system:", err)

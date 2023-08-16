@@ -79,7 +79,6 @@ func (c *CandleServices)WriteCandleToDB(cdl model.Candle) error {
 }
 
 func readHistoricalData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, InfluxDBMeasurement string, tags map[string]string)([]model.Candle, error){
-	// Construct the InfluxQL query
 	query := fmt.Sprintf(`from(bucket: "%s")
 	|> range(start: %s)
 	|> filter(fn: (r) => r["_measurement"] == "%s"`, InfluxDBBucket, TimeRange, InfluxDBMeasurement)
@@ -89,8 +88,9 @@ func readHistoricalData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, Influx
 	}
 
 	query += `)
-	|> keep(columns: ["_time", "_value", "_field"]) 
-	|> filter(fn: (r) => r["Close"] != 0.0)` // Filter for "Close" field values
+	|> keep(columns: ["_time", "_value", "_field"])
+	|> filter(fn: (r) => r["_field"] == "Close" and r["_value"] != 0.0)` // Filter for "Close" field values
+
 	
 	result, err := queryAPI.Query(context.Background(), query)
 	if err != nil {
@@ -102,14 +102,13 @@ func readHistoricalData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, Influx
 	for result.Next() {
 		// Parse row data
 		record := result.Record()
-		fmt.Println(record.Field(), record.Value(), "i = ", i)	
+		// fmt.Println(record.Time(), record.Field(), record.Value(), "i = ", i)	
 		cdlTime := record.Time().Unix()
 		v := fmt.Sprintf("%v",record.Value())
 		cdlClose, _ := strconv.ParseFloat(v, 64)				
 		mdcdls = append(mdcdls, model.Candle{Timestamp: cdlTime, Close: cdlClose})	
 		i++	
 	}
-	panic("hhhhhhhhhhhhhh")
 	return mdcdls, nil
 }
 
