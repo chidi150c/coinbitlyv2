@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"time"
 )
@@ -18,10 +19,31 @@ type ExchConfig struct {
 	Symbols         []string
 	CandleStartTime int64
 	CandleEndTime   int64
+	DBOrgID   string
+	DBBucket  string
+	TimeRange string
+	Measurement string
 }
+const (
+	timeRange int = -7
+)
 
 func NewExchangesConfig() map[string]*ExchConfig {
 	ExchConfigs := map[string]*ExchConfig{
+		"InfluxDB": {
+			Name:            "InfluxDB",
+			Symbols:         []string{"BTCUSDT"},
+			BaseURL:         "http://localhost:8086",
+			DBOrgID:	 	"Resoledge",
+			DBBucket:	 	"aimldata",
+			SecretKey:       "aXDeT9-0EX6K81D_94L-6q5G-w2eHS_4FJTIbsanUNqHlziMrFTOD3JULdCkCWgCTtVPvIuBhxUB0asbt8_AYw==",
+			Symbol:          "BTCUSDT",
+			CandleInterval:  "30m",
+			TimeRange: fmt.Sprintf("%dd", timeRange),
+			CandleStartTime: time.Now().Add(time.Duration(timeRange) * 24 * time.Hour).Unix(), // 3 days ago
+			CandleEndTime:   time.Now().Unix(),
+			Measurement: "historical_data",
+		},
 		"Binance": {
 			Name:            "Binance",
 			Symbols:         []string{"BTCUSDT"},
@@ -31,7 +53,7 @@ func NewExchangesConfig() map[string]*ExchConfig {
 			SecretKey:       os.Getenv("BINANCE_API_SECRET"),  // Replace with your Binance API secret key
 			Symbol:          "BTCUSDT",
 			CandleInterval:  "30m",
-			CandleStartTime: time.Now().Add(-10 * 24 * time.Hour).Unix(), // 3 days ago
+			CandleStartTime: time.Now().Add(time.Duration(timeRange) * 24 * time.Hour).Unix(), // 3 days ago
 			CandleEndTime:   time.Now().Unix(),
 		},
 		"HitBTC": {
@@ -42,9 +64,10 @@ func NewExchangesConfig() map[string]*ExchConfig {
 			SecretKey: os.Getenv("HITBTC_API_SECRET"), // Replace with your Binance API secret key
 			Symbol:     "BTCUSDT",
 			CandleInterval:   "m30",
-			CandleStartTime: time.Now().Add(-10 * 24 * time.Hour).Unix(), // 3 days ago
+			CandleStartTime: time.Now().Add(time.Duration(timeRange) * 24 * time.Hour).Unix(), // 3 days ago
 			CandleEndTime:   time.Now().Unix(),
 		},
 	}
 	return ExchConfigs
 }
+

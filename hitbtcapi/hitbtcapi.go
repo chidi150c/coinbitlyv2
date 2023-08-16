@@ -308,8 +308,7 @@ func fetchHistoricalCandlesticks(symbol, baseURL, apiVersion, apiKey, interval s
 
     // Calculate the CandleCount
 	candleCount := helper.CalculateCandleCount(startTime, endTime, int64(helper.IntervalToDuration(interval)))
-	fmt.Println("Interval:", interval, "CandleCount:", candleCount)
-    // Connect to the HitBTC endpoint"
+	// Connect to the HitBTC endpoint"
 	url := fmt.Sprintf("%s/%s/public/candles/%s?period=%s&limit=%d&from=%d&to=%d", baseURL, apiVersion, symbol, interval, candleCount, startTime, endTime)
 	resp, err := client.Get(url)
 	if err != nil {
@@ -335,5 +334,6 @@ func fetchHistoricalCandlesticks(symbol, baseURL, apiVersion, apiKey, interval s
         log.Println("Error parsing candlestick data:", err)
         return nil, err
     }
+	fmt.Println("Interval:", interval, "CandleCount:", len(candles))
     return candles, nil    
 }
