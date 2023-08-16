@@ -137,10 +137,12 @@ func CreateLineChartWithSignalsV2(timeSeries []int64, dataSeries []float64, gree
 	// Create separate scatter plots for Buy and Sell signals.
 	var buySignalPoints, sellSignalPoints plotter.XYs
 	for i, signal := range signals {
-		if signal == "Buy" {
-			buySignalPoints = append(buySignalPoints, plotter.XY{X: float64(i), Y: dataSeries[i]})
-		} else if signal == "Sell" {
-			sellSignalPoints = append(sellSignalPoints, plotter.XY{X: float64(i), Y: dataSeries[i]})
+		if i < len(dataSeries){
+			if signal == "Buy" {
+				buySignalPoints = append(buySignalPoints, plotter.XY{X: float64(i), Y: dataSeries[i]})
+			} else if signal == "Sell" {
+				sellSignalPoints = append(sellSignalPoints, plotter.XY{X: float64(i), Y: dataSeries[i]})
+			}
 		}
 	}
 

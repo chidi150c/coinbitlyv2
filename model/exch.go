@@ -1,7 +1,7 @@
 package model
 
 // Candlestick represents a single candlestick data
-type Candlestick struct {
+type Candle struct {
 	ExchName  string  `json:"exchname"`
 	Timestamp int64   `json:"timestamp"`
 	Open      float64 `json:"open"`
@@ -11,6 +11,7 @@ type Candlestick struct {
 	Volume    float64 `json:"volume"`
 }
 
-type ExchServices interface {
-	FetchHistoricalCandlesticks(symbol, interval string, startTime, endTime int64) ([]Candlestick, error)
+type APIServices interface {
+	FetchCandles(symbol, interval string, startTime, endTime int64) ([]Candle, error)
+	WriteCandleToDB(Candle)error
 }
