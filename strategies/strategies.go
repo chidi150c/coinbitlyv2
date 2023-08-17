@@ -317,7 +317,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		previousProfit := md.TotalProfitLoss
 		currentProfit := md.TotalProfitLoss + tradeProfitLoss
 		// (ts.TradeProfitLoss < transactionCost+slippageCost+md.TargetProfit)
-		if (ts.BaseBalance < ts.EntryQuantity){
+		if (ts.BaseBalance < ts.EntryQuantity) || (currentProfit < previousProfit){
 			if ts.BaseBalance < ts.EntryQuantity {
 				return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, ts.EntryQuantity)
 			}
