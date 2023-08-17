@@ -59,8 +59,8 @@ func NewTradingSystem(loadFrom string) (*TradingSystem, error) {
 	// Initialize the trading system.
 	ts := &TradingSystem{}
 	// ts.RiskFactor = 2.0           // Define 1% slippage
-	ts.TransactionCost = 0.001 // Define 0.1% transaction cost
-	ts.Slippage = 0.01
+	ts.TransactionCost = 0.0009 // Define 0.1% transaction cost
+	ts.Slippage = 0.0001
 	ts.InitialCapital = 1000.0          //Initial Capital for simulation on backtesting
 	ts.QuoteBalance = ts.InitialCapital //continer to hold the balance
 	ts.Scalping = "" //"UseTA"
