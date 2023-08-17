@@ -55,8 +55,8 @@ func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime in
 	}
 	return mcandles, nil
 }
-func (e *APIServices)WriteCandleToDB(cdl model.Candle) error {
-	return e.InfluxDB.WriteCandleToDB(cdl)
+func (e *APIServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
+	return e.InfluxDB.WriteCandleToDB(ClosePrice, Timestamp)
 }
 // // FetchTickerData fetches and displays real-time of a given symbol
 // func (e *APIServices)FetchTickerData(symbol string) (*model.TickerData, error) {

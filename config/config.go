@@ -23,6 +23,7 @@ type ExchConfig struct {
 	DBBucket  string
 	TimeRange string
 	Measurement string
+	Tag string
 }
 const (
 	timeRange int = -7
@@ -35,7 +36,7 @@ func NewExchangesConfig() map[string]*ExchConfig {
 			Symbols:         []string{"BTCUSDT"},
 			BaseURL:         "http://localhost:8086",
 			DBOrgID:	 	"Resoledge",
-			DBBucket:	 	"aimldata",
+			DBBucket:	 	"AIMLDataSet",
 			SecretKey:       "aXDeT9-0EX6K81D_94L-6q5G-w2eHS_4FJTIbsanUNqHlziMrFTOD3JULdCkCWgCTtVPvIuBhxUB0asbt8_AYw==",
 			Symbol:          "BTCUSDT",
 			CandleInterval:  "30m",
@@ -43,6 +44,7 @@ func NewExchangesConfig() map[string]*ExchConfig {
 			CandleStartTime: time.Now().Add(time.Duration(timeRange) * 24 * time.Hour).Unix(), // 3 days ago
 			CandleEndTime:   time.Now().Unix(),
 			Measurement: "historical_data",
+			Tag: "candle",
 		},
 		"Binance": {
 			Name:            "Binance",

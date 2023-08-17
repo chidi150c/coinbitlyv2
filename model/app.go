@@ -5,7 +5,6 @@ package model
 type AppData struct{
 	Count int
 	Strategy string
-	StrategyCombLogic string
 	ShortPeriod  int     
 	LongPeriod  int     
 	ShortMACDPeriod  int     
@@ -24,7 +23,6 @@ type AppData struct{
 	TargetProfit float64
 	TargetStopLoss float64
 	RiskPositionPercentage float64
-	Scalping string
 	TotalProfitLoss        float64
 }
 
