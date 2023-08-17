@@ -214,7 +214,7 @@ func (ts *TradingSystem) Backtest(loadFrom string) {
 	backT := []*model.AppData{ //StochRSI
 		// {1, "MACD", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 		// {2, "RSI", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		{3, "EMA", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.1, 0.5, 0.25, 0.0},
+		{3, "EMA", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 0.5, 0.25, 0.0},
 		// {4, "StochR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 		// {5, "Bollinger", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 		// {6, "MACD,RSI", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
@@ -449,12 +449,12 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData) (buySignal, sellSi
 				// buySignal = buySignal || (stochRSI[ts.DataPoint] > ts.StRSIOverbought && smoothKRSI[ts.DataPoint-md.StochRSIPeriod-md.SmoothK] > ts.StRSIOverbought)
 				// sellSignal = sellSignal || (stochRSI[ts.DataPoint] < md.StRSIOversold && smoothKRSI[ts.DataPoint-md.StochRSIPeriod-md.SmoothK] < md.StRSIOversold)
 			}
-			if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 0 {
+			if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 1 {
 				count++
 				ts.Container1 = shortEMA
 				ts.Container2 = longEMA
-				buySignal = buySignal || (shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
-				sellSignal = sellSignal || (shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
+				buySignal = buySignal || (shortEMA[ts.DataPoint-2] > longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
+				sellSignal = sellSignal || (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
 			}
 			if strings.Contains(md.Strategy, "RSI") && ts.DataPoint > 0 && ts.DataPoint <= len(rsi) {
 				count++
