@@ -8,8 +8,9 @@ import (
 	"log"
 	"os"
 	"strconv"
-
-    // "github.com/sjwhitworth/golearn/linear_models"
+    // "github.com/sjwhitworth/golearn/base"
+    // "github.com/sjwhitworth/golearn/ensemble"
+    // "github.com/sjwhitworth/golearn/evaluation"
 
 	"coinbitly.com/model" // Import the AppData struct
 )
@@ -25,11 +26,23 @@ func AppDatatoCSV(data []*model.AppData) { //fundamentalAnalysis()
     writer := csv.NewWriter(file)
     defer writer.Flush()
 
+    // Write headers to the CSV file
+    headers := []string{
+        "Count","Strategy","ShortPeriod","LongPeriod","ShortMACDPeriod",
+        "LongMACDPeriod","SignalMACDPeriod","RSIPeriod","StochRSIPeriod",
+        "SmoothK","SmoothD","RSIOverbought","RSIOversold","StRSIOverbought", 
+        "StRSIOversold","BollingerPeriod","BollingerNumStdDev","TargetProfit",
+        "TargetStopLoss","RiskPositionPercentage","TotalProfitLoss",   
+    }
+    err = writer.Write(headers)
+    if err != nil {
+        log.Fatal(err)
+    }
+
     for _, d := range data {
         err := writer.Write([]string{
             fmt.Sprintf("%d", d.Count),
 			d.Strategy,
-			d.StrategyCombLogic,
 			fmt.Sprintf("%d", d.ShortPeriod),
 			fmt.Sprintf("%d", d.LongPeriod),
 			fmt.Sprintf("%d", d.ShortMACDPeriod),
@@ -48,7 +61,6 @@ func AppDatatoCSV(data []*model.AppData) { //fundamentalAnalysis()
 			fmt.Sprintf("%f", d.TargetProfit),
 			fmt.Sprintf("%f", d.TargetStopLoss),
 			fmt.Sprintf("%f", d.RiskPositionPercentage),
-			d.Scalping,
 			fmt.Sprintf("%f", d.TotalProfitLoss),
         })
         if err != nil {
@@ -98,7 +110,6 @@ func CSVtoAppData(filename string) ([]*model.AppData, error) {
         data = append(data, &model.AppData{
             Count:             Count,
             Strategy:          record[1],
-            StrategyCombLogic: record[2],
             ShortPeriod:       ShortPeriod,
             LongPeriod:        LongPeriod,		
 			ShortMACDPeriod:	ShortMACDPeriod,
@@ -117,7 +128,6 @@ func CSVtoAppData(filename string) ([]*model.AppData, error) {
 			TargetProfit: TargetProfit,
 			TargetStopLoss: TargetStopLoss,
 			RiskPositionPercentage: RiskPositionPercentage,
-			Scalping: record[21],
 			TotalProfitLoss:	TotalProfitLoss,
         })
     }
@@ -125,32 +135,73 @@ func CSVtoAppData(filename string) ([]*model.AppData, error) {
     return data, nil
 }
 
-// func MLPrediction()string{
-
+// func (ts *TradingSystem) MLPrediction(loadFrom string)string{
 //     // Read data from CSV (uses your AppData struct)
-//     data, err := CSVtoAppData("data.csv")
+//     trainData, err := base.ParseCSVToInstances("data.csv", true)
 //     if err != nil {
-//         log.Fatal(err)
+//         panic(err)
 //     }
+
+//     rf := ensemble.NewRandomForest(10, 4)
+//     rf.Fit(trainData)
+
+
+
+
+//     // data, err := CSVtoAppData("data.csv")
+//     // if err != nil {
+//     //     log.Fatal(err)
+//     // }
+
+
 
 //     // Convert data to suitable format for SVM (feature matrix X, target vector y)
 //     var X [][]float64
 //     var y []float64
-//     for _, d := range data {
+//     for _, d := range trainData {
 //         // Extract relevant features and target (price movement)
 //         featureVector := []float64{
 //             float64(d.ShortPeriod),
 //             float64(d.LongPeriod),
-//             // Include other features as needed...
+//             float64(d.ShortPeriod),
+//             float64(d.LongPeriod),
+//             float64(d.ShortMACDPeriod),
+//             float64(d.LongMACDPeriod),
+//             float64(d.SignalMACDPeriod),
+//             float64(d.RSIPeriod),
+//             float64(d.StochRSIPeriod),
+//             float64(d.SmoothK),
+//             float64(d.SmoothD),
+//             float64(d.RSIOverbought),
+//             float64(d.RSIOversold),
+//             float64(d.StRSIOverbought),
+//             float64(d.StRSIOversold),
+//             float64(d.BollingerPeriod),
+//             float64(d.BollingerNumStdDev),
+//             float64(d.TargetProfit),
+//             float64(d.TargetStopLoss),
+//             float64(d.RiskPositionPercentage),
 //         }
-//         target := computePriceMovement(d) // Implement this function to compute price movement
+//         TotalProfitLoss, _ := ts.Trading(d, loadFrom) // Implement this function to compute price movement
 //         X = append(X, featureVector)
-//         y = append(y, target)
+//         y = append(y, TotalProfitLoss)
+//     }
+//     // Train a Support Vector Machine (SVM) model
+//     model, err := linear_models.NewLinearSVC("l2", "svc", false, 0.00001, 1.0)
+//     if err != nil {
+//         log.Fatal(err)
 //     }
 
-//     // Train a Support Vector Machine (SVM) model
-//     model := linear_models.NewLinearSVC()
-//     err = model.Fit(X, y)
+//     // Convert X and y to instances
+//     instances := base.NewInstances()
+//     for i := range X {
+//         instance := base.NewDenseInstance(X[i])
+//         instance.SetClass(y[i])
+//         instances.Add(instance)
+//     }
+
+//     // Train the model
+//     err = model.Fit(instances)
 //     if err != nil {
 //         log.Fatal(err)
 //     }
@@ -176,14 +227,6 @@ func CSVtoAppData(filename string) ([]*model.AppData, error) {
 // 	return predictedDirection
 // }
 
-func computePriceMovement(data *model.AppData) float64 {
-    // Implement a function to compute price movement
-    // This function should use your AppData struct and perform the necessary calculations
-    // Return a value indicating the predicted price movement (e.g., positive for an expected price increase)
 
-    // For the purpose of this example, let's return a simulated price movement
-    // Replace this with a meaningful calculation based on your trading strategy
-    return float64(data.Count) * 0.01 // Assuming a simple linear relation
-}
 
 

@@ -19,6 +19,7 @@ type CandleServices struct{
 	WriteAPI api.WriteAPIBlocking
 	TimeRange string
 	Measurement string
+	Tag string
 }
 
 func NewAPIServices(configParam *config.ExchConfig) (*CandleServices, error){	
@@ -33,21 +34,22 @@ func NewAPIServices(configParam *config.ExchConfig) (*CandleServices, error){
 		WriteAPI: writeAPI,
 		TimeRange: configParam.TimeRange,
 		Measurement: configParam.Measurement,
+		Tag: configParam.Tag,
 	}, nil
 }
 
 func (c *CandleServices)FetchCandles(symbol, interval string, startTime, endTime int64) ([]model.Candle, error){
 	tags := map[string]string{
-		"Historical" : "HitBTC",
+		"Historical" : c.Tag,
 	}
 	return readHistoricalData(c.QueryAPI, c.InfluxDBBucket, c.TimeRange, c.Measurement, tags)
 }
 
-func (c *CandleServices)WriteCandleToDB(cdl model.Candle) error {
+func (c *CandleServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
 	tags := map[string]string{
-		"Historical" : cdl.ExchName,
+		"Historical" : c.Tag,
 	}
-	timestamp := cdl.Timestamp
+	timestamp := Timestamp
 
 	exists, err := dataPointExists(c.QueryAPI, c.InfluxDBBucket, c.TimeRange, c.Measurement, tags, timestamp)
 	if err != nil {		
@@ -61,13 +63,9 @@ func (c *CandleServices)WriteCandleToDB(cdl model.Candle) error {
 	}
 
     point2 := influxdb2.NewPointWithMeasurement(c.Measurement).
-		AddTag("Historical", cdl.ExchName).
-        AddField("Close", cdl.Close).
-        AddField("High", cdl.High).
-        AddField("Low", cdl.Low).
-        AddField("Open", cdl.Open).
-        AddField("Volume", cdl.Volume).
-        SetTime(time.Unix(cdl.Timestamp, 0))	
+		AddTag("Historical", c.Tag).
+        AddField("Close", ClosePrice).
+        SetTime(time.Unix(Timestamp, 0))	
 
 	// Write the point to the database
 	err = c.WriteAPI.WritePoint(context.Background(), point2)
@@ -109,6 +107,7 @@ func readHistoricalData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, Influx
 		mdcdls = append(mdcdls, model.Candle{Timestamp: cdlTime, Close: cdlClose})	
 		i++	
 	}
+	fmt.Println("Interval:", TimeRange, "CandleCount:", len(mdcdls))
 	return mdcdls, nil
 }
 
@@ -144,7 +143,6 @@ func readAppData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, InfluxDBMeasu
 			md.Strategy = "MACD"
 			md.Count = record.ValueByKey("Count").(int)
 			md.Strategy = record.ValueByKey("Strategy").(string)
-			md.StrategyCombLogic = record.ValueByKey("StrategyCombLogic").(string)
 			md.ShortPeriod = record.ValueByKey("ShortPeriod").(int)
 			md.LongPeriod = record.ValueByKey("LongPeriod").(int)
 			md.ShortMACDPeriod = record.ValueByKey("ShortMACDPeriod").(int)
@@ -178,7 +176,6 @@ func (c *CandleServices)WriteAppDataToDB(md *model.AppData, timestamp int64) err
 		AddTag("Strategy", md.Strategy).
 		AddField("Count", md.Count).
 		AddField("Strategy", md.Strategy).
-		AddField("StrategyCombLogic", md.StrategyCombLogic).
 		AddField("ShortPeriod", md.ShortPeriod).
 		AddField("LongPeriod", md.LongPeriod).
 		AddField("ShortMACDPeriod", md.ShortMACDPeriod).

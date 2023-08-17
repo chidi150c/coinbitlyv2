@@ -46,7 +46,6 @@ type TradingSystem struct {
 	StrategyCombLogic string
 	TradeProfitLoss float64
 	TradeCount int
-	EnableStoploss bool
 	// StopLossRecover        float64
 	// RiskFactor 			   float64
 }
@@ -65,7 +64,6 @@ func NewTradingSystem(loadFrom string) (*TradingSystem, error) {
 	ts.QuoteBalance = ts.InitialCapital //continer to hold the balance
 	ts.Scalping = "UseTA"
 	ts.StrategyCombLogic = "AND"
-	ts.EnableStoploss = false
 	// ts.StopLossRecover = math.MaxFloat64 //
 
 	// Fetch historical data from the exchange
@@ -111,72 +109,52 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 	// Initialize variables for tracking trading performance.
 	ts.TradeCount = 0
 	// Simulate the backtesting process using historical price data.
-	for ts.DataPoint, ts.CurrentPrice = range ts.ClosingPrices {
+	for ts.DataPoint, ts.CurrentPrice = range ts.ClosingPrices {		
+		ts.TradeProfitLoss = 0.0
 		// Execute the trade if entry conditions are met.
 		if (!ts.InTrade) && (ts.EntryRule(md)) { //&& (ts.CurrentPrice <= ts.StopLossRecover)
-			// Record entry price for calculating profit/loss and stoploss later.
-			ts.EntryPrice = ts.CurrentPrice
+			
 			// Execute the buy order using the ExecuteStrategy function.
-			resp, err := ts.ExecuteStrategy(md, "Buy")
+			err := ts.ExecuteStrategy(md, "Buy")
 			if err != nil {
 				fmt.Println("Error executing buy order:", err)
 				ts.Signals[ts.DataPoint] = "Hold" // No Signal - Hold Position
-			}else if strings.Contains(resp, "BUY"){				
-				// Record Signal for plotting graph later
-				ts.Signals[ts.DataPoint] = "Buy"
-				fmt.Println(resp)
-				// Mark that we are in a trade.
-				ts.InTrade = true
-				ts.TradeCount++
-			}else{
-				ts.Signals[ts.DataPoint] = "Hold" // No Signal - Hold Positio				
+				continue
 			}
-		// Close the trade if exit conditions are met.
 		} else if ts.InTrade {
 			switch ts.Scalping {
 			case "UseTA":
 				if ts.ExitRule(md) {
 					// Execute the sell order using the ExecuteStrategy function.
-					resp, err := ts.ExecuteStrategy(md, "Sell")
+					err := ts.ExecuteStrategy(md, "Sell")
 					if err != nil {
-						fmt.Println("Error:", err, " at:", ts.CurrentPrice, ", TargetStopLoss:", md.TargetStopLoss)
+						if fmt.Sprintf("%v", err) == "Stoploss Triggered" {
+							continue
+						}
 						ts.Signals[ts.DataPoint] = "Hold" // No Signal - Hold Position
-					}else if strings.Contains(resp, "SELL"){
-						// Record Signal for plotting graph later.
-						ts.Signals[ts.DataPoint] = "Sell"
-						fmt.Println(resp)
-						// Mark that we are no longer in a trade.
-						ts.InTrade = false
-						ts.TradeCount++
-					}else{
-						ts.Signals[ts.DataPoint] = "Hold" // No Signal - Hold Position
-					}					
+						continue
+					}
 				}else{
 					ts.Signals[ts.DataPoint] = "Hold" // No Signal - Hold Positio
 				}
 			default:
 				// Execute the sell order using the ExecuteStrategy function.
-				resp, err := ts.ExecuteStrategy(md, "Sell")
+				err := ts.ExecuteStrategy(md, "Sell")
 				if err != nil {
-					fmt.Println("Error:", err, " at:", ts.CurrentPrice, ", TargetStopLoss:", md.TargetStopLoss)
+					if fmt.Sprintf("%v", err) == "Stoploss Triggered" {
+						continue
+					}
 					ts.Signals[ts.DataPoint] = "Hold" // No Signal - Hold Position
-				}else if strings.Contains(resp, "SELL"){
-					// Record Signal for plotting graph later.
-					ts.Signals[ts.DataPoint] = "Sell"
-					fmt.Println(resp)
-					// Mark that we are no longer in a trade.
-					ts.InTrade = false
-					ts.TradeCount++
-				}else{
-					ts.Signals[ts.DataPoint] = "Hold" // No Signal - Hold Position
-				}	
+					continue
+				}
 			}
 		} else {
 			ts.Signals[ts.DataPoint] = "Hold" // No Signal - Hold Position
 		}
 	}
 	//Check if there is still asset remainning and sell off
-	if ts.BaseBalance > 0.0 {
+	if ts.BaseBalance > 0.0 {			
+		ts.TradeProfitLoss = 0.0
 		// After sell off Update the quote and base balances after the trade.
 
 		// Calculate profit/loss for the trade.
@@ -188,14 +166,14 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 		// Store profit/loss for the trade.
 
 		ts.TradeProfitLoss -= transactionCost + slippageCost
-		// md.TotalProfitLoss += tradeProfitLoss
+		// md.TotalProfitLoss += ts.TradeProfitLoss
 
 		ts.QuoteBalance += (ts.BaseBalance * exitPrice) - transactionCost - slippageCost
 		ts.BaseBalance -= ts.BaseBalance
 		ts.Signals = append(ts.Signals, "Sell")
 		ts.InTrade = false
 		ts.TradeCount++
-		fmt.Printf("- SELL-Off at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.BaseBalance, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
+		fmt.Printf("- SELL-Off at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f ThisTradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.BaseBalance, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
 	}
 	return md.TotalProfitLoss
 }  
@@ -207,35 +185,36 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 func (ts *TradingSystem) Backtest(loadFrom string) {
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl)
-	//Count,Strategy,ShortPeriod,LongPeriod,ShortMACDPeriod,LongMACDPeriod,
+	//Count,Strategy,StrategyCombLogic,ShortPeriod,LongPeriod,ShortMACDPeriod,LongMACDPeriod,
 	//SignalMACDPeriod,RSIPeriod,StochRSIPeriod,SmoothK,SmoothD,RSIOverbought,RSIOversold,
 	//StRSIOverbought,StRSIOversold,BollingerPeriod,BollingerNumStdDev,TargetProfit,
-	//TargetStopLoss,RiskPositionPercentage
+	//TargetStopLoss,RiskPositionPercentage,
 	backT := []*model.AppData{ //StochRSI
-		{1, "MACD", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		{2, "RSI", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		{3, "EMA", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		{4, "StochR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		{5, "Bollinger", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {6, "MACD,RSI", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {7, "RSI,MACD", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {8, "EMA,MACD", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {9, "StochR,MACD", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {10, "Bollinger,MACD", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {11, "MACD,RSI", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {12, "RSI,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {13, "EMA,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {14, "StochR,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {15, "Bollinger,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
+		{1, "MACD", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 1.0, 3.0, 0.25, 0.0},
+		{2, "RSI", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 5.0, 3.0, 0.25, 0.0},
+		{3, "EMA", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 1.0, 3.0, 0.25, 0.0},
+		{4, "StochR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 5.0, 3.0, 0.25, 0.0},
+		{5, "Bollinger", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 1.0, 3.0, 0.25, 0.0},
+		// {6, "MACD,RSI", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 5.0, 3.0, 0.25, 0.0},
+		// {7, "RSI,MACD", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 5.0, 3.0, 0.25, 0.0},
+		// {8, "EMA,MACD", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 5.0, 3.0, 0.25, 0.0},
+		// {9, "StochR,MACD", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 5.0, 3.0, 0.25, 0.0},
+		// {10, "Bollinger,MACD", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 5.0, 3.0, 0.25, 0.0},
+		// {11, "MACD,RSI", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 5.0, 3.0, 0.25, 0.0},
+		// {12, "RSI,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 5.0, 3.0, 0.25, 0.0},
+		// {13, "EMA,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 5.0, 3.0, 0.25, 0.0},
+		// {14, "StochR,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 5.0, 3.0, 0.25, 0.0},
+		// {15, "Bollinger,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 5.0, 3.0, 0.25, 0.0},
 	}
 	AppDatatoCSV(backT)
 	for _, md := range backT {
 		ts.BaseBalance = 0.0
+		ts.TradeProfitLoss = 0.0
 		ts.QuoteBalance = ts.InitialCapital
 		_ = ts.Trading(md, loadFrom)
 		// Print the overall trading performance after backtesting.
 		fmt.Printf("\nBacktesting Summary: %d Strategy: %s Combination: %s\n", md.Count, md.Strategy, ts.StrategyCombLogic)
-		fmt.Printf("Total Trades: %d, out of %d trials ", ts.TradeCount, len(ts.Signals))
+		fmt.Printf("Total Trades: %d, ", ts.TradeCount)
 		fmt.Printf("Total Profit/Loss: %.2f, ", md.TotalProfitLoss)
 		fmt.Printf("Final Capital: %.2f, ", ts.QuoteBalance)
 		fmt.Printf("Final Asset: %.8f ", ts.BaseBalance)
@@ -267,18 +246,19 @@ func (ts *TradingSystem) Backtest(loadFrom string) {
 
 // ExecuteStrategy executes the trade based on the provided trade action and current price.
 // The tradeAction parameter should be either "Buy" or "Sell".
-func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) (string, error) {
+func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) error {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
-	// Calculate position size based on the fixed percentage of risk per trade.
-	resp := ts.RiskManagement(md) // make sure entry price is set before calling risk management
-	if strings.Contains(resp, "SELL") {
-		return resp, nil
+	// Calculate position size based on the fixed percentage of risk per trade.		
+	ts.TradeProfitLoss = 0.0
+	isStopLossExecuted := ts.RiskManagement(md) // make sure entry price is set before calling risk management
+	if isStopLossExecuted {
+		return errors.New("Stoploss Triggered")
 	}
 	switch tradeAction {
 	case "Buy":
 		if ts.InTrade {
-			return "", fmt.Errorf("cannot execute a buy order while already in a trade")
+			return fmt.Errorf("cannot execute a buy order while already in a trade")
 		}
 		ts.TradeProfitLoss = 0.0
 		// Update the current balance after the trade (considering transaction fees and slippage).
@@ -288,93 +268,102 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 
 		//check if there is enough Quote (USDT) for the buy transaction
 		if ts.QuoteBalance < (ts.PositionSize*ts.CurrentPrice)+transactionCost+slippageCost {
-			return "", fmt.Errorf("cannot execute a buy order due to insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f + transactionCost %.8f+ slippageCost %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice, transactionCost, slippageCost)
+			return fmt.Errorf("cannot execute a buy order due to insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f + transactionCost %.8f+ slippageCost %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice, transactionCost, slippageCost)
 		}
 
 		// Update the quote and base balances after the trade.
 		ts.QuoteBalance -= (ts.PositionSize * ts.CurrentPrice) + transactionCost + slippageCost
 		ts.BaseBalance += ts.PositionSize
 		md.TotalProfitLoss -= transactionCost + slippageCost
-
+		// Record Signal for plotting graph later
+		ts.Signals[ts.DataPoint] = "Buy"
 		// Mark that we are in a trade.
 		ts.InTrade = true
+		fmt.Printf("- BUY at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f ThisTradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
+		ts.TradeCount++
 		// Record entry price for calculating profit/loss later.
 		ts.EntryQuantity = ts.PositionSize
-		resp := fmt.Sprintf("- BUY at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
-		return resp, nil
+		ts.EntryPrice = ts.CurrentPrice
+
+		return nil
 
 	case "Sell":
 		if !ts.InTrade {
-			return "", fmt.Errorf("cannot execute a sell order without an existing trade")
+			return fmt.Errorf("cannot execute a sell order without an existing trade")
 		}
 
 		// Calculate profit/loss for the trade.
 		exitPrice := ts.CurrentPrice
-		tradeProfitLoss := CalculateProfitLoss(ts.EntryPrice, exitPrice, ts.EntryQuantity)
+		ts.TradeProfitLoss = CalculateProfitLoss(ts.EntryPrice, exitPrice, ts.EntryQuantity)
 		transactionCost := ts.TransactionCost * exitPrice * ts.EntryQuantity
 		slippageCost := ts.Slippage * exitPrice * ts.EntryQuantity
-		tradeProfitLoss -= transactionCost + slippageCost
-		previousProfit := md.TotalProfitLoss
-		currentProfit := md.TotalProfitLoss + tradeProfitLoss
-		// (ts.TradeProfitLoss < transactionCost+slippageCost+md.TargetProfit)
-		if (ts.BaseBalance < ts.EntryQuantity){
+
+		if (ts.BaseBalance < ts.EntryQuantity) || (ts.TradeProfitLoss < transactionCost+slippageCost+md.TargetProfit) {
 			if ts.BaseBalance < ts.EntryQuantity {
-				return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, ts.EntryQuantity)
+				return fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, ts.EntryQuantity)
 			}
-			return "", fmt.Errorf("cannot execute a sell order without profit up to prevProfit: %.8f, this trade currentProfit: %.8f, target profit: %.8f", previousProfit, currentProfit, md.TargetProfit)
+			return fmt.Errorf("cannot execute a sell order without profit up to: %.8f, this trade profit: %.8f", md.TargetProfit, ts.TradeProfitLoss)
 		}
 
-		ts.TradeProfitLoss = tradeProfitLoss
+		ts.TradeProfitLoss -= transactionCost + slippageCost
+
 		// Store profit/loss for the trade.
 		md.TotalProfitLoss += ts.TradeProfitLoss
-		// Mark that we are no longer in a trade.
-		ts.InTrade = false
 
 		// Update the quote and base balances after the trade.
 		ts.QuoteBalance += (ts.EntryQuantity * exitPrice) - transactionCost - slippageCost
 		ts.BaseBalance -= ts.EntryQuantity
 
-		resp := fmt.Sprintf("- SELL at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
-		return resp, nil
+		// Record Signal for plotting graph later
+		ts.Signals[ts.DataPoint] = "Sell"
+		// Mark that we are no longer in a trade.
+		ts.InTrade = false
+		ts.TradeCount++
+		fmt.Printf("- SELL at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f ThisTradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
+		return nil
 	default:
-		return "", fmt.Errorf("invalid trade action: %s", tradeAction)
+		return fmt.Errorf("invalid trade action: %s", tradeAction)
 	}
 }
 
 // RiskManagement applies risk management rules to limit potential losses.
 // It calculates the stop-loss price based on the fixed percentage of risk per trade and the position size.
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
-func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
+func (ts *TradingSystem) RiskManagement(md *model.AppData) bool {
 	// Calculate position size based on the fixed percentage of risk per trade.
 	ts.RiskCost = ts.QuoteBalance * md.RiskPositionPercentage
 	ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 
 	// Check if the current price breaches the stop-loss level and triggers a sell signal.
-	if !ts.InTrade {	
-		return "false"
+	if ts.InTrade {			
+		// Calculate profit/loss for the trade.
+		exitPrice := ts.CurrentPrice
+		ts.TradeProfitLoss = CalculateProfitLoss(ts.EntryPrice, exitPrice, ts.EntryQuantity)
+		transactionCost := ts.TransactionCost * exitPrice * ts.EntryQuantity
+		slippageCost := ts.Slippage * exitPrice * ts.EntryQuantity
+		ts.TradeProfitLoss -= transactionCost + slippageCost
+		
+		if (ts.TradeProfitLoss <= -md.TargetStopLoss) && (ts.BaseBalance >= ts.EntryQuantity) {
+			md.TotalProfitLoss += ts.TradeProfitLoss
+	
+			// Update the quote and base balances after the trade.
+			ts.QuoteBalance += (ts.EntryQuantity * exitPrice) - transactionCost - slippageCost
+			ts.BaseBalance -= ts.EntryQuantity
+	
+			//increase riskPosition by a factor
+			// md.RiskPositionPercentage *= ts.RiskFactor
+	
+			// Record Signal for plotting graph later.
+			ts.Signals[ts.DataPoint] = "Sell"
+			// Mark that we are no longer in a trade.
+			ts.InTrade = false
+			ts.TradeCount++
+			fmt.Printf("- SELL-StopLoss at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f ThisTradeP&L: %.8f PosPcent: %.8f DataPt: %d\n",
+				ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
+			return true
+		}	
 	}
-	// Calculate profit/loss for the trade.
-	exitPrice := ts.CurrentPrice
-	ts.TradeProfitLoss = CalculateProfitLoss(ts.EntryPrice, exitPrice, ts.EntryQuantity)
-	transactionCost := ts.TransactionCost * exitPrice * ts.EntryQuantity
-	slippageCost := ts.Slippage * exitPrice * ts.EntryQuantity
-	ts.TradeProfitLoss -= transactionCost + slippageCost
-
-	// Check if the current price breaches the stop-loss level and triggers a sell signal.
-	if (ts.TradeProfitLoss <= -md.TargetStopLoss) && (ts.BaseBalance >= ts.EntryQuantity) && ts.EnableStoploss{
-		md.TotalProfitLoss += ts.TradeProfitLoss
-
-		// Update the quote and base balances after the trade.
-		ts.QuoteBalance += (ts.EntryQuantity * exitPrice) - transactionCost - slippageCost
-		ts.BaseBalance -= ts.EntryQuantity
-
-		// Mark that we are no longer in a trade.
-		ts.InTrade = false
-		resp := fmt.Sprintf("- SELL-StopLoss at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n",
-			ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
-		return resp
-	}
-	return "false"
+	return false
 }
 
 // TechnicalAnalysis(): This function performs technical analysis using the
