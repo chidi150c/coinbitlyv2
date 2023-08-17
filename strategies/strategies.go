@@ -63,7 +63,7 @@ func NewTradingSystem(loadFrom string) (*TradingSystem, error) {
 	ts.Slippage = 0.01
 	ts.InitialCapital = 1000.0          //Initial Capital for simulation on backtesting
 	ts.QuoteBalance = ts.InitialCapital //continer to hold the balance
-	ts.Scalping = "UseTA"
+	ts.Scalping = "" //"UseTA"
 	ts.StrategyCombLogic = "OR"
 	ts.EnableStoploss = false
 	// ts.StopLossRecover = math.MaxFloat64 //
