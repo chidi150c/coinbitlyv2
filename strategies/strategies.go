@@ -121,7 +121,7 @@ func NewAppData() *model.AppData {
 // data. It gets live ticker prices from exchange, checks for entry and exit
 // conditions, and executes trades accordingly. It also tracks trading performance
 // and updates the current balance after each trade.
-func (ts *TradingSystem) LiveTrade() {
+func (ts *TradingSystem) LiveTrade(loadFrom string) {
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl)
 
@@ -132,23 +132,29 @@ func (ts *TradingSystem) LiveTrade() {
 	ts.QuoteBalance = ts.InitialCapital
 	// Initialize variables for tracking trading performance.
 	ts.TradeCount = 0
-	ts.DataPoint = 0
 	var err error
 	for{
-		ts.CurrentPrice, err = ts.APIServices.GetTicker("BTCUSDT")
+		ts.CurrentPrice, err = ts.APIServices.FetchTicker("BTCUSDT")
 		if err != nil {
 			log.Fatal("Error Reporting Live Trade: ", err)
 		}
-		md.TotalProfitLoss = ts.Trading(md, "live")
+		ts.DataPoint++
+		ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
+		ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
+
+		md.TotalProfitLoss = ts.Trading(md, loadFrom)
+
 		err = ts.Reporting(md, "Live Trading")
 		if err != nil {
 			fmt.Println("Error Reporting Live Trade: ", err)
 			return
 		}
-		ts.DataPoint++
+		
+		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
+		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
+		// 	log.Fatalf("Error: writing to influxDB: %v", err)
+		// }
 	}
-	fmt.Println()
-	fmt.Println("Next Set Starts Below:")
 }
 
 // Backtest(): This function simulates the backtesting process using historical
@@ -396,19 +402,30 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData) (buySignal, sellSi
 	// Calculate moving averages (MA) using historical data.
 	longEMA, shortEMA, timeStamps, err := CandleExponentialMovingAverage(ts.ClosingPrices, ts.Timestamps, md.LongPeriod, md.ShortPeriod)
 	if err != nil {
-		log.Fatalf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
+		log.Printf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
 	}
+
 	// Calculate Relative Strength Index (RSI) using historical data.
-	rsi := CalculateRSI(ts.ClosingPrices, md.RSIPeriod)
-
+	rsi, err := CalculateRSI(ts.ClosingPrices, md.RSIPeriod)
+	if err != nil {
+		log.Printf("Error: in TechnicalAnalysis Unable to get RSI: %v", err)
+	}
 	// Calculate Stochastic RSI and SmoothK, SmoothD values
-	stochRSI, smoothKRSI := StochasticRSI(rsi, md.StochRSIPeriod, md.SmoothK, md.SmoothD)
-
+	stochRSI, smoothKRSI, err := StochasticRSI(rsi, md.StochRSIPeriod, md.SmoothK, md.SmoothD)
+	if err != nil {
+		log.Printf("Error: in TechnicalAnalysis Unable to get StochRSI: %v", err)
+	}
 	// Calculate MACD and Signal Line using historical data.
-	macdLine, signalLine, macdHistogram := CalculateMACD(md.SignalMACDPeriod, ts.ClosingPrices, ts.Timestamps, md.LongMACDPeriod, md.ShortMACDPeriod)
+	macdLine, signalLine, macdHistogram, err := CalculateMACD(md.SignalMACDPeriod, ts.ClosingPrices, ts.Timestamps, md.LongMACDPeriod, md.ShortMACDPeriod)
+	if err != nil {
+		log.Printf("Error: in TechnicalAnalysis Unable to get StochRSI: %v", err)
+	}
 
 	// Calculate Bollinger Bands using historical data.
-	_, upperBand, lowerBand := CalculateBollingerBands(ts.ClosingPrices, md.BollingerPeriod, md.BollingerNumStdDev)
+	_, upperBand, lowerBand, err := CalculateBollingerBands(ts.ClosingPrices, md.BollingerPeriod, md.BollingerNumStdDev)
+	if err != nil {
+		return false, false
+	}
 
 	// Determine the buy and sell signals based on the moving averages, RSI, MACD line, and Bollinger Bands.
 	if len(stochRSI) > 1 && len(smoothKRSI) > 1 && len(shortEMA) > 1 && len(longEMA) > 1 && len(rsi) > 0 && len(macdLine) > 1 && len(signalLine) > 1 && len(upperBand) > 0 && len(lowerBand) > 0 {
@@ -722,21 +739,19 @@ func (ts *TradingSystem) LiveUpdate(loadFrom string) error {
 	}
 
 	ts.APIServices = exch
-	ts.CurrentPrice, err = exch.GetTicker()
+	ts.CurrentPrice, err = exch.FetchTicker("BTCUSDT")
 	if err != nil {
 		return err
 	}
 	// Mining data for historical analysis
+	ts.DataPoint = 0
 	ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 	ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 	ts.Signals = append(ts.Signals, "Hold")
-	// 	if  loadFrom != "InfluxDB" {
-	// 		err := ts.APIServices.WriteCandleToDB(candle.Close, candle.Timestamp)
-	// 		if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
-	// 			log.Fatalf("Error: writing to influxDB: %v", err)
-	// 		}
-	// 	}
-	// }
+	err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
+	if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
+		log.Fatalf("Error: writing to influxDB: %v", err)
+	}
 	return nil
 }
 
@@ -797,7 +812,12 @@ func (ts *TradingSystem)ShutDown(md *model.AppData, sigchnl chan os.Signal)  {
 }
 
 // CalculateMACD calculates the Moving Average Convergence Divergence (MACD) and MACD Histogram for the given data and periods.
-func CalculateMACD(SignalMACDPeriod int, closingPrices []float64, timeStamps []int64, LongPeriod, ShortPeriod int) (macdLine, signalLine, macdHistogram []float64) {
+func CalculateMACD(SignalMACDPeriod int, closingPrices []float64, timeStamps []int64, LongPeriod, ShortPeriod int) (macdLine, signalLine, macdHistogram []float64, err error) {
+	if LongPeriod <= 0 || len(closingPrices) < LongPeriod {
+		err = fmt.Errorf("Error Calculating EMA: not enoguh data for period %v", LongPeriod)
+		return nil, nil, nil, err
+	}
+	
 	longEMA, shortEMA, _, err := CandleExponentialMovingAverage(closingPrices, timeStamps, LongPeriod, ShortPeriod)
 	if err != nil {
 		log.Fatalf("Error: in CalclateMACD while tring to get EMA")
@@ -809,7 +829,7 @@ func CalculateMACD(SignalMACDPeriod int, closingPrices []float64, timeStamps []i
 	}
 
 	// Calculate signal line using the MACD line
-	signalLine = CalculateExponentialMovingAverage(macdLine, SignalMACDPeriod)
+	signalLine, err = CalculateExponentialMovingAverage(macdLine, SignalMACDPeriod)
 
 	// Calculate MACD Histogram
 	macdHistogram = make([]float64, len(closingPrices))
@@ -817,11 +837,14 @@ func CalculateMACD(SignalMACDPeriod int, closingPrices []float64, timeStamps []i
 		macdHistogram[i] = macdLine[i] - signalLine[i]
 	}
 
-	return macdLine, signalLine, macdHistogram
+	return macdLine, signalLine, macdHistogram, err
 }
 
 //CandleExponentialMovingAverage calculates EMA from condles
 func CandleExponentialMovingAverage(closingPrices []float64, timeStamps []int64, LongPeriod, ShortPeriod int) (longEMA, shortEMA []float64, timestamps []int64, err error) {
+	if LongPeriod <= 0 || len(closingPrices) < LongPeriod {
+		return nil, nil, nil, fmt.Errorf("Error Calculating Candle EMA: not enoguh data for period %v", LongPeriod)
+	}
 	var ema55, ema15 *ema.Ema
 	ema55 = ema.NewEma(alphaFromN(LongPeriod))
 	ema15 = ema.NewEma(alphaFromN(ShortPeriod))
@@ -840,7 +863,11 @@ func CandleExponentialMovingAverage(closingPrices []float64, timeStamps []int64,
 }
 
 // CalculateExponentialMovingAverage calculates the Exponential Moving Average (EMA) for the given data and period.
-func CalculateExponentialMovingAverage(data []float64, period int) (ema []float64) {
+func CalculateExponentialMovingAverage(data []float64, period int) (ema []float64, err error) {
+	if period <= 0 || len(data) < period {
+		err = fmt.Errorf("Error Calculating EMA: not enoguh data for period %v", period)
+		return nil, err
+	}
 	ema = make([]float64, len(data))
 	smoothingFactor := 2.0 / (float64(period) + 1.0)
 
@@ -856,7 +883,7 @@ func CalculateExponentialMovingAverage(data []float64, period int) (ema []float6
 		ema[i] = (data[i]-ema[i-1])*smoothingFactor + ema[i-1]
 	}
 
-	return ema
+	return ema, nil
 }
 
 // CalculateProfitLoss calculates the profit or loss from a trade.
@@ -864,11 +891,11 @@ func CalculateProfitLoss(entryPrice, exitPrice, positionSize float64) float64 {
 	return (exitPrice - entryPrice) * positionSize
 }
 
-func CalculateSimpleMovingAverage(data []float64, period int) (sma []float64) {
+func CalculateSimpleMovingAverage(data []float64, period int) (sma []float64, err error) {
 	if period <= 0 || len(data) < period {
-		return nil
+		err = fmt.Errorf("Error Calculating SMA: not enoguh data for period %v", period)
+		return nil, err
 	}
-
 	sma = make([]float64, len(data)-period+1)
 	for i := 0; i <= len(data)-period; i++ {
 		sum := 0.0
@@ -878,7 +905,7 @@ func CalculateSimpleMovingAverage(data []float64, period int) (sma []float64) {
 		sma[i] = sum / float64(period)
 	}
 
-	return sma
+	return sma, nil
 }
 
 func CalculateStandardDeviation(data []float64, period int) []float64 {
@@ -888,7 +915,8 @@ func CalculateStandardDeviation(data []float64, period int) []float64 {
 
 	stdDev := make([]float64, len(data)-period+1)
 	for i := 0; i <= len(data)-period; i++ {
-		avg := CalculateSimpleMovingAverage(data[i:i+period], period)[0]
+		sma, _ := CalculateSimpleMovingAverage(data[i:i+period], period)
+		avg := sma[0]
 		variance := 0.0
 		for j := i; j < i+period; j++ {
 			variance += math.Pow(data[j]-avg, 2)
@@ -900,7 +928,10 @@ func CalculateStandardDeviation(data []float64, period int) []float64 {
 }
 
 // StochasticRSI calculates the Stochastic RSI for a given RSI data series, period, and SmoothK, SmoothD.
-func StochasticRSI(rsi []float64, period, smoothK, smoothD int) ([]float64, []float64) {
+func StochasticRSI(rsi []float64, period, smoothK, smoothD int) ([]float64, []float64, error) {
+	if period <= 0 || len(rsi) < period+1 {
+		return nil, nil, fmt.Errorf("Error Calculating StochRSI: not enoguh data for period %v", period)
+	}
 	stochasticRSI := make([]float64, len(rsi)-period+1)
 	// smoothKRSI := make([]float64, len(stochasticRSI)-smoothK+1)
 
@@ -924,14 +955,23 @@ func StochasticRSI(rsi []float64, period, smoothK, smoothD int) ([]float64, []fl
 
 	// Smooth Stochastic RSI using Exponential Moving Averages
 	// Smooth Stochastic RSI using Exponential Moving Averages
-	emaSmoothK := CalculateExponentialMovingAverage(stochasticRSI, smoothK)
-	emaSmoothD := CalculateExponentialMovingAverage(emaSmoothK, smoothD)
+	emaSmoothK, err := CalculateExponentialMovingAverage(stochasticRSI, smoothK)
+	if err != nil{
+		return nil, nil, fmt.Errorf("Error Calculating EMA in Stochastic RSI: %v", err)
+	}
+	emaSmoothD, err := CalculateExponentialMovingAverage(emaSmoothK, smoothD)
+	if err != nil{
+		return nil, nil, fmt.Errorf("Error Calculating EMA in Stochastic RSI: %v", err)
+	}
 
-	return emaSmoothK, emaSmoothD
+	return emaSmoothK, emaSmoothD, nil
 }
 
 // CalculateRSI calculates the Relative Strength Index for a given data series and period.
-func CalculateRSI(data []float64, period int) []float64 {
+func CalculateRSI(data []float64, period int) ([]float64, error){
+	if period <= 0 || len(data) < period+1 {
+		return nil, fmt.Errorf("Error Calculating RSI: not enoguh data for period %v", period)
+	}
 	rsi := make([]float64, len(data)-period+1)
 
 	// Calculate initial average gains and losses
@@ -967,12 +1007,18 @@ func CalculateRSI(data []float64, period int) []float64 {
 		rsi[i-period] = 100.0 - (100.0 / (1.0 + avgGain/avgLoss))
 	}
 
-	return rsi
+	return rsi, nil
 }
 
 // CalculateBollingerBands calculates the middle (SMA) and upper/lower Bollinger Bands for the given data and period.
-func CalculateBollingerBands(data []float64, period int, numStdDev float64) ([]float64, []float64, []float64) {
-	sma := CalculateSimpleMovingAverage(data, period)
+func CalculateBollingerBands(data []float64, period int, numStdDev float64) ([]float64, []float64, []float64, error) {
+	if period <= 0 || len(data) < period {
+		return nil, nil, nil, fmt.Errorf("Error Calculating Bollinger Bands: not enoguh data for period %v", period)
+	}
+	sma, err := CalculateSimpleMovingAverage(data, period)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("Error Calculating SMA in Bollinger Bands: %v", err)
+	}
 	stdDev := CalculateStandardDeviation(data, period)
 
 	upperBand := make([]float64, len(sma))
@@ -983,7 +1029,7 @@ func CalculateBollingerBands(data []float64, period int, numStdDev float64) ([]f
 		lowerBand[i] = sma[i] - numStdDev*stdDev[i]
 	}
 
-	return sma, upperBand, lowerBand
+	return sma, upperBand, lowerBand, nil
 }
 
 func alphaFromN(N int) float64 {
