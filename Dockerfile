@@ -9,19 +9,10 @@ COPY conbitly .
 COPY webClient ./webClient
 
 # Set the environment variable
-ENV GOPATH=$HOME/coinbitly.com
-ENV PATH=$HOME/coinbitly.com:$PATH
 ENV PORT=35259
-ENV PORT2=10443
-ENV PORT3=35261
-ENV PORT4=35260
-ENV HOSTEMAIL=mail.privateemail.com
-ENV HOSTSITE=https://coinbitly.com
-ENV HOSTEXCH1=https://api.hitbtc.com
-ENV EMAILPWD=Chid!234
 
 # Expose the port using the environment variable PORT4
-EXPOSE $PORT4
+EXPOSE $PORT
 
 # Command to start your Go application
 CMD ["./conbitly"]
