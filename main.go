@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	loadFrom := "InfluxDB"
+	loadFrom := "Binance" //"InfluxDB"
 	liveTrading := true
     ts, err := strategies.NewTradingSystem(liveTrading, loadFrom)
 	if err != nil {
