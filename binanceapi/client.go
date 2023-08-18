@@ -63,13 +63,16 @@ func (e *APIServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error 
 	return e.InfluxDB.WriteCandleToDB(ClosePrice, Timestamp)
 }
 
-func (e *APIServices)GetTicker(symbol string)(CurrentPrice float64, err error){
+func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error){
 	CurrentPrice = rand.Float64()
 	return CurrentPrice, err
 }
-// FetchTickerData fetches and displays real-time of a given symbol
-// func (e *APIServices)FetchTickerData(symbol string) (*model.TickerData, error) {
-// 	ticker, err := fetchTickerData(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
+func (e *APIServices)WriteTickerToDB(ClosePrice float64, Timestamp int64)error{
+	return e.InfluxDB.WriteTickerToDB(ClosePrice, Timestamp)
+}
+// FetchTicker fetches and displays real-time of a given symbol
+// func (e *APIServices)FetchTicker(symbol string) (*model.TickerData, error) {
+// 	ticker, err := FetchTicker(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
 // 	if err != nil {
 // 		fmt.Println("Error fetching ticker data:", err)
 // 		return &TickerData{}, err
