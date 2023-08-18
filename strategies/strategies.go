@@ -767,17 +767,17 @@ func (ts *TradingSystem) Reporting(md *model.AppData, from string)error{
 	fmt.Println()
 	
 	if len(ts.Container1) > 0 && (!strings.Contains(md.Strategy, "Bollinger")) && (!strings.Contains(md.Strategy, "EMA")) && (!strings.Contains(md.Strategy, "MACD")) {
-		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "DataOnly")
+		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
 		err = CreateLineChartWithSignals(ts.Timestamps, ts.Container1, ts.Signals, "StrategyOnly")
 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "Bollinger") {
-		err = CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "DataStrategies")
+		err = CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "EMA") {
-		err = CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "DataStrategies")
+		err = CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "MACD") {
-		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "DataOnly")
+		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
 		err = CreateLineChartWithSignalsV2(ts.Timestamps, ts.Container1, ts.Container2, ts.Signals, "StrategiesOnly")
 	} else {
-		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "DataOnly")
+		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
 	}
 	if err != nil{
 		return fmt.Errorf("Error creating Line Chart with signals: %v", err)

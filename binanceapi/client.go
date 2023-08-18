@@ -3,9 +3,9 @@ package binanceapi
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 
 	"coinbitly.com/config"
+	"coinbitly.com/helper"
 	"coinbitly.com/influxdb"
 	"coinbitly.com/model"
 )
@@ -63,25 +63,20 @@ func (e *APIServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error 
 	return e.InfluxDB.WriteCandleToDB(ClosePrice, Timestamp)
 }
 
+// FetchTicker fetches and displays real-time of a given symbol
 func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error){
-	CurrentPrice = rand.Float64()
-	return CurrentPrice, err
+		ticker, err := fetchTickerData(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
+		if err != nil {
+			fmt.Println("Error fetching ticker data:", err)
+			return 0.0, err
+		}
+		// Display the ticker data
+		fmt.Printf("Symbol: %s\nPrice: %s\n", ticker.Symbol, ticker.Price)
+		return helper.ParseStringToFloat(ticker.Price), nil
 }
 func (e *APIServices)WriteTickerToDB(ClosePrice float64, Timestamp int64)error{
 	return e.InfluxDB.WriteTickerToDB(ClosePrice, Timestamp)
 }
-// FetchTicker fetches and displays real-time of a given symbol
-// func (e *APIServices)FetchTicker(symbol string) (*model.TickerData, error) {
-// 	ticker, err := FetchTicker(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
-// 	if err != nil {
-// 		fmt.Println("Error fetching ticker data:", err)
-// 		return &TickerData{}, err
-// 	}
-
-// 	// Display the ticker data
-// 	fmt.Printf("Symbol: %s\nPrice: %s\n", ticker.Symbol, ticker.Price)
-// 	return ticker, nil
-// }
 
 // fetchAndDisplay24hrTickerData fetches and displays 24-hour price change statistics for the given symbol
 // func (e *APIServices)Fetch24hrChange(symbol string) (*model.Ticker24hrChange, error){
