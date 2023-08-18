@@ -150,6 +150,7 @@ func (ts *TradingSystem) LiveTrade(loadFrom string) {
 			return
 		}
 		
+		time.Sleep(time.Second * 5)
 		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
 		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
 		// 	log.Fatalf("Error: writing to influxDB: %v", err)
