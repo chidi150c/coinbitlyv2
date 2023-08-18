@@ -48,8 +48,8 @@ type TradingSystem struct {
 	TradeCount int
 	EnableStoploss bool
 	StopLossTrigered bool
-	// StopLossRecover        float64
-	// RiskFactor 			   float64
+	StopLossRecover        float64
+	RiskFactor 			   float64
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -59,7 +59,7 @@ type TradingSystem struct {
 func NewTradingSystem(loadFrom string) (*TradingSystem, error) {
 	// Initialize the trading system.
 	ts := &TradingSystem{}
-	// ts.RiskFactor = 2.0           // Define 1% slippage
+	ts.RiskFactor = 2.0           // Define 1% slippage
 	ts.TransactionCost = 0.0009 // Define 0.1% transaction cost
 	ts.Slippage = 0.0001
 	ts.InitialCapital = 1000.0          //Initial Capital for simulation on backtesting
@@ -67,7 +67,7 @@ func NewTradingSystem(loadFrom string) (*TradingSystem, error) {
 	ts.Scalping = "" //"UseTA"
 	ts.StrategyCombLogic = "OR"
 	ts.EnableStoploss = true
-	// ts.StopLossRecover = math.MaxFloat64 //
+	ts.StopLossRecover = math.MaxFloat64 //
 
 	// Fetch historical data from the exchange
 	err := ts.UpdateHistoricalData(loadFrom)
@@ -114,7 +114,7 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 	// Simulate the backtesting process using historical price data.
 	for ts.DataPoint, ts.CurrentPrice = range ts.ClosingPrices {
 		// Execute the trade if entry conditions are met.
-		if (!ts.InTrade) && (ts.EntryRule(md)) { //&& (ts.CurrentPrice <= ts.StopLossRecover)
+		if (!ts.InTrade) && (ts.EntryRule(md)) && (ts.CurrentPrice <= ts.StopLossRecover){ 
 			// Record entry price for calculating profit/loss and stoploss later.
 			ts.EntryPrice = ts.CurrentPrice
 			// Execute the buy order using the ExecuteStrategy function.
@@ -301,6 +301,13 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.InTrade = true
 		// Record entry price for calculating profit/loss later.
 		ts.EntryQuantity = ts.PositionSize
+		
+		if ts.EnableStoploss && ts.StopLossTrigered{			
+			md.RiskPositionPercentage /= ts.RiskFactor //reduce riskPosition by a factor
+			ts.StopLossRecover = math.MaxFloat64	
+			ts.StopLossTrigered = false
+			// ts.RiskStopLossPercentage /= ts.RiskFactor
+		}
 		resp := fmt.Sprintf("- BUY at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
 		return resp, nil
 
@@ -371,7 +378,10 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 
 		// Mark that we are no longer in a trade.
 		ts.InTrade = false
-		ts.StopLossTrigered = true
+		ts.StopLossTrigered = true		
+		md.RiskPositionPercentage *= ts.RiskFactor //increase riskPosition by a factor
+		ts.StopLossRecover = ts.CurrentPrice //* (1.0 - ts.RiskStopLossPercentage)
+
 		resp := fmt.Sprintf("- SELL-StopLoss at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n",
 			ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
 		return resp
