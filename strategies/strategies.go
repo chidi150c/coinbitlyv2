@@ -453,8 +453,12 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData) (buySignal, sellSi
 				count++
 				ts.Container1 = shortEMA
 				ts.Container2 = longEMA
-				buySignal = buySignal || (shortEMA[ts.DataPoint-2] > longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
+				diff_1 := math.Abs(shortEMA[ts.DataPoint-1] - longEMA[ts.DataPoint-1])
+				diff := math.Abs(shortEMA[ts.DataPoint] - longEMA[ts.DataPoint])
+				buySignal = buySignal || (diff_1 > diff) && (shortEMA[ts.DataPoint] < longEMA[ts.DataPoint]) && (shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1])
 				sellSignal = sellSignal || (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
+				// buySignal = buySignal || (shortEMA[ts.DataPoint-2] > longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
+				// sellSignal = sellSignal || (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
 			}
 			if strings.Contains(md.Strategy, "RSI") && ts.DataPoint > 0 && ts.DataPoint <= len(rsi) {
 				count++
