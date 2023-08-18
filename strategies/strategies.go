@@ -89,7 +89,7 @@ func NewAppData() *model.AppData {
 	}
 	md.Count = 0
 	md.TargetProfit = 5.0
-	md.TargetStopLoss = 5.0
+	md.TargetStopLoss = 20.0
 	md.RiskPositionPercentage = 0.10 // Define risk management parameter 5% balance
 	md.RSIPeriod = 14                // Define RSI period parameter. 12,296,16
 	md.StochRSIPeriod = 3
@@ -214,7 +214,7 @@ func (ts *TradingSystem) Backtest(loadFrom string) {
 	backT := []*model.AppData{ //StochRSI
 		// {1, "MACD", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 		// {2, "RSI", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		{3, "EMA", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 0.5, 0.25, 0.0},
+		{3, "EMA", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0},
 		// {4, "StochR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 		// {5, "Bollinger", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 		// {6, "MACD,RSI", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
