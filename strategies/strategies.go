@@ -107,56 +107,39 @@ func NewAppData() *model.AppData {
 	md.TotalProfitLoss = 0.0
 	return md
 }
-
-// // LiveTrade(): This function performs live trading process using live
-// // price data. It live ticker prices, checks for entry and exit
-// // conditions, and executes trades accordingly. It also tracks trading performance
-// // and updates the current balance after each trade.
-// func (ts *TradingSystem) LiveTrade() {
-// 	sigchnl := make(chan os.Signal, 1)
-// 	signal.Notify(sigchnl)
-// 	go func ()  {
-// 		<-sigchnl
-// 		os.Exit(0)
-// 	}()
-// 	md := &model.AppData{3, "EMA", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0}
+// LiveTrade(): This function performs live trading process using live
+// price data. It live ticker prices, checks for entry and exit
+// conditions, and executes trades accordingly. It also tracks trading performance
+// and updates the current balance after each trade.
+func (ts *TradingSystem) LiveTrade() {
+	sigchnl := make(chan os.Signal, 1)
+	signal.Notify(sigchnl)
+	go ShutDown(sigchnl)
+	md := &model.AppData{3, "EMA", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0}
 	
-// 	ts.BaseBalance = 0.0
-// 	ts.QuoteBalance = ts.InitialCapital
-// 	for{
-		
-// 	}
-// 	md.TotalProfitLoss = ts.Trading(md, "live")
-// 	// Print the overall trading performance after backtesting.
-// 	fmt.Printf("\nBacktesting Summary: %d Strategy: %s Combination: %s\n", md.Count, md.Strategy, ts.StrategyCombLogic)
-// 	fmt.Printf("Total Trades: %d, out of %d trials ", ts.TradeCount, len(ts.Signals))
-// 	fmt.Printf("Total Profit/Loss: %.2f, ", md.TotalProfitLoss)
-// 	fmt.Printf("Final Capital: %.2f, ", ts.QuoteBalance)
-// 	fmt.Printf("Final Asset: %.8f ", ts.BaseBalance)
-// 	var err error
+	ts.BaseBalance = 0.0
+	ts.QuoteBalance = ts.InitialCapital
+	// Initialize variables for tracking trading performance.
+	ts.TradeCount = 0
+	ts.DataPoint = 0
+	var err error
+	for{
+		ts.CurrentPrice = ts.APIServices.GetTicker()
 
-// 	if len(ts.Container1) > 0 && (!strings.Contains(md.Strategy, "Bollinger")) && (!strings.Contains(md.Strategy, "EMA")) && (!strings.Contains(md.Strategy, "MACD")) {
-// 		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "DataOnly")
-// 		err = CreateLineChartWithSignals(ts.Timestamps, ts.Container1, ts.Signals, "StrategyOnly")
-// 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "Bollinger") {
-// 		err = CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "DataStrategies")
-// 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "EMA") {
-// 		err = CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "DataStrategies")
-// 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "MACD") {
-// 		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "DataOnly")
-// 		err = CreateLineChartWithSignalsV2(ts.Timestamps, ts.Container1, ts.Container2, ts.Signals, "StrategiesOnly")
-// 	} else {
-// 		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "DataOnly")
-// 	}
-// 	if err != nil {
-// 		fmt.Println("Error creating Line Chart with signals:", err)
-// 		return
-// 	}
+		md.TotalProfitLoss = ts.Trading(md, "live")
+		err = ts.Reporting(md)
+		if err != nil {
+			fmt.Println("Error Reporting Live Trade: ", err)
+			return
+		}
+		ts.DataPoint++
+	}
 
-// 	fmt.Println()
-// 	fmt.Println()
-// 	fmt.Println("Next Set Starts Below:")
-// }
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("Next Set Starts Below:")
+}
 
 // Backtest(): This function simulates the backtesting process using historical
 // price data. It iterates through the closing prices, checks for entry and exit
@@ -196,51 +179,9 @@ func (ts *TradingSystem) Backtest(loadFrom string) {
 		for ts.DataPoint, ts.CurrentPrice = range ts.ClosingPrices {
 			_ = ts.Trading(md, loadFrom)
 		}
-		//Check if there is still asset remainning and sell off
-		if ts.BaseBalance > 0.0 {
-			// After sell off Update the quote and base balances after the trade.
-	
-			// Calculate profit/loss for the trade.
-			exitPrice := ts.CurrentPrice
-			ts.TradeProfitLoss = CalculateProfitLoss(ts.EntryPrice, exitPrice, ts.BaseBalance)
-			transactionCost := ts.TransactionCost * exitPrice * ts.BaseBalance
-			slippageCost := ts.Slippage * exitPrice * ts.BaseBalance
-	
-			// Store profit/loss for the trade.
-	
-			ts.TradeProfitLoss -= transactionCost + slippageCost
-			// md.TotalProfitLoss += tradeProfitLoss
-	
-			ts.QuoteBalance += (ts.BaseBalance * exitPrice) - transactionCost - slippageCost
-			ts.BaseBalance -= ts.BaseBalance
-			ts.Signals = append(ts.Signals, "Sell")
-			ts.InTrade = false
-			ts.TradeCount++
-			fmt.Printf("- SELL-Off at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.BaseBalance, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
-		}
-		// Print the overall trading performance after backtesting.
-		fmt.Printf("\nBacktesting Summary: %d Strategy: %s Combination: %s\n", md.Count, md.Strategy, ts.StrategyCombLogic)
-		fmt.Printf("Total Trades: %d, out of %d trials ", ts.TradeCount, len(ts.Signals))
-		fmt.Printf("Total Profit/Loss: %.2f, ", md.TotalProfitLoss)
-		fmt.Printf("Final Capital: %.2f, ", ts.QuoteBalance)
-		fmt.Printf("Final Asset: %.8f ", ts.BaseBalance)
-		var err error
-
-		if len(ts.Container1) > 0 && (!strings.Contains(md.Strategy, "Bollinger")) && (!strings.Contains(md.Strategy, "EMA")) && (!strings.Contains(md.Strategy, "MACD")) {
-			err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "DataOnly")
-			err = CreateLineChartWithSignals(ts.Timestamps, ts.Container1, ts.Signals, "StrategyOnly")
-		} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "Bollinger") {
-			err = CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "DataStrategies")
-		} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "EMA") {
-			err = CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "DataStrategies")
-		} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "MACD") {
-			err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "DataOnly")
-			err = CreateLineChartWithSignalsV2(ts.Timestamps, ts.Container1, ts.Container2, ts.Signals, "StrategiesOnly")
-		} else {
-			err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "DataOnly")
-		}
+		err := ts.Reporting(md)
 		if err != nil {
-			fmt.Println("Error creating Line Chart with signals:", err)
+			fmt.Println("Error Reporting BackTest Trading: ", err)
 			return
 		}
 		<-sigchnl
@@ -680,6 +621,58 @@ func (ts *TradingSystem) UpdateHistoricalData(loadFrom string) error {
 		}
 	}
 	return nil
+}
+
+func (ts *TradingSystem) Reporting(md *model.AppData)error{
+	var err error
+	// Print the overall trading performance after backtesting.
+	fmt.Printf("\nBacktesting Summary: %d Strategy: %s Combination: %s\n", md.Count, md.Strategy, ts.StrategyCombLogic)
+	fmt.Printf("Total Trades: %d, out of %d trials ", ts.TradeCount, len(ts.Signals))
+	fmt.Printf("Total Profit/Loss: %.2f, ", md.TotalProfitLoss)
+	fmt.Printf("Final Capital: %.2f, ", ts.QuoteBalance)
+	fmt.Printf("Final Asset: %.8f ", ts.BaseBalance)
+	
+	if len(ts.Container1) > 0 && (!strings.Contains(md.Strategy, "Bollinger")) && (!strings.Contains(md.Strategy, "EMA")) && (!strings.Contains(md.Strategy, "MACD")) {
+		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "DataOnly")
+		err = CreateLineChartWithSignals(ts.Timestamps, ts.Container1, ts.Signals, "StrategyOnly")
+	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "Bollinger") {
+		err = CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "DataStrategies")
+	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "EMA") {
+		err = CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "DataStrategies")
+	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "MACD") {
+		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "DataOnly")
+		err = CreateLineChartWithSignalsV2(ts.Timestamps, ts.Container1, ts.Container2, ts.Signals, "StrategiesOnly")
+	} else {
+		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "DataOnly")
+	}
+	return fmt.Errorf("Error creating Line Chart with signals: %v", err)
+}
+
+func (ts *TradingSystem)ShutDown(sigchnl chan os.Signal)  {
+	<-sigchnl
+	//Check if there is still asset remainning and sell off
+	if ts.BaseBalance > 0.0 {
+		// After sell off Update the quote and base balances after the trade.
+
+		// Calculate profit/loss for the trade.
+		exitPrice := ts.CurrentPrice
+		ts.TradeProfitLoss = CalculateProfitLoss(ts.EntryPrice, exitPrice, ts.BaseBalance)
+		transactionCost := ts.TransactionCost * exitPrice * ts.BaseBalance
+		slippageCost := ts.Slippage * exitPrice * ts.BaseBalance
+
+		// Store profit/loss for the trade.
+
+		ts.TradeProfitLoss -= transactionCost + slippageCost
+		// md.TotalProfitLoss += tradeProfitLoss
+
+		ts.QuoteBalance += (ts.BaseBalance * exitPrice) - transactionCost - slippageCost
+		ts.BaseBalance -= ts.BaseBalance
+		ts.Signals = append(ts.Signals, "Sell")
+		ts.InTrade = false
+		ts.TradeCount++
+		fmt.Printf("- SELL-Off at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.BaseBalance, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
+	}
+	os.Exit(0)
 }
 
 // CalculateMACD calculates the Moving Average Convergence Divergence (MACD) and MACD Histogram for the given data and periods.
