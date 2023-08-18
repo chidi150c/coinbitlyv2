@@ -65,7 +65,7 @@ func NewTradingSystem(loadFrom string) (*TradingSystem, error) {
 	ts.QuoteBalance = ts.InitialCapital //continer to hold the balance
 	ts.Scalping = "" //"UseTA"
 	ts.StrategyCombLogic = "OR"
-	ts.EnableStoploss = false
+	ts.EnableStoploss = true
 	// ts.StopLossRecover = math.MaxFloat64 //
 
 	// Fetch historical data from the exchange
@@ -89,7 +89,7 @@ func NewAppData() *model.AppData {
 	}
 	md.Count = 0
 	md.TargetProfit = 5.0
-	md.TargetStopLoss = 3.0
+	md.TargetStopLoss = 5.0
 	md.RiskPositionPercentage = 0.10 // Define risk management parameter 5% balance
 	md.RSIPeriod = 14                // Define RSI period parameter. 12,296,16
 	md.StochRSIPeriod = 3
@@ -453,12 +453,12 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData) (buySignal, sellSi
 				count++
 				ts.Container1 = shortEMA
 				ts.Container2 = longEMA
-				diff_1 := math.Abs(shortEMA[ts.DataPoint-1] - longEMA[ts.DataPoint-1])
-				diff := math.Abs(shortEMA[ts.DataPoint] - longEMA[ts.DataPoint])
-				buySignal = buySignal || (diff_1 > diff) && (shortEMA[ts.DataPoint] < longEMA[ts.DataPoint]) && (shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1])
-				sellSignal = sellSignal || (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
-				// buySignal = buySignal || (shortEMA[ts.DataPoint-2] > longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
+				// diff_1 := math.Abs(shortEMA[ts.DataPoint-1] - longEMA[ts.DataPoint-1])
+				// diff := math.Abs(shortEMA[ts.DataPoint] - longEMA[ts.DataPoint])
+				// buySignal = buySignal || (diff_1 > diff) && (shortEMA[ts.DataPoint] < longEMA[ts.DataPoint]) && (shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1])
 				// sellSignal = sellSignal || (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
+				buySignal = buySignal || (shortEMA[ts.DataPoint-2] > longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
+				sellSignal = sellSignal || (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
 			}
 			if strings.Contains(md.Strategy, "RSI") && ts.DataPoint > 0 && ts.DataPoint <= len(rsi) {
 				count++
