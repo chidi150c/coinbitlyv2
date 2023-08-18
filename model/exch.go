@@ -14,4 +14,5 @@ type Candle struct {
 type APIServices interface {
 	FetchCandles(symbol, interval string, startTime, endTime int64) ([]Candle, error)
 	WriteCandleToDB(ClosePrice float64, Timestamp int64)error
+	GetTicker(symbol string)(CurrentPrice float64, err error)
 }

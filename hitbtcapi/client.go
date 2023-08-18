@@ -3,11 +3,12 @@ package hitbtcapi
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 
 	"coinbitly.com/config"
 	"coinbitly.com/helper"
-	"coinbitly.com/model"
 	"coinbitly.com/influxdb"
+	"coinbitly.com/model"
 )
 
 const (
@@ -57,6 +58,10 @@ func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime in
 }
 func (e *APIServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
 	return e.InfluxDB.WriteCandleToDB(ClosePrice, Timestamp)
+}
+func (e *APIServices)GetTicker(symbol string)(CurrentPrice float64, err error){
+	CurrentPrice = rand.Float64()
+	return CurrentPrice, err
 }
 // // FetchTickerData fetches and displays real-time of a given symbol
 // func (e *APIServices)FetchTickerData(symbol string) (*model.TickerData, error) {
