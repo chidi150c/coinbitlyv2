@@ -3,8 +3,10 @@ package binanceapi
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 
 	"coinbitly.com/config"
+	"coinbitly.com/influxdb"
 	"coinbitly.com/model"
 )
 
@@ -13,17 +15,16 @@ const (
 )
 type APIServices struct{
 	*config.ExchConfig
-	model.APIServices
+	InfluxDB *influxdb.CandleServices
 }
 
-func NewAPIServices(infDB model.APIServices, exchConfig map[string]*config.ExchConfig)(*APIServices, error){
-	// Check if the key "Binance" exists in the map
-	if val, ok := exchConfig["Binance"]; ok {		
-		return &APIServices{val, infDB}, nil
-	} else {		
-		fmt.Println("Error Internal: Exch name not Binance")
-		return nil, errors.New("Exch name not Binance")
+func NewAPIServices(infDB *influxdb.CandleServices, exchConfig *config.ExchConfig)(*APIServices, error){
+	// Check if the environment variables are set
+	if exchConfig.ApiKey == "" || exchConfig.SecretKey == "" {
+		fmt.Println("Error: Binance API credentials not set.")
+		return nil, errors.New("Error: Binance API credentials not set.")
 	}
+	return &APIServices{exchConfig, infDB}, nil
 }
 // FetchHistoricalCandlesticks fetches historical candlestick data for the given symbol and time interval
 func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime int64) ([]model.Candle, error) {
@@ -53,13 +54,18 @@ func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime in
 		mcandles = append(mcandles, ct)
 	}	
 	fmt.Println()
-	fmt.Println("Candles fetched =", mcandles, " = ", len(mcandles), "counts")
+	// fmt.Println("Candles fetched =", mcandles, " = ", len(mcandles), "counts")
 	fmt.Println()
 	return mcandles, nil
 }
 
 func (e *APIServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
-	return e.WriteCandleToDB(ClosePrice, Timestamp)
+	return e.InfluxDB.WriteCandleToDB(ClosePrice, Timestamp)
+}
+
+func (e *APIServices)GetTicker(symbol string)(CurrentPrice float64, err error){
+	CurrentPrice = rand.Float64()
+	return CurrentPrice, err
 }
 // FetchTickerData fetches and displays real-time of a given symbol
 // func (e *APIServices)FetchTickerData(symbol string) (*model.TickerData, error) {

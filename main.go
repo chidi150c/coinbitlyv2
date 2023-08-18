@@ -17,7 +17,8 @@ func main() {
 		
 	// Perform backtesting with the given data and parameters.
 	fmt.Println()
-	ts.Backtest(loadFrom)
+	// ts.Backtest(loadFrom)
+	ts.LiveTrade()
  
 	// // Define EMA periods for the crossover strategy as multiple sets
 	// emaPeriods := [][]int{{6, 8}, {6, 12}, {6, 13}, {6, 14}, {6, 15}, {6, 16},{6, 17}, {6, 18}, {6, 19}, {6, 20},

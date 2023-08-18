@@ -3,11 +3,12 @@ package influxdb
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"time"
 
-	"coinbitly.com/model"
 	"coinbitly.com/config"
+	"coinbitly.com/model"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 )
@@ -75,7 +76,10 @@ func (c *CandleServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) err
 	// fmt.Println("Candle inserted successfully!")
 	return nil
 }
-
+func (c *CandleServices)GetTicker(symbol string)(CurrentPrice float64, err error){
+	CurrentPrice = rand.Float64()
+	return CurrentPrice, err
+}
 func readHistoricalData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, InfluxDBMeasurement string, tags map[string]string)([]model.Candle, error){
 	query := fmt.Sprintf(`from(bucket: "%s")
 	|> range(start: %s)
