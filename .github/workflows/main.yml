@@ -59,5 +59,5 @@ jobs:
             docker rmi $(docker images -q chidi150c/golong17conbitly) || true
 
             docker pull chidi150c/golong17conbitly:${{ github.sha }}
-            docker run -d -p 35260:35260 --name golong17conbitly chidi150c/golong17conbitly:${{ github.sha }}  
+            docker run -d -p 35259:35259 --name golong17conbitly chidi150c/golong17conbitly:${{ github.sha }}  
             sudo systemctl restart nginx
