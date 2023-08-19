@@ -5,7 +5,7 @@ FROM golang:1.16 AS builder
 WORKDIR /
 
 # Copy the built binary from the host into the container
-COPY conbitly .
+COPY coinbitly .
 COPY webClient ./webClient
 
 # Set the environment variable
@@ -15,4 +15,4 @@ ENV PORT=35259
 EXPOSE $PORT
 
 # Command to start your Go application
-CMD ["./conbitly"]
+CMD ["./coinbitly"]
