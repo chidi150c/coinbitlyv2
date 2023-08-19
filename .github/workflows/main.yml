@@ -24,7 +24,10 @@ jobs:
           go-version: ${{ matrix.go-version }}
  
       - name: Build Go Application
-        run: go build -o conbitly .
+        run: |
+          go clean -modcache
+          go get -u ./...  
+          go build -o conbitly .
 
       - name: Docker Login
         run: |
