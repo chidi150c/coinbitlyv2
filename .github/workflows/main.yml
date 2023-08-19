@@ -20,15 +20,16 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Upload code to DigitalOcean
-        run: scp -r . ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:/path/on/droplet
+        run: |
+          scp -i ${{ secrets.SSH_PRIVATE_KEY_PATH }} -r . ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:~/coinbitly
 
       - name: Build and Deploy on DigitalOcean
         run: |
           ssh ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} '
-            cd /path/on/droplet
+            cd ~/coinbitly
             docker build -t golang-app .
             docker run -d -p 35259:35259 --name golang-app golang-app
           '
 
       - name: Clean up uploaded code
-        run: ssh ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} 'rm -rf /path/on/droplet/*'
+        run: ssh ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} 'rm -rf ~/coinbitly/*'
