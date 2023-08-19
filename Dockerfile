@@ -1,10 +1,5 @@
-# Use a base image that matches your environment
-FROM debian:bullseye-slim
-
-# Install necessary dependencies
-RUN apt-get update && \
-    apt-get install -y golang:1.21.0 nano curl git && \
-    rm -rf /var/lib/apt/lists/*
+# Create the final lightweight image
+FROM golang:1.20.1 AS builder
 
 # Set the working directory inside the container
 WORKDIR /
@@ -21,4 +16,3 @@ EXPOSE $PORT
 
 # Command to start your Go application
 CMD ["./coinbitly"]
-
