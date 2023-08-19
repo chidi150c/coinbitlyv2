@@ -37,7 +37,7 @@ jobs:
           context: ./
           dockerfile: Dockerfile
           push: true
-          tags: chidi150c/golong17conbitly:${{ github.sha }}
+          tags: chidi150c/golong21conbitly:${{ github.sha }}
 
       - name: Deploy to DigitalOcean
         uses: appleboy/ssh-action@master
@@ -52,12 +52,12 @@ jobs:
             # docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
             # Stop and remove containers with specific labels
-            docker stop $(docker ps -q -f name=golong17conbitly) || true
-            docker rm $(docker ps -aq -f name=golong17conbitly) || true
+            docker stop $(docker ps -q -f name=golong21conbitly) || true
+            docker rm $(docker ps -aq -f name=golong21conbitly) || true
 
             # Remove images with specific labels
-            docker rmi $(docker images -q chidi150c/golong17conbitly) || true
+            docker rmi $(docker images -q chidi150c/golong21conbitly) || true
 
-            docker pull chidi150c/golong17conbitly:${{ github.sha }}
-            docker run -d -p 35259:35259 --name golong17conbitly chidi150c/golong17conbitly:${{ github.sha }}  
+            docker pull chidi150c/golong21conbitly:${{ github.sha }}
+            docker run -d -p 35259:35259 --name golong21conbitly chidi150c/golong21conbitly:${{ github.sha }}  
             sudo systemctl restart nginx
