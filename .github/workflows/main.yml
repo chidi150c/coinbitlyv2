@@ -21,7 +21,7 @@ jobs:
 
       - name: Upload code to DigitalOcean
         run: |
-          scp -i ${{ secrets.SSH_PRIVATE_KEY_PATH }} -r . ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:~/coinbitly
+          scp -i "${{ secrets.SSH_PRIVATE_KEY_PATH }}" -r . ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:~/coinbitly
 
       - name: Build and Deploy on DigitalOcean
         run: |
