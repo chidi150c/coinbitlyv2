@@ -32,12 +32,9 @@ jobs:
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Push Docker Image
-        uses: docker/build-push-action@v2
-        with:
-          context: ./
-          dockerfile: Dockerfile
-          push: true
-          tags: chidi150c/golang21conbitly:${{ github.sha }}
+        run: |
+          docker tag chidi150c/golang21conbitly:${{ github.sha }} chidi150c/golang21conbitly:${{ github.sha }}
+          docker push chidi150c/golang21conbitly:${{ github.sha }}
 
       - name: Deploy to DigitalOcean
         uses: appleboy/ssh-action@master
