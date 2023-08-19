@@ -19,9 +19,14 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Upload code to DigitalOcean
-        run: |
-          scp -i "${{ secrets.SSH_PRIVATE_KEY_PATH }}" -r . ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:~/coinbitly
+      - name: Sync code to DigitalOcean
+        uses: ncipollo/rsync-action@v2
+        with:
+          switches: -avz --delete
+          source: .
+          dest: ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:~/coinbitly
+          exclude: .git
+          sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Build and Deploy on DigitalOcean
         run: |
