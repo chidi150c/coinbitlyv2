@@ -22,6 +22,23 @@ jobs:
       - name: Build Go Application
         run: go build -o my-golang-server .
 
+# Now the app has been built inside the runner container
+
+      - name: Remove Old Deployment in DigitalOcean 
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          key_type: rsa
+          script: |
+            set -e
+            cd /tmp/my-app
+            echo "Current directory: $(pwd)"
+            ls -la
+            sudo rm -rf *
+      
       - name: Copy Application Files to Target System
         uses: appleboy/scp-action@master
         with:
@@ -30,11 +47,11 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           source: |
-            my-golang-server
-            webClient/
+            ./my-golang-server
+            ./webClient/
           target: /tmp/my-app
 
-      - name: Deploy and Build Docker Image
+      - name: Build Docker Image
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DROPLET_IP }}
@@ -48,3 +65,31 @@ jobs:
             # Build and run Docker image with encapsulated environment
             docker build -t my-golang-app .
             docker run -d -p 35259:35259 --name my-golang-app my-golang-app
+
+# To use docker comment out the below and uncomment the above and vice versa  
+
+
+#       - name: Add some more files to build folder
+#         run: |
+#           mkdir ../build
+#           cp -R ./webapp/package.json ./webapp/build/
+#           cp -R ./webapp/src/index.js ./webapp/build/ 
+#           cp -R ./webapp/Dockerfile ./webapp/build/           
+#           cp -R ./webapp/build/* ../build/
+#           rm -rf * ./webapp          
+#           rm -rf * .git          
+#           rm -rf * .gitignore
+#           rm -rf * .github
+#           rm -rf * ./README.md
+#           cp -R ../build/* .
+
+#       - name: Copy files to DigitalOcean droplet
+#         uses: appleboy/scp-action@master
+#         with:
+#           host: ${{ secrets.DROPLET_IP }}
+#           username: ${{ secrets.DROPLET_USERNAME }}
+#           key: ${{ secrets.SSH_PRIVATE_KEY }}
+#           port: ${{ secrets.SSH_PORT }}
+#           source: './*'
+#           target: '/var/www/html'
+          
