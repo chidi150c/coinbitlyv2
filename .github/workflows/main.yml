@@ -21,16 +21,16 @@ jobs:
 
       - name: Copy code to DigitalOcean
         run: |
-          ssh ${{ env.LIN_USER }}@${{ env.LIN_IP }} 'mkdir -p ~/coinbitly'
-          scp -i "${{ secrets.SSH_PRIVATE_KEY_PATH }}" -r ./* ${{ env.LIN_USER }}@${{ env.LIN_IP }}:~/coinbitly/
+          ssh ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} 'mkdir -p ~/coinbitly'
+          scp -i "${{ secrets.SSH_PRIVATE_KEY_PATH }}" -r ./* ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:~/coinbitly/
 
       - name: Build and Deploy on DigitalOcean
         run: |
-          ssh ${{ env.LIN_USER }}@${{ env.LIN_IP }} '
+          ssh ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} '
             cd ~/coinbitly
             docker build -t golang-app .
             docker run -d -p 35259:35259 --name golang-app golang-app
           '
 
       - name: Clean up uploaded code
-        run: ssh ${{ env.LIN_USER }}@${{ env.LIN_IP }} 'rm -rf ~/coinbitly/*'
+        run: ssh ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} 'rm -rf ~/coinbitly/*'
