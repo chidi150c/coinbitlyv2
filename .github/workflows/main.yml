@@ -22,7 +22,19 @@ jobs:
       - name: Build Go Application
         run: go build -o my-golang-server .
 
-      - name: Deploy to DigitalOcean
+      - name: Copy Application Files to Target System
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: |
+            my-golang-server
+            webClient/
+          target: /tmp/my-app
+
+      - name: Deploy and Build Docker Image
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DROPLET_IP }}
@@ -31,14 +43,8 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           key_type: rsa
           script: |
-            mkdir -p /tmp/my-app
-            scp -i $HOME/.ssh/id_rsa -P ${{ secrets.SSH_PORT }} my-golang-server ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:/tmp/my-app/
-            scp -i $HOME/.ssh/id_rsa -P ${{ secrets.SSH_PORT }} -r webClient ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:/tmp/my-app/
+            cd /tmp/my-app
 
-            ssh -i $HOME/.ssh/id_rsa -p ${{ secrets.SSH_PORT }} ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} "
-              cd /tmp/my-app
-
-              # Build and run Docker image with encapsulated environment
-              docker build -t my-golang-app .
-              docker run -d -p 35259:35259 --name my-golang-app my-golang-app
-            "
+            # Build and run Docker image with encapsulated environment
+            docker build -t my-golang-app .
+            docker run -d -p 35259:35259 --name my-golang-app my-golang-app
