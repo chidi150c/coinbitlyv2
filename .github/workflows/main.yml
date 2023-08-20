@@ -34,3 +34,4 @@ jobs:
 
       - name: Clean up uploaded code
         run: ssh ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} 'rm -rf ~/coinbitly/*'
+
