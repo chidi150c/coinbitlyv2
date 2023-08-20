@@ -81,3 +81,4 @@ func NewExchangesConfig() map[string]*ExchConfig {
 	return ExchConfigs
 }
 
+//testing git ignore
