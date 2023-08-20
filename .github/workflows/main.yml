@@ -52,12 +52,12 @@ jobs:
             # docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
             # Stop and remove containers with specific labels
-            docker stop $(docker ps -q -f name=golong17webapp) || true
-            docker rm $(docker ps -aq -f name=golong17webapp) || true
+            docker stop $(docker ps -q -f name=golang20conbitly) || true
+            docker rm $(docker ps -aq -f name=golang20conbitly) || true
 
             # Remove images with specific labels
             docker rmi $(docker images -q chidi150c/golang20conbitly) || true
 
             docker pull chidi150c/golang20conbitly:${{ github.sha }}
-            docker run -d -p 35259:35259 --name golong17webapp chidi150c/golang20conbitly:${{ github.sha }}  
+            docker run -d -p 35259:35259 --name golang20conbitly chidi150c/golang20conbitly:${{ github.sha }}  
             
