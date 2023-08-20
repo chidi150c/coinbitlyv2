@@ -47,7 +47,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           source: './my-golang-server ./webClient/ ./Dockerfile'
-          target: /tmp/my-app
+          target: /tmp/my-app/
 
       - name: Build Docker Image
         uses: appleboy/ssh-action@master
