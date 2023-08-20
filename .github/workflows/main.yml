@@ -10,10 +10,6 @@ jobs:
     name: Build Go Application and Deploy
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        go-version: [1.20.0]
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -21,23 +17,10 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: ${{ matrix.go-version }}
- 
+          go-version: 1.20.0
+
       - name: Build Go Application
         run: go build -o my-golang-server .
-
-      - name: Docker Login
-        run: |
-          docker logout
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v2
-        with:
-          context: ./
-          dockerfile: Dockerfile
-          push: true
-          tags: chidi150c/golang20conbitly:${{ github.sha }}
 
       - name: Deploy to DigitalOcean
         uses: appleboy/ssh-action@master
@@ -48,16 +31,14 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           key_type: rsa
           script: |
-            # docker logout  # Optional: Only if Docker login is needed for pulling new image
-            # docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            mkdir -p /tmp/my-app
+            scp -i $HOME/.ssh/id_rsa -P ${{ secrets.SSH_PORT }} my-golang-server ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:/tmp/my-app/
+            scp -i $HOME/.ssh/id_rsa -P ${{ secrets.SSH_PORT }} -r webClient ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:/tmp/my-app/
 
-            # Stop and remove containers with specific labels
-            docker stop $(docker ps -q -f name=golang20conbitly) || true
-            docker rm $(docker ps -aq -f name=golang20conbitly) || true
+            ssh -i $HOME/.ssh/id_rsa -p ${{ secrets.SSH_PORT }} ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} "
+              cd /tmp/my-app
 
-            # Remove images with specific labels
-            docker rmi $(docker images -q chidi150c/golang20conbitly) || true
-
-            docker pull chidi150c/golang20conbitly:${{ github.sha }}
-            docker run -d -p 35259:35259 --name golang20conbitly chidi150c/golang20conbitly:${{ github.sha }}  
-            
+              # Build and run Docker image with encapsulated environment
+              docker build -t my-golang-app .
+              docker run -d -p 35259:35259 --name my-golang-app my-golang-app
+            "
