@@ -14,19 +14,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.1
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: Create Directory on DigitalOcean
-        run: |
-          ssh ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} 'mkdir -p ~/coinbitly'
-          scp -i "${{ github.workspace }}/${{ secrets.SSH_PRIVATE_KEY_NAME }}" -r ./* ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:~/coinbitly/
+        run: ssh -i "${{ github.workspace }}/${{ secrets.SSH_PRIVATE_KEY }}" ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} 'mkdir -p ~/coinbitly'
+          
+      - name: Copy code to DigitalOcean
+        run: scp -i "${{ github.workspace }}/${{ secrets.SSH_PRIVATE_KEY }}" -r ./* ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:~/coinbitly/
 
       - name: Build and Deploy on DigitalOcean
         run: |
-          ssh ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} '
+          ssh -i "${{ github.workspace }}/${{ secrets.SSH_PRIVATE_KEY }}" ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} '
             cd ~/coinbitly
             docker build -t golang-app .
             docker run -d -p 35259:35259 --name golang-app golang-app
