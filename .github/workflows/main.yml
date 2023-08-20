@@ -15,18 +15,49 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Create Directory on DigitalOcean
-        run: ssh -i "${{ github.workspace }}/${{ secrets.SSH_PRIVATE_KEY }}" ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} 'mkdir -p ~/coinbitly'
-          
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          key_type: rsa
+          script: |
+            mkdir -p ~/coinbitly
+
       - name: Copy code to DigitalOcean
-        run: scp -i "${{ github.workspace }}/${{ secrets.SSH_PRIVATE_KEY }}" -r ./* ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:~/coinbitly/
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          key_type: rsa
+          script: |
+            cd ~/coinbitly
+            scp -r ./* .
 
       - name: Build and Deploy on DigitalOcean
-        run: |
-          ssh -i "${{ github.workspace }}/${{ secrets.SSH_PRIVATE_KEY }}" ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} '
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          key_type: rsa
+          script: |
             cd ~/coinbitly
             docker build -t golang-app .
             docker run -d -p 35259:35259 --name golang-app golang-app
-          '
 
       - name: Clean up uploaded code
-        run: ssh ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} 'rm -rf ~/coinbitly/*'
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          key_type: rsa
+          script: |
+            cd ~/coinbitly
+            rm -rf *
