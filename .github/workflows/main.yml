@@ -37,7 +37,7 @@ jobs:
             cd /tmp/my-app
             echo "Current directory: $(pwd)"
             ls -la
-            sudo rm -rf * 
+            rm -rf * 
       
       - name: Copy Application Files to Target System
         uses: appleboy/scp-action@master
