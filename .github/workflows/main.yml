@@ -21,7 +21,7 @@ jobs:
 
       - name: Copy code to DigitalOcean
         run: |
-          ssh ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} 'mkdir -p ~/coinbitly'
+          ssh -i "${{ secrets.SSH_PRIVATE_KEY_PATH }}" ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} 'mkdir -p ~/coinbitly'
           scp -i "${{ secrets.SSH_PRIVATE_KEY_PATH }}" -r ./* ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }}:~/coinbitly/
 
       - name: Build and Deploy on DigitalOcean
