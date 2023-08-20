@@ -60,7 +60,8 @@ func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime in
 }
 
 func (e *APIServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
-	return e.InfluxDB.WriteCandleToDB(ClosePrice, Timestamp)
+	_ = e.InfluxDB.WriteCandleToDB(ClosePrice, Timestamp)
+	return nil
 }
 
 // FetchTicker fetches and displays real-time of a given symbol
@@ -75,7 +76,8 @@ func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error)
 		return helper.ParseStringToFloat(ticker.Price), nil
 }
 func (e *APIServices)WriteTickerToDB(ClosePrice float64, Timestamp int64)error{
-	return e.InfluxDB.WriteTickerToDB(ClosePrice, Timestamp)
+	_ = e.InfluxDB.WriteTickerToDB(ClosePrice, Timestamp)
+	return nil
 }
 
 // fetchAndDisplay24hrTickerData fetches and displays 24-hour price change statistics for the given symbol
