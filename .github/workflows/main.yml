@@ -38,7 +38,37 @@ jobs:
             echo "Current directory: $(pwd)"
             ls -la
             rm -rf * 
-      
+
+      - name: Copy Application Files to Target System
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: './my-golang-server'
+          target: /tmp/my-app
+
+      - name: Copy Application Files to Target System
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: './webClient'
+          target: /tmp/my-app
+
+      - name: Copy Application Files to Target System
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: './Dockerfile'
+          target: /tmp/my-app
+          
       - name: Copy Application Files to Target System
         uses: appleboy/scp-action@master
         with:
