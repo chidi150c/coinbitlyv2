@@ -46,7 +46,7 @@ jobs:
           username: ${{ secrets.DROPLET_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: ./my-golang-server ./webClient/ ./Dockerfile
+          source: './my-golang-server ./webClient/ ./Dockerfile'
           target: /tmp/my-app
 
       - name: Build Docker Image
