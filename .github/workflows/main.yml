@@ -55,6 +55,14 @@ jobs:
           script: |
             cd /tmp/my-app
 
+            # Stop and remove containers with specific labels
+            docker stop $(docker ps -q -f name=my-golang-app) || true
+            docker rm $(docker ps -aq -f name=my-golang-app) || true
+
+            # Remove images with specific labels
+            docker rmi $(docker images -q my-golang-app) || true
+
             # Build and run Docker image with encapsulated environment
             docker build -t my-golang-app .
-            docker run -d -p 35259:35259 --name my-golang-app my-golang-app
+            docker run -d --name my-golang-app --network my-network -p 35259:35259 my-golang-app
+            
