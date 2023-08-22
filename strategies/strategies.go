@@ -52,6 +52,7 @@ type TradingSystem struct {
 	StopLossTrigered bool
 	StopLossRecover        float64
 	RiskFactor 			   float64
+	EMASpecial       []float64
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -126,7 +127,7 @@ func (ts *TradingSystem) LiveTrade(loadFrom string) {
 	signal.Notify(sigchnl)
 
 	md := &model.AppData{3, "EMA", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0}
-	
+	fmt.Println("App started. Press Ctrl+C to exit.")
 	go ts.ShutDown(md, sigchnl)
 	ts.BaseBalance = 0.0
 	ts.QuoteBalance = ts.InitialCapital
@@ -487,10 +488,18 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData) (buySignal, sellSi
 					buySignal = buySignal || (shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] >= longEMA[ts.DataPoint])
 					sellSignal = sellSignal || (shortEMA[ts.DataPoint-1] >= longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
 				}else{
-					buySignal = buySignal || (shortEMA[ts.DataPoint-2] > longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
+					// buySignal = buySignal || (shortEMA[ts.DataPoint-2] > longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
+					// sellSignal = sellSignal || (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
+					if (len(ts.EMASpecial) >= 1) || (shortEMA[ts.DataPoint-2] > longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint]){
+						ts.EMASpecial = append(ts.EMASpecial, longEMA[ts.DataPoint] - shortEMA[ts.DataPoint])
+						if (len(ts.EMASpecial) > 1) && (ts.EMASpecial[len(ts.EMASpecial)-1] < ts.EMASpecial[len(ts.EMASpecial)-2]){
+							buySignal = buySignal || true
+							ts.EMASpecial = []float64{}
+						}
+					}
 					sellSignal = sellSignal || (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
 				}
-			}
+			} 
 			if strings.Contains(md.Strategy, "RSI") && ts.DataPoint > 0 && ts.DataPoint <= len(rsi) {
 				count++
 				buySignal = buySignal || (rsi[ts.DataPoint-1] < md.RSIOversold)
@@ -786,7 +795,9 @@ func (ts *TradingSystem) Reporting(md *model.AppData, from string)error{
 }
 
 func (ts *TradingSystem)ShutDown(md *model.AppData, sigchnl chan os.Signal)  {
-	<-sigchnl
+	sig := <-sigchnl
+	
+	fmt.Printf("Received signal: %v. Exiting...\n", sig)
 	//Check if there is still asset remainning and sell off
 	if ts.BaseBalance > 0.0 {
 		// After sell off Update the quote and base balances after the trade.
@@ -808,6 +819,11 @@ func (ts *TradingSystem)ShutDown(md *model.AppData, sigchnl chan os.Signal)  {
 		ts.InTrade = false
 		ts.TradeCount++
 		fmt.Printf("- SELL-Off at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.BaseBalance, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
+	}
+	
+	if err := ts.APIServices.CloseDB(); err != nil{
+		fmt.Printf("Error while closing the DataBase: %v", err)
+		os.Exit(1)
 	}
 	os.Exit(0)
 }

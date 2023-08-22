@@ -6,7 +6,6 @@ import (
 
 	"coinbitly.com/config"
 	"coinbitly.com/helper"
-	"coinbitly.com/influxdb"
 	"coinbitly.com/model"
 )
 
@@ -15,10 +14,10 @@ const (
 )
 type APIServices struct{
 	*config.ExchConfig
-	InfluxDB *influxdb.CandleServices
+	DataBase model.APIServices
 }
 
-func NewAPIServices(infDB *influxdb.CandleServices, exchConfig *config.ExchConfig)(*APIServices, error){
+func NewAPIServices(infDB model.APIServices, exchConfig *config.ExchConfig)(*APIServices, error){
 	// Check if the environment variables are set
 	if exchConfig.ApiKey == "" || exchConfig.SecretKey == "" {
 		fmt.Println("Error: Binance API credentials not set.")
@@ -58,12 +57,12 @@ func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime in
 	fmt.Println()
 	return mcandles, nil
 }
-
 func (e *APIServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
-	_ = e.InfluxDB.WriteCandleToDB(ClosePrice, Timestamp)
-	return nil
+	return e.DataBase.WriteCandleToDB(ClosePrice, Timestamp)
 }
-
+func (e *APIServices)CloseDB()error{
+	return e.DataBase.CloseDB()
+}
 // FetchTicker fetches and displays real-time of a given symbol
 func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error){
 		ticker, err := fetchTickerData(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
@@ -76,7 +75,7 @@ func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error)
 		return helper.ParseStringToFloat(ticker.Price), nil
 }
 func (e *APIServices)WriteTickerToDB(ClosePrice float64, Timestamp int64)error{
-	_ = e.InfluxDB.WriteTickerToDB(ClosePrice, Timestamp)
+	_ = e.DataBase.WriteTickerToDB(ClosePrice, Timestamp)
 	return nil
 }
 

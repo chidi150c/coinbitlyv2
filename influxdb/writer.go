@@ -58,7 +58,6 @@ func (c *CandleServices)FetchCandles(symbol, interval string, startTime, endTime
 	}
 	return readHistoricalData(c.QueryAPI, c.HistoricalDBBucket, c.HistoricalTimeRange, c.HistoricalMeasurement, tags)
 }
-
 func (c *CandleServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
 	tags := map[string]string{
 		"Historical" : c.HistoricalTag,
@@ -93,7 +92,6 @@ func (c *CandleServices)FetchTicker(symbol string)(CurrentPrice float64, err err
 	CurrentPrice = rand.Float64()
 	return CurrentPrice, err
 }
-
 func (c *CandleServices)WriteTickerToDB(ClosePrice float64, Timestamp int64) error {
 	tags := map[string]string{
 		"Live" : c.LiveTag,
@@ -124,7 +122,10 @@ func (c *CandleServices)WriteTickerToDB(ClosePrice float64, Timestamp int64) err
 	// fmt.Println("Candle inserted successfully!")
 	return nil
 }
-
+func (c *CandleServices)CloseDB()error{
+	c.Client.Close()
+	return nil
+}
 func readHistoricalData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, InfluxDBMeasurement string, tags map[string]string)([]model.Candle, error){
 	query := fmt.Sprintf(`from(bucket: "%s")
 	|> range(start: %s)

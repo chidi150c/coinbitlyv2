@@ -16,4 +16,5 @@ type APIServices interface {
 	WriteCandleToDB(ClosePrice float64, Timestamp int64)error
 	FetchTicker(symbol string)(CurrentPrice float64, err error)
 	WriteTickerToDB(ClosePrice float64, Timestamp int64)error
+	CloseDB()error
 }
