@@ -38,7 +38,7 @@ func NewExchangesConfig() map[string]*ExchConfig {
 		"InfluxDB": {
 			Name:            "InfluxDB",
 			Symbols:         []string{"BTCUSDT"},
-			BaseURL:         "http://localhost:8086", //influxdb-container
+			BaseURL:         "http://influxdb-container:8086", //influxdb-container localhost
 			DBOrgID:	 	"Resoledge",
 			SecretKey:       "aXDeT9-0EX6K81D_94L-6q5G-w2eHS_4FJTIbsanUNqHlziMrFTOD3JULdCkCWgCTtVPvIuBhxUB0asbt8_AYw==",
 			Symbol:          "BTCUSDT",

@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"sync"
@@ -124,7 +125,7 @@ func NewAppData() *model.AppData {
 // and updates the current balance after each trade.
 func (ts *TradingSystem) LiveTrade(loadFrom string) {
 	sigchnl := make(chan os.Signal, 1)
-	signal.Notify(sigchnl)
+	signal.Notify(sigchnl, syscall.SIGINT)
 
 	md := &model.AppData{3, "EMA", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0}
 	fmt.Println("App started. Press Ctrl+C to exit.")
@@ -795,37 +796,42 @@ func (ts *TradingSystem) Reporting(md *model.AppData, from string)error{
 }
 
 func (ts *TradingSystem)ShutDown(md *model.AppData, sigchnl chan os.Signal)  {
-	sig := <-sigchnl
-	
-	fmt.Printf("Received signal: %v. Exiting...\n", sig)
-	//Check if there is still asset remainning and sell off
-	if ts.BaseBalance > 0.0 {
-		// After sell off Update the quote and base balances after the trade.
-
-		// Calculate profit/loss for the trade.
-		exitPrice := ts.CurrentPrice
-		ts.TradeProfitLoss = CalculateProfitLoss(ts.EntryPrice, exitPrice, ts.BaseBalance)
-		transactionCost := ts.TransactionCost * exitPrice * ts.BaseBalance
-		slippageCost := ts.Slippage * exitPrice * ts.BaseBalance
-
-		// Store profit/loss for the trade.
-
-		ts.TradeProfitLoss -= transactionCost + slippageCost
-		// md.TotalProfitLoss += tradeProfitLoss
-
-		ts.QuoteBalance += (ts.BaseBalance * exitPrice) - transactionCost - slippageCost
-		ts.BaseBalance -= ts.BaseBalance
-		ts.Signals = append(ts.Signals, "Sell")
-		ts.InTrade = false
-		ts.TradeCount++
-		fmt.Printf("- SELL-Off at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.BaseBalance, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
+	for {
+		select{
+		case sig := <-sigchnl:
+			if sig == syscall.SIGINT {
+				fmt.Printf("Received signal: %v. Exiting...\n", sig)
+				//Check if there is still asset remainning and sell off
+				if ts.BaseBalance > 0.0 {
+					// After sell off Update the quote and base balances after the trade.
+			
+					// Calculate profit/loss for the trade.
+					exitPrice := ts.CurrentPrice
+					ts.TradeProfitLoss = CalculateProfitLoss(ts.EntryPrice, exitPrice, ts.BaseBalance)
+					transactionCost := ts.TransactionCost * exitPrice * ts.BaseBalance
+					slippageCost := ts.Slippage * exitPrice * ts.BaseBalance
+			
+					// Store profit/loss for the trade.
+			
+					ts.TradeProfitLoss -= transactionCost + slippageCost
+					// md.TotalProfitLoss += tradeProfitLoss
+			
+					ts.QuoteBalance += (ts.BaseBalance * exitPrice) - transactionCost - slippageCost
+					ts.BaseBalance -= ts.BaseBalance
+					ts.Signals = append(ts.Signals, "Sell")
+					ts.InTrade = false
+					ts.TradeCount++
+					fmt.Printf("- SELL-Off at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.BaseBalance, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
+				}
+				
+				if err := ts.APIServices.CloseDB(); err != nil{
+					fmt.Printf("Error while closing the DataBase: %v", err)
+					os.Exit(1)
+				}
+				os.Exit(0)
+			}
+		}
 	}
-	
-	if err := ts.APIServices.CloseDB(); err != nil{
-		fmt.Printf("Error while closing the DataBase: %v", err)
-		os.Exit(1)
-	}
-	os.Exit(0)
 }
 
 // CalculateMACD calculates the Moving Average Convergence Divergence (MACD) and MACD Histogram for the given data and periods.
