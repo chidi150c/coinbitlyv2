@@ -66,5 +66,6 @@ jobs:
             docker build -t my-golang-app .
             docker run -d --name my-golang-app --network my-network -p 35259:35259 my-golang-app
 
+
             
             
