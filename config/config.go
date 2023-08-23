@@ -40,7 +40,9 @@ func NewExchangesConfig() map[string]*ExchConfig {
 			Symbols:         []string{"BTCUSDT"},
 			BaseURL:         "http://influxdb-container:8086", //influxdb-container localhost
 			DBOrgID:	 	"Resoledge",
-			SecretKey:       "aXDeT9-0EX6K81D_94L-6q5G-w2eHS_4FJTIbsanUNqHlziMrFTOD3JULdCkCWgCTtVPvIuBhxUB0asbt8_AYw==",
+			SecretKey:       "8tf6oI1nYCHpeosYrw9qcB_31tL6w4k1l3EFq2olfCylSyTJBL3y6Db0bBgQIul9CBKZExtvLYZJe_XYDiNI7A==",
+							//"aXDeT9-0EX6K81D_94L-6q5G-w2eHS_4FJTIbsanUNqHlziMrFTOD3JULdCkCWgCTtVPvIuBhxUB0asbt8_AYw==" => local
+							//"8tf6oI1nYCHpeosYrw9qcB_31tL6w4k1l3EFq2olfCylSyTJBL3y6Db0bBgQIul9CBKZExtvLYZJe_XYDiNI7A==" => production
 			Symbol:          "BTCUSDT",
 			CandleInterval:  "30m",
 			CandleStartTime: time.Now().Add(time.Duration(timeRange) * 24 * time.Hour).Unix(), // 3 days ago
