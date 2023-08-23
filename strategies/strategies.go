@@ -54,6 +54,7 @@ type TradingSystem struct {
 	StopLossRecover        float64
 	RiskFactor 			   float64
 	EMASpecial       []float64
+	MaxDataSize int
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -72,7 +73,7 @@ func NewTradingSystem(liveTrading bool, loadFrom string) (*TradingSystem, error)
 	ts.StrategyCombLogic = "OR"
 	ts.EnableStoploss = true
 	ts.StopLossRecover = math.MaxFloat64 //
-
+	ts.MaxDataSize = 50
 	if liveTrading {
 		// Fetch historical data from the exchange
 		err := ts.LiveUpdate(loadFrom)
@@ -103,7 +104,7 @@ func NewAppData() *model.AppData {
 	md.Count = 0
 	md.TargetProfit = 5.0
 	md.TargetStopLoss = 20.0
-	md.RiskPositionPercentage = 0.10 // Define risk management parameter 5% balance
+	md.RiskPositionPercentage = 0.5 // Define risk management parameter 5% balance
 	md.RSIPeriod = 14                // Define RSI period parameter. 12,296,16
 	md.StochRSIPeriod = 3
 	md.SmoothK = 3
@@ -118,6 +119,15 @@ func NewAppData() *model.AppData {
 	md.Strategy = "MACD"
 	md.TotalProfitLoss = 0.0
 	return md
+}
+
+func (ts *TradingSystem) TickerQueueAdjustment() {
+    if len(ts.ClosingPrices) > ts.MaxDataSize {
+		ts.ClosingPrices = ts.ClosingPrices[1:] // Remove the oldest element
+		ts.Timestamps = ts.Timestamps[1:] // Remove the oldest element
+		ts.Signals = ts.Signals[1:] // Remove the oldest element
+		ts.DataPoint--
+    }
 }
 // LiveTrade(): This function performs live trading process using live
 // data. It gets live ticker prices from exchange, checks for entry and exit
@@ -145,6 +155,7 @@ func (ts *TradingSystem) LiveTrade(loadFrom string) {
 		ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 
 		md.TotalProfitLoss = ts.Trading(md, loadFrom)
+		ts.TickerQueueAdjustment() //At this point you have all three(ts.ClosingPrices, ts.Timestamps and ts.Signals) assigned
 
 		err = ts.Reporting(md, "Live Trading")
 		if err != nil {
@@ -152,11 +163,11 @@ func (ts *TradingSystem) LiveTrade(loadFrom string) {
 			return
 		}
 		
-		time.Sleep(time.Second * 5)
-		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
-		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
-		// 	log.Fatalf("Error: writing to influxDB: %v", err)
-		// }
+		time.Sleep(time.Second * 60)
+		err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
+		if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
+			log.Fatalf("Error: writing to influxDB: %v", err)
+		}
 	}
 }
 
@@ -312,7 +323,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.EntryQuantity = ts.PositionSize
 		
 		if ts.EnableStoploss && ts.StopLossTrigered{			
-			md.RiskPositionPercentage /= ts.RiskFactor //reduce riskPosition by a factor
+			// md.RiskPositionPercentage /= ts.RiskFactor //reduce riskPosition by a factor
 			ts.StopLossRecover = math.MaxFloat64	
 			ts.StopLossTrigered = false
 			// ts.RiskStopLossPercentage /= ts.RiskFactor

@@ -232,15 +232,29 @@ func CreateLineChartWithSignalsV3(timeSeries []int64, dataSeries []float64, gree
 	// Add the yellow line plot to the plot.
 	p.Add(yellowLine)
 
-	// Convert UNIX timestamps to formatted strings for X-axis labels.
-	timeLabels := make([]string, len(timeSeries))
-	for i, timestamp := range timeSeries {
-		timeLabels[i] = time.Unix(timestamp, 0).Format("2006-01-02")
+	// Calculate the start and end times for the 7-day range.
+	endTime := timeSeries[len(timeSeries)-1]
+	startTime := timeSeries[0]
+
+	// Calculate the number of tick marks you want.
+	numTicks := 10
+	timeRange := endTime - startTime
+	stepSize := timeRange / int64(numTicks)
+	nextMark := startTime + stepSize
+
+	// Create a slice to hold the selected time labels.
+	selectedTimeLabels := make([]string, len(timeSeries))
+	for i, timeVal := range timeSeries {
+		if timeVal >= nextMark {
+			selectedTimeLabels[i] = time.Unix(0, timeVal).Format("02 15:04:05")
+			nextMark += stepSize
+		} else {
+			selectedTimeLabels[i] = ""
+		}
 	}
 
-	// Add custom tick marks for the X-axis (time labels).
-	p.NominalX(timeLabels...)
-
+	// Add custom tick marks for the X-axis using the selected time labels.
+	p.NominalX(selectedTimeLabels...)
 
 	// Create separate scatter plots for Buy and Sell signals.
 	var buySignalPoints, sellSignalPoints plotter.XYs
