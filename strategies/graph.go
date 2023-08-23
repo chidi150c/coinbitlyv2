@@ -76,7 +76,7 @@ func CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signal
 	p.Add(buyScatter, sellScatter)
 
 	// Save the plot to a file (you can also display it in a window if you prefer).
-	if err := p.Save(10*vg.Inch, 6*vg.Inch, "./webClient/"+graph+"line_chart_with_signals.png"); err != nil {
+	if err := p.Save(10*vg.Inch, 6*vg.Inch, "./webclient/assets/images/"+graph+"line_chart_with_signals.png"); err != nil {
 		return err
 	}
 
@@ -167,7 +167,7 @@ func CreateLineChartWithSignalsV2(timeSeries []int64, dataSeries []float64, gree
 	p.Add(buyScatter, sellScatter)
 
 	// Save the plot to a file (you can also display it in a window if you prefer).
-	if err := p.Save(10*vg.Inch, 6*vg.Inch, "./webClient/"+graph+"line_chart_with_signals.png"); err != nil {
+	if err := p.Save(10*vg.Inch, 6*vg.Inch, "./webclient/assets/images/"+graph+"line_chart_with_signals.png"); err != nil {
 		return err
 	}
 
@@ -276,7 +276,7 @@ func CreateLineChartWithSignalsV3(timeSeries []int64, dataSeries []float64, gree
 	p.Add(buyScatter, sellScatter)
 
 	// Save the plot to a file (you can also display it in a window if you prefer).
-	if err := p.Save(10*vg.Inch, 6*vg.Inch, "./webClient/"+graph+"line_chart_with_signals.png"); err != nil {
+	if err := p.Save(10*vg.Inch, 6*vg.Inch, "./webclient/assets/images/"+graph+"line_chart_with_signals.png"); err != nil {
 		return err
 	}
 

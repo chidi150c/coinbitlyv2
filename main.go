@@ -2,35 +2,71 @@ package main
 
 import (
 	"log"
+	
+	"os"
+	"os/signal"
+	"syscall"
 
 	"coinbitly.com/strategies"
+	"coinbitly.com/server"
 )
 
+//Initialize Trading System:
 func main() {
-	loadFrom := "Binance" //"InfluxDB"
+
+	//You specify the source of data (e.g., "HitBTC", "Binance" or "InfluxDB")
+	loadFrom := "Binance" 
+	
+	//You specify whether you're performing live trading 
 	liveTrading := true
-    ts, err := strategies.NewTradingSystem(liveTrading, loadFrom)
+
+    //You're initializing your trading system using the strategies.NewTradingSystem function. 
+	ts, err := strategies.NewTradingSystem(liveTrading, loadFrom)
 	if err != nil {
 		log.Fatal("Error initializing trading system:", err)
 		return
 	}
 		
-	// Perform backtesting with the given data and parameters.
+	//Perform Trading:
+	//Depending on whether you're performing live trading or not, you're either calling the LiveTrade or Backtesting
 	switch liveTrading{
 	case true:
-		ts.LiveTrade(loadFrom)
+		go ts.LiveTrade(loadFrom)
 	default:
-		ts.Backtest(loadFrom)
+		go ts.Backtest(loadFrom)
 	}
- 
-	// // Define EMA periods for the crossover strategy as multiple sets
-	// emaPeriods := [][]int{{6, 8}, {6, 12}, {6, 13}, {6, 14}, {6, 15}, {6, 16},{6, 17}, {6, 18}, {6, 19}, {6, 20},
-	// {12, 26},{12, 27},{12,28}, {12, 29}, {12, 30},{12, 31},{12,32}, {12, 33}, {12, 34},
-	// 					}
 
-	// // Calculate profit for each set of EMA periods
-	// for _, periods := range emaPeriods {
-	// 	EMAProfit, MACDProfit, RSIProfit := ts.EvaluateEMAParameters(ts.ClosingPrices, periods)
-	// 	fmt.Printf("Periods: %d,%d EMAProfit: %.2f, MACDProfit %.2f, RSIProfit %.2f\n", periods[0], periods[1], EMAProfit, MACDProfit, RSIProfit)
-	// }
+	
+	//Setup and Start Web Server:
+	//You're setting up the web server by creating a server.NewTradeHandler() and server.NewServer(addrp, th) instance. 
+	//Then, you open the server using the server.Open() method.
+	addrp := os.Getenv("PORT")
+	th := server.NewTradeHandler()
+	server := server.NewServer(addrp, th)
+
+	// Create a channel to listen for OS signals
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		// Wait for a termination signal
+		<-signalCh
+
+		log.Println("Received termination signal. Shutting down...")
+
+		// Perform any cleanup or shutdown tasks here
+
+		// Close your server gracefully
+		if err := server.Close(); err != nil {
+			log.Printf("Error while closing server: %v", err)
+		}
+
+		log.Println("Server shut down gracefully.")
+		os.Exit(0)
+	}()
+
+	//Start the webserver
+	if err := server.Open(); err != nil {
+		log.Fatalf("Unable to Open Server for listen and serve: %v", err)
+	}
 }
