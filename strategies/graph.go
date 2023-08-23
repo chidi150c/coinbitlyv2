@@ -246,7 +246,7 @@ func CreateLineChartWithSignalsV3(timeSeries []int64, dataSeries []float64, gree
 	selectedTimeLabels := make([]string, len(timeSeries))
 	for i, timeVal := range timeSeries {
 		if timeVal >= nextMark {
-			selectedTimeLabels[i] = time.Unix(0, timeVal).Format("02 15:04:05")
+			selectedTimeLabels[i] = time.Unix(0, timeVal*int64(time.Millisecond)).Format("02 15:04:05")
 			nextMark += stepSize
 		} else {
 			selectedTimeLabels[i] = ""
