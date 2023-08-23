@@ -79,7 +79,6 @@ func CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signal
 	if err := p.Save(10*vg.Inch, 6*vg.Inch, "./webclient/assets/images/"+graph+"line_chart_with_signals.png"); err != nil {
 		return err
 	}
-
 	return nil
 }
 
