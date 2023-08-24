@@ -39,7 +39,7 @@ func main() {
 	}
 	
 	// Open or create a log file for appending
-	logFile, err := os.OpenFile("./webclient/Assets/app.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	logFile, err := os.OpenFile("./webclient/assets/app.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Println("Error opening or creating log file:", err)
 		os.Exit(1)
