@@ -55,6 +55,8 @@ type TradingSystem struct {
 	RiskFactor 			   float64
 	EMASpecial       []float64
 	MaxDataSize int
+	Log *log.Logger
+	ShutDownCh chan string
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -73,7 +75,10 @@ func NewTradingSystem(liveTrading bool, loadFrom string) (*TradingSystem, error)
 	ts.StrategyCombLogic = "OR"
 	ts.EnableStoploss = true
 	ts.StopLossRecover = math.MaxFloat64 //
-	ts.MaxDataSize = 50
+	ts.MaxDataSize = 500
+	ts.ShutDownCh = make(chan string)
+
+
 	if liveTrading {
 		// Fetch historical data from the exchange
 		err := ts.LiveUpdate(loadFrom)
@@ -86,11 +91,7 @@ func NewTradingSystem(liveTrading bool, loadFrom string) (*TradingSystem, error)
 		if err != nil {
 			return &TradingSystem{}, err
 		}
-	}
-
-	// Perform any other necessary initialization steps here
-	// ts.Signals = make([]string, len(ts.ClosingPrices))   // Holder of generated trading signals
-	
+	}	
 	return ts, nil
 }
 
@@ -233,7 +234,7 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 		}else if strings.Contains(resp, "BUY"){				
 			// Record Signal for plotting graph later
 			ts.Signals = append(ts.Signals, "Buy")
-			fmt.Println(resp)
+			ts.Log.Println(resp)
 			// Mark that we are in a trade.
 			ts.InTrade = true
 			ts.TradeCount++
@@ -253,7 +254,7 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 				}else if strings.Contains(resp, "SELL"){
 					// Record Signal for plotting graph later.
 					ts.Signals = append(ts.Signals, "Sell")
-					fmt.Println(resp)
+					ts.Log.Println(resp)
 					// Mark that we are no longer in a trade.
 					ts.InTrade = false
 					ts.TradeCount++
@@ -272,7 +273,7 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 			}else if strings.Contains(resp, "SELL"){
 				// Record Signal for plotting graph later.
 				ts.Signals = append(ts.Signals, "Sell")
-				fmt.Println(resp)
+				ts.Log.Println(resp)
 				// Mark that we are no longer in a trade.
 				ts.InTrade = false
 				ts.TradeCount++
@@ -779,13 +780,6 @@ func (ts *TradingSystem) LiveUpdate(loadFrom string) error {
 
 func (ts *TradingSystem) Reporting(md *model.AppData, from string)error{
 	var err error
-	// Print the overall trading performance after backtesting.
-	fmt.Printf("\n%s Summary: %d Strategy: %s Combination: %s, ", from, md.Count, md.Strategy, ts.StrategyCombLogic)
-	fmt.Printf("Total Trades: %d, out of %d trials ", ts.TradeCount, len(ts.Signals))
-	fmt.Printf("Total Profit/Loss: %.2f, ", md.TotalProfitLoss)
-	fmt.Printf("Final Capital: %.2f, ", ts.QuoteBalance)
-	fmt.Printf("Final Asset: %.8f DataPoint: %d", ts.BaseBalance, ts.DataPoint)
-	fmt.Println()
 	
 	if len(ts.Container1) > 0 && (!strings.Contains(md.Strategy, "Bollinger")) && (!strings.Contains(md.Strategy, "EMA")) && (!strings.Contains(md.Strategy, "MACD")) {
 		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
@@ -834,12 +828,19 @@ func (ts *TradingSystem)ShutDown(md *model.AppData, sigchnl chan os.Signal)  {
 					ts.TradeCount++
 					fmt.Printf("- SELL-Off at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.BaseBalance, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
 				}
-				
+				// Print the overall trading performance after backtesting.
+				fmt.Printf("Summary: %d Strategy: %s Combination: %s, ", md.Count, md.Strategy, ts.StrategyCombLogic)
+				fmt.Printf("Total Trades: %d, out of %d trials ", ts.TradeCount, len(ts.Signals))
+				fmt.Printf("Total Profit/Loss: %.2f, ", md.TotalProfitLoss)
+				fmt.Printf("Final Capital: %.2f, ", ts.QuoteBalance)
+				fmt.Printf("Final Asset: %.8f DataPoint: %d\n\n", ts.BaseBalance, ts.DataPoint)
+				fmt.Println()
+
 				if err := ts.APIServices.CloseDB(); err != nil{
 					fmt.Printf("Error while closing the DataBase: %v", err)
 					os.Exit(1)
 				}
-				os.Exit(0)
+				ts.ShutDownCh <- "Received termination signal. Shutting down..."
 			}
 		}
 	}
