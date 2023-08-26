@@ -57,6 +57,7 @@ type TradingSystem struct {
 	MaxDataSize int
 	Log *log.Logger
 	ShutDownCh chan string
+	EpochTime time.Duration
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -77,7 +78,7 @@ func NewTradingSystem(liveTrading bool, loadFrom string) (*TradingSystem, error)
 	ts.StopLossRecover = math.MaxFloat64 //
 	ts.MaxDataSize = 500
 	ts.ShutDownCh = make(chan string)
-
+	ts.EpochTime = time.Second * 30
 
 	if liveTrading {
 		// Fetch historical data from the exchange
@@ -138,7 +139,7 @@ func (ts *TradingSystem) LiveTrade(loadFrom string) {
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl, syscall.SIGINT)
 
-	md := &model.AppData{3, "EMA", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0}
+	md := &model.AppData{3, "EMA", 20, 55, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0}
 	fmt.Println("App started. Press Ctrl+C to exit.")
 	go ts.ShutDown(md, sigchnl)
 	ts.BaseBalance = 0.0
@@ -155,6 +156,8 @@ func (ts *TradingSystem) LiveTrade(loadFrom string) {
 		ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 		ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 
+		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
+		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		md.TotalProfitLoss = ts.Trading(md, loadFrom)
 		ts.TickerQueueAdjustment() //At this point you have all three(ts.ClosingPrices, ts.Timestamps and ts.Signals) assigned
 
@@ -164,11 +167,11 @@ func (ts *TradingSystem) LiveTrade(loadFrom string) {
 			return
 		}
 		
-		time.Sleep(time.Second * 60)
-		err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
-		if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
-			log.Fatalf("Error: writing to influxDB: %v", err)
-		}
+		time.Sleep(ts.EpochTime)
+		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
+		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
+		// 	log.Fatalf("Error: writing to influxDB: %v", err)
+		// }
 	}
 }
 
@@ -178,7 +181,7 @@ func (ts *TradingSystem) LiveTrade(loadFrom string) {
 // and updates the current balance after each trade.
 func (ts *TradingSystem) Backtest(loadFrom string) {
 	sigchnl := make(chan os.Signal, 1)
-	signal.Notify(sigchnl)
+	signal.Notify(sigchnl)	
 	//Count,Strategy,ShortPeriod,LongPeriod,ShortMACDPeriod,LongMACDPeriod,
 	//SignalMACDPeriod,RSIPeriod,StochRSIPeriod,SmoothK,SmoothD,RSIOverbought,RSIOversold,
 	//StRSIOverbought,StRSIOversold,BollingerPeriod,BollingerNumStdDev,TargetProfit,
@@ -186,7 +189,7 @@ func (ts *TradingSystem) Backtest(loadFrom string) {
 	backT := []*model.AppData{ //StochRSI
 		// {1, "MACD", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 		// {2, "RSI", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		{3, "EMA", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0},
+		{3, "EMA", 20, 55, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0},
 		// {4, "StochR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 		// {5, "Bollinger", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 		// {6, "MACD,RSI", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
@@ -201,7 +204,8 @@ func (ts *TradingSystem) Backtest(loadFrom string) {
 		// {15, "Bollinger,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 	}
 	AppDatatoCSV(backT)
-	for _, md := range backT {
+	fmt.Println("App started. Press Ctrl+C to exit.")
+	for i, md := range backT {
 		ts.BaseBalance = 0.0
 		ts.QuoteBalance = ts.InitialCapital
 		// Initialize variables for tracking trading performance.
@@ -215,10 +219,16 @@ func (ts *TradingSystem) Backtest(loadFrom string) {
 			fmt.Println("Error Reporting BackTest Trading: ", err)
 			return
 		}
-		<-sigchnl
 		fmt.Println()
-		fmt.Println("Next Set Starts Below:")
-	}
+		fmt.Println("Press Ctrl+C to continue...")
+		<-sigchnl
+		if i == len(backT)-1{
+			fmt.Println("End of Backtesting: Press Ctrl+C again to shutdown...")
+			sigchnl = make(chan os.Signal, 1)
+			signal.Notify(sigchnl)	
+			ts.ShutDown(md, sigchnl)
+		}		
+	} 
 }
 
 func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitLoss float64){	
@@ -229,7 +239,7 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 		// Execute the buy order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(md, "Buy")
 		if err != nil {
-			fmt.Println("Error executing buy order:", err)
+			// fmt.Println("Error executing buy order:", err)
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 		}else if strings.Contains(resp, "BUY"){				
 			// Record Signal for plotting graph later
@@ -249,7 +259,7 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 				// Execute the sell order using the ExecuteStrategy function.
 				resp, err := ts.ExecuteStrategy(md, "Sell")
 				if err != nil {
-					fmt.Println("Error:", err, " at:", ts.CurrentPrice, ", TargetStopLoss:", md.TargetStopLoss)
+					// fmt.Println("Error:", err, " at:", ts.CurrentPrice, ", TargetStopLoss:", md.TargetStopLoss)
 					ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 				}else if strings.Contains(resp, "SELL"){
 					// Record Signal for plotting graph later.
@@ -268,7 +278,7 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 			// Execute the sell order using the ExecuteStrategy function.
 			resp, err := ts.ExecuteStrategy(md, "Sell")
 			if err != nil {
-				fmt.Println("Error:", err, " at:", ts.CurrentPrice, ", TargetStopLoss:", md.TargetStopLoss)
+				// fmt.Println("Error:", err, " at:", ts.CurrentPrice, ", TargetStopLoss:", md.TargetStopLoss)
 				ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 			}else if strings.Contains(resp, "SELL"){
 				// Record Signal for plotting graph later.
@@ -414,6 +424,7 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 // calculated moving averages (short and long EMA), RSI, MACD line, and Bollinger
 // Bands. It determines the buy and sell signals based on various strategy rules.
 func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData) (buySignal, sellSignal bool) {
+	var crossed bool
 	// Calculate moving averages (MA) using historical data.
 	longEMA, shortEMA, timeStamps, err := CandleExponentialMovingAverage(ts.ClosingPrices, ts.Timestamps, md.LongPeriod, md.ShortPeriod)
 	if err != nil {
@@ -497,21 +508,27 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData) (buySignal, sellSi
 				count++
 				ts.Container1 = shortEMA
 				ts.Container2 = longEMA
-				if ts.EnableStoploss && ts.StopLossTrigered {
-					buySignal = buySignal || (shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] >= longEMA[ts.DataPoint])
-					sellSignal = sellSignal || (shortEMA[ts.DataPoint-1] >= longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
-				}else{
-					// buySignal = buySignal || (shortEMA[ts.DataPoint-2] > longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
-					// sellSignal = sellSignal || (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
-					if (len(ts.EMASpecial) >= 1) || (shortEMA[ts.DataPoint-2] > longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint]){
-						ts.EMASpecial = append(ts.EMASpecial, longEMA[ts.DataPoint] - shortEMA[ts.DataPoint])
-						if (len(ts.EMASpecial) > 1) && (ts.EMASpecial[len(ts.EMASpecial)-1] < ts.EMASpecial[len(ts.EMASpecial)-2]){
-							buySignal = buySignal || true
-							ts.EMASpecial = []float64{}
-						}
+
+				crossed = (shortEMA[ts.DataPoint-2] > longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
+				if (len(ts.EMASpecial) >= 1) || crossed || (ts.EnableStoploss && ts.StopLossTrigered){
+					if crossed {
+						ts.EMASpecial = []float64{}
 					}
-					sellSignal = sellSignal || (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
+					ts.EMASpecial = append(ts.EMASpecial, longEMA[ts.DataPoint] - shortEMA[ts.DataPoint])
+					if (len(ts.EMASpecial) > 7) && 
+					(ts.EMASpecial[len(ts.EMASpecial)-7] >= ts.EMASpecial[len(ts.EMASpecial)-8]) && 
+					(ts.EMASpecial[len(ts.EMASpecial)-6] >= ts.EMASpecial[len(ts.EMASpecial)-7]) && 
+					(ts.EMASpecial[len(ts.EMASpecial)-5] >= ts.EMASpecial[len(ts.EMASpecial)-6]) && 
+					(ts.EMASpecial[len(ts.EMASpecial)-4] >= ts.EMASpecial[len(ts.EMASpecial)-5]) && 
+					(ts.EMASpecial[len(ts.EMASpecial)-3] >= ts.EMASpecial[len(ts.EMASpecial)-4]) && 
+					(ts.EMASpecial[len(ts.EMASpecial)-2] >= ts.EMASpecial[len(ts.EMASpecial)-3]) && 
+					(ts.EMASpecial[len(ts.EMASpecial)-1] < ts.EMASpecial[len(ts.EMASpecial)-2]){
+						buySignal = buySignal || true
+						ts.EMASpecial = []float64{}
+					} 
 				}
+				sellSignal = sellSignal || (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
+			
 			} 
 			if strings.Contains(md.Strategy, "RSI") && ts.DataPoint > 0 && ts.DataPoint <= len(rsi) {
 				count++
@@ -684,10 +701,10 @@ func (ts *TradingSystem) UpdateHistoricalData(loadFrom string) error {
 		ts.ClosingPrices = append(ts.ClosingPrices, candle.Close)
 		ts.Timestamps = append(ts.Timestamps, candle.Timestamp)
 		if  loadFrom != "InfluxDB" {
-			err := ts.APIServices.WriteCandleToDB(candle.Close, candle.Timestamp)
-			if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
-				log.Fatalf("Error: writing to influxDB: %v", err)
-			}
+			// err := ts.APIServices.WriteCandleToDB(candle.Close, candle.Timestamp)
+			// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
+			// 	log.Fatalf("Error: writing to influxDB: %v", err)
+			// }
 		}
 	}
 	return nil
@@ -771,10 +788,10 @@ func (ts *TradingSystem) LiveUpdate(loadFrom string) error {
 	ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 	ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 	ts.Signals = append(ts.Signals, "Hold")
-	err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
-	if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
-		log.Fatalf("Error: writing to influxDB: %v", err)
-	}
+	// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
+	// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
+	// 	log.Fatalf("Error: writing to influxDB: %v", err)
+	// }
 	return nil
 }
 
@@ -836,10 +853,10 @@ func (ts *TradingSystem)ShutDown(md *model.AppData, sigchnl chan os.Signal)  {
 				fmt.Printf("Final Asset: %.8f DataPoint: %d\n\n", ts.BaseBalance, ts.DataPoint)
 				fmt.Println()
 
-				if err := ts.APIServices.CloseDB(); err != nil{
-					fmt.Printf("Error while closing the DataBase: %v", err)
-					os.Exit(1)
-				}
+				// if err := ts.APIServices.CloseDB(); err != nil{
+				// 	fmt.Printf("Error while closing the DataBase: %v", err)
+				// 	os.Exit(1)
+				// }
 				ts.ShutDownCh <- "Received termination signal. Shutting down..."
 			}
 		}
@@ -849,7 +866,7 @@ func (ts *TradingSystem)ShutDown(md *model.AppData, sigchnl chan os.Signal)  {
 // CalculateMACD calculates the Moving Average Convergence Divergence (MACD) and MACD Histogram for the given data and periods.
 func CalculateMACD(SignalMACDPeriod int, closingPrices []float64, timeStamps []int64, LongPeriod, ShortPeriod int) (macdLine, signalLine, macdHistogram []float64, err error) {
 	if LongPeriod <= 0 || len(closingPrices) < LongPeriod {
-		err = fmt.Errorf("Error Calculating EMA: not enoguh data for period %v", LongPeriod)
+		err = fmt.Errorf("Error Calculating EMA: not enoguh data for period %v at total datapoint: %d", LongPeriod, len(closingPrices)-1)
 		return nil, nil, nil, err
 	}
 	

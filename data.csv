@@ -1,2 +1,2 @@
 Count,Strategy,ShortPeriod,LongPeriod,ShortMACDPeriod,LongMACDPeriod,SignalMACDPeriod,RSIPeriod,StochRSIPeriod,SmoothK,SmoothD,RSIOverbought,RSIOversold,StRSIOverbought,StRSIOversold,BollingerPeriod,BollingerNumStdDev,TargetProfit,TargetStopLoss,RiskPositionPercentage,TotalProfitLoss
-3,EMA,6,16,12,29,9,14,14,3,3,0.600000,0.400000,0.700000,0.200000,20,2.000000,0.500000,3.000000,0.250000,0.000000
+3,EMA,20,55,12,29,9,14,14,3,3,0.600000,0.400000,0.700000,0.200000,20,2.000000,0.500000,3.000000,0.250000,0.000000

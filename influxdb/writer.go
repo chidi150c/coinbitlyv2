@@ -59,6 +59,7 @@ func (c *CandleServices)FetchCandles(symbol, interval string, startTime, endTime
 	return readHistoricalData(c.QueryAPI, c.HistoricalDBBucket, c.HistoricalTimeRange, c.HistoricalMeasurement, tags)
 }
 func (c *CandleServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
+	return nil
 	tags := map[string]string{
 		"Historical" : c.HistoricalTag,
 	}
@@ -93,6 +94,7 @@ func (c *CandleServices)FetchTicker(symbol string)(CurrentPrice float64, err err
 	return CurrentPrice, err
 }
 func (c *CandleServices)WriteTickerToDB(ClosePrice float64, Timestamp int64) error {
+	return nil
 	tags := map[string]string{
 		"Live" : c.LiveTag,
 	}
@@ -220,7 +222,7 @@ func readAppData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, InfluxDBMeasu
 }
 
 func (c *CandleServices)WriteAppDataToDB(md *model.AppData, timestamp int64) error {
-
+	return nil
     // Convert the structs to appropriate InfluxDB line protocol format
     point1 := influxdb2.NewPointWithMeasurement("strategy_data").
 		AddTag("Strategy", md.Strategy).

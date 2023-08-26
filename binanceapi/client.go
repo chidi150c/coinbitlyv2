@@ -57,12 +57,12 @@ func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime in
 	fmt.Println()
 	return mcandles, nil
 }
-func (e *APIServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
-	return e.DataBase.WriteCandleToDB(ClosePrice, Timestamp)
-}
-func (e *APIServices)CloseDB()error{
-	return e.DataBase.CloseDB()
-}
+// func (e *APIServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
+// 	return e.DataBase.WriteCandleToDB(ClosePrice, Timestamp)
+// }
+// func (e *APIServices)CloseDB()error{
+// 	return e.DataBase.CloseDB()
+// }
 // FetchTicker fetches and displays real-time of a given symbol
 func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error){
 		ticker, err := fetchTickerData(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
@@ -71,11 +71,11 @@ func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error)
 			return 0.0, err
 		}
 		// Display the ticker data
-		fmt.Printf("Symbol: %s\nPrice: %s\n", ticker.Symbol, ticker.Price)
+		// fmt.Printf("Symbol: %s\nPrice: %s\n", ticker.Symbol, ticker.Price)
 		return helper.ParseStringToFloat(ticker.Price), nil
 }
 func (e *APIServices)WriteTickerToDB(ClosePrice float64, Timestamp int64)error{
-	_ = e.DataBase.WriteTickerToDB(ClosePrice, Timestamp)
+	// _ = e.DataBase.WriteTickerToDB(ClosePrice, Timestamp)
 	return nil
 }
 

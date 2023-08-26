@@ -29,14 +29,6 @@ func main() {
 		return
 	}
 
-	//Perform Trading:
-	//Depending on whether you're performing live trading or not, you're either calling the LiveTrade or Backtesting
-	switch liveTrading{
-	case true:
-		go ts.LiveTrade(loadFrom)
-	default:
-		go ts.Backtest(loadFrom)
-	}
 	
 	// Open or create a log file for appending
 	logFile, err := os.OpenFile("./webclient/assets/app.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -50,14 +42,22 @@ func main() {
 
 	// Your application logic goes here
 
-	logger.Println("App started. Press Ctrl+C to exit.")
+	logger.Println("started.................................")
 
 	ts.Log = logger
 
+	//Depending on whether you're performing live trading or not, you're either calling the LiveTrade or Backtesting
+	switch liveTrading{
+	case true:
+		go ts.LiveTrade(loadFrom)
+	default:
+		go ts.Backtest(loadFrom)
+	}
+	
 	//Setup and Start Web Server:
 	//You're setting up the web server by creating a server.NewTradeHandler() and server.NewServer(addrp, th) instance. 
 	//Then, you open the server using the server.Open() method.
-	addrp := os.Getenv("PORT")
+	addrp := os.Getenv("PORT4")
 	th := server.NewTradeHandler()
 	server := server.NewServer(addrp, th)
 

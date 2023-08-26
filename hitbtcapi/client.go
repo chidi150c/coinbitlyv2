@@ -55,20 +55,22 @@ func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime in
 	}
 	return mcandles, nil
 }
-func (e *APIServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
-	return e.DataBase.WriteCandleToDB(ClosePrice, Timestamp)
-}
+// func (e *APIServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
+// 	return e.DataBase.WriteCandleToDB(ClosePrice, Timestamp)
+// }
 func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error){
 	CurrentPrice = rand.Float64()
 	return CurrentPrice, err
 }
 
-func (e *APIServices)WriteTickerToDB(ClosePrice float64, Timestamp int64)error{
-	return e.DataBase.WriteTickerToDB(ClosePrice, Timestamp)
-}
-func (e *APIServices)CloseDB()error{
-	return e.DataBase.CloseDB()
-}
+// func (e *APIServices)WriteTickerToDB(ClosePrice float64, Timestamp int64)error{
+// 	return e.DataBase.WriteTickerToDB(ClosePrice, Timestamp)
+// }
+
+// func (e *APIServices)CloseDB()error{
+// 	return e.DataBase.CloseDB()
+// }
+
 // // FetchTickerData fetches and displays real-time of a given symbol
 // func (e *APIServices)FetchTickerData(symbol string) (*model.TickerData, error) {
 // 	ticker, err := fetchTickerData(symbol)

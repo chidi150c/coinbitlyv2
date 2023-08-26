@@ -30,7 +30,7 @@ type ExchConfig struct {
 	HistoricalTag string
 }
 const (
-	timeRange int = -7
+	timeRange int = -1
 )
 
 func NewExchangesConfig() map[string]*ExchConfig {
@@ -39,7 +39,7 @@ func NewExchangesConfig() map[string]*ExchConfig {
 			Name:            "InfluxDB",
 			Symbols:         []string{"BTCUSDT"},
 			BaseURL:         "http://influxdb-container:8086", 
-							//"http://localhost-container:8086" => local
+							//"http://localhost:8086" => local
 							//"http://influxdb-container:8086" => production
 			DBOrgID:	 	"Resoledge",
 			SecretKey:       "8tf6oI1nYCHpeosYrw9qcB_31tL6w4k1l3EFq2olfCylSyTJBL3y6Db0bBgQIul9CBKZExtvLYZJe_XYDiNI7A==",
@@ -66,8 +66,8 @@ func NewExchangesConfig() map[string]*ExchConfig {
 			ApiKey:          os.Getenv("BINANCE_API_KEY"), // Replace with your Binance API key
 			SecretKey:       os.Getenv("BINANCE_API_SECRET"),  // Replace with your Binance API secret key
 			Symbol:          "BTCUSDT",
-			CandleInterval:  "30m",
-			CandleStartTime: time.Now().Add(time.Duration(timeRange) * 24 * time.Hour).Unix(), // 3 days ago
+			CandleInterval:  "1m",
+			CandleStartTime: time.Now().Add(time.Duration(timeRange) * 20 * time.Hour).Unix(), // 3 days ago
 			CandleEndTime:   time.Now().Unix(),
 		},
 		"HitBTC": {
