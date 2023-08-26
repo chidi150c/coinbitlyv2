@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/csv"
 	"log"
 	"time"
 
@@ -29,7 +30,6 @@ func main() {
 		return
 	}
 
-	
 	// Open or create a log file for appending
 	logFile, err := os.OpenFile("./webclient/assets/app.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -38,13 +38,29 @@ func main() {
 	}
 	
 	// Create a logger that writes to the log file
-	logger := log.New(logFile, "", log.LstdFlags)
+	ts.Log = log.New(logFile, "", log.LstdFlags)
 
-	// Your application logic goes here
+	// Save data to CSV file
+    appfile, err := os.OpenFile("./webclient/assets/dataPoint.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+    if err != nil {
+        log.Fatal(err)
+    }  
+	
+    ts.CSVWriter = csv.NewWriter(appfile)
+	// Write headers to the CSV file
+	headers := []string{
+		"Count","Strategy","ShortPeriod","LongPeriod", "ShortEMA", "LongEMA", "ShortMACDPeriod",
+		"LongMACDPeriod","SignalMACDPeriod","RSIPeriod","StochRSIPeriod",
+		"SmoothK","SmoothD","RSIOverbought","RSIOversold","StRSIOverbought", 
+		"StRSIOversold","BollingerPeriod","BollingerNumStdDev","TargetProfit",
+		"TargetStopLoss","RiskPositionPercentage","TotalProfitLoss",   
+	}
+	err = ts.CSVWriter.Write(headers)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	logger.Println("started.................................")
-
-	ts.Log = logger
+	ts.Log.Println("started.................................")
 
 	//Depending on whether you're performing live trading or not, you're either calling the LiveTrade or Backtesting
 	switch liveTrading{
@@ -66,6 +82,8 @@ func main() {
 	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
+		// ts.Mu.Lock()
+		// defer ts.Mu.Unlock()
 		// Wait for a termination signal
 		log.Println(<-ts.ShutDownCh)
 
@@ -76,9 +94,18 @@ func main() {
 			log.Printf("Error while closing server: %v", err)
 		}
 
-		// Close your data file gracefully
+		// Close your Log file gracefully
 		if err := logFile.Close(); err != nil {
-			log.Printf("Error while closing App file: %v", err)
+			log.Printf("Error while closing Log file: %v", err)
+		}
+
+		ts.Mu.Lock()
+		ts.CSVWriter.Flush()
+		ts.Mu.Unlock()
+
+		// Close your AppData file gracefully
+		if err := appfile.Close(); err != nil {
+			log.Printf("Error while closing AppData file: %v", err)
 		}
 		
 		log.Println("Server shut down gracefully.")

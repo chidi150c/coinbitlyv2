@@ -191,7 +191,7 @@ func readAppData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, InfluxDBMeasu
 		switch measurement{
 		case "strategy_data":
 			md.Strategy = "MACD"
-			md.Count = record.ValueByKey("Count").(int)
+			md.DataPoint = record.ValueByKey("DataPoint").(int)
 			md.Strategy = record.ValueByKey("Strategy").(string)
 			md.ShortPeriod = record.ValueByKey("ShortPeriod").(int)
 			md.LongPeriod = record.ValueByKey("LongPeriod").(int)
@@ -223,7 +223,7 @@ func readAppData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, InfluxDBMeasu
 // 	// Convert the structs to appropriate InfluxDB line protocol format
 //     point1 := influxdb2.NewPointWithMeasurement("strategy_data").
 // 		AddTag("Strategy", md.Strategy).
-// 		AddField("Count", md.Count).
+// 		AddField("DataPoint", md.DataPoint).
 // 		AddField("Strategy", md.Strategy).
 // 		AddField("ShortPeriod", md.ShortPeriod).
 // 		AddField("LongPeriod", md.LongPeriod).

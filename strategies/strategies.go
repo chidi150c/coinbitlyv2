@@ -1,6 +1,7 @@
 package strategies
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
 	"math"
@@ -25,7 +26,7 @@ import (
 // system and holds various parameters and fields related to the strategy,
 // trading state, and performance.
 type TradingSystem struct {
-	mu              sync.Mutex // Mutex for protecting concurrent writes
+	Mu              sync.Mutex // Mutex for protecting concurrent writes
 	// HistoricalData  []model.Candle
 	ClosingPrices   []float64
 	Container1      []float64
@@ -58,6 +59,7 @@ type TradingSystem struct {
 	Log *log.Logger
 	ShutDownCh chan string
 	EpochTime time.Duration
+	CSVWriter *csv.Writer
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -93,6 +95,7 @@ func NewTradingSystem(liveTrading bool, loadFrom string) (*TradingSystem, error)
 			return &TradingSystem{}, err
 		}
 	}	
+
 	return ts, nil
 }
 
@@ -103,7 +106,7 @@ func NewAppData() *model.AppData {
 		ShortMACDPeriod: 12,
 		LongMACDPeriod:  29,
 	}
-	md.Count = 0
+	md.DataPoint = 0
 	md.TargetProfit = 5.0
 	md.TargetStopLoss = 20.0
 	md.RiskPositionPercentage = 0.5 // Define risk management parameter 5% balance
@@ -139,7 +142,7 @@ func (ts *TradingSystem) LiveTrade(loadFrom string) {
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl, syscall.SIGINT)
 
-	md := &model.AppData{3, "EMA", 20, 55, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0}
+	md := &model.AppData{0, "EMA", 20, 55, 0.0, 0.0, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0}
 	fmt.Println("App started. Press Ctrl+C to exit.")
 	go ts.ShutDown(md, sigchnl)
 	ts.BaseBalance = 0.0
@@ -153,12 +156,14 @@ func (ts *TradingSystem) LiveTrade(loadFrom string) {
 			log.Fatal("Error Reporting Live Trade: ", err)
 		}
 		ts.DataPoint++
+		md.DataPoint++ 
 		ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 		ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		md.TotalProfitLoss = ts.Trading(md, loadFrom)
+
 		ts.TickerQueueAdjustment() //At this point you have all three(ts.ClosingPrices, ts.Timestamps and ts.Signals) assigned
 
 		err = ts.Reporting(md, "Live Trading")
@@ -189,7 +194,7 @@ func (ts *TradingSystem) Backtest(loadFrom string) {
 	backT := []*model.AppData{ //StochRSI
 		// {1, "MACD", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 		// {2, "RSI", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		{3, "EMA", 20, 55, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0},
+		{0, "EMA", 20, 55, 0.0, 0.0, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0},
 		// {4, "StochR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 		// {5, "Bollinger", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 		// {6, "MACD,RSI", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
@@ -203,7 +208,7 @@ func (ts *TradingSystem) Backtest(loadFrom string) {
 		// {14, "StochR,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 		// {15, "Bollinger,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
 	}
-	AppDatatoCSV(backT)
+
 	fmt.Println("App started. Press Ctrl+C to exit.")
 	for i, md := range backT {
 		ts.BaseBalance = 0.0
@@ -268,6 +273,13 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 					// Mark that we are no longer in a trade.
 					ts.InTrade = false
 					ts.TradeCount++
+				}else if strings.Contains(resp, "Buy"){
+					// Record Signal for plotting graph later.
+					ts.Signals = append(ts.Signals, "Buy")
+					ts.Log.Println(resp)
+					// Mark that we are no longer in a trade.
+					ts.InTrade = false
+					ts.TradeCount++
 				}else{
 					ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 				}					
@@ -287,6 +299,13 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 				// Mark that we are no longer in a trade.
 				ts.InTrade = false
 				ts.TradeCount++
+			}else if strings.Contains(resp, "Buy"){
+				// Record Signal for plotting graph later.
+				ts.Signals = append(ts.Signals, "Buy")
+				ts.Log.Println(resp)
+				// Mark that we are no longer in a trade.
+				ts.InTrade = false
+				ts.TradeCount++
 			}else{
 				ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 			}	
@@ -300,11 +319,9 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 // ExecuteStrategy executes the trade based on the provided trade action and current price.
 // The tradeAction parameter should be either "Buy" or "Sell".
 func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) (string, error) {
-	ts.mu.Lock()
-	defer ts.mu.Unlock()
 	// Calculate position size based on the fixed percentage of risk per trade.
 	resp := ts.RiskManagement(md) // make sure entry price is set before calling risk management
-	if strings.Contains(resp, "SELL") {
+	if strings.Contains(resp, "Buy") {
 		return resp, nil
 	}
 	switch tradeAction {
@@ -339,7 +356,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.StopLossTrigered = false
 			// ts.RiskStopLossPercentage /= ts.RiskFactor
 		}
-		resp := fmt.Sprintf("- BUY at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
+		resp := fmt.Sprintf("- BUY at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d\n", ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 		return resp, nil
 
 	case "Sell":
@@ -373,7 +390,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.QuoteBalance += (ts.EntryQuantity * exitPrice) - transactionCost - slippageCost
 		ts.BaseBalance -= ts.EntryQuantity
 
-		resp := fmt.Sprintf("- SELL at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
+		resp := fmt.Sprintf("- SELL at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d\n", ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 		return resp, nil
 	default:
 		return "", fmt.Errorf("invalid trade action: %s", tradeAction)
@@ -413,8 +430,8 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		md.RiskPositionPercentage *= ts.RiskFactor //increase riskPosition by a factor
 		ts.StopLossRecover = ts.CurrentPrice //* (1.0 - ts.RiskStopLossPercentage)
 
-		resp := fmt.Sprintf("- SELL-StopLoss at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n",
-			ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
+		resp := fmt.Sprintf("- Buy-StopLoss at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt %d\n",
+			ts.CurrentPrice, ts.EntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 		return resp
 	}
 	return "false"
@@ -429,6 +446,9 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData) (buySignal, sellSi
 	longEMA, shortEMA, timeStamps, err := CandleExponentialMovingAverage(ts.ClosingPrices, ts.Timestamps, md.LongPeriod, md.ShortPeriod)
 	if err != nil {
 		log.Printf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
+		md.LongEMA, md.ShortEMA = 0.0, 0.0
+	}else{
+		md.LongEMA, md.ShortEMA =  longEMA[ts.DataPoint], shortEMA[ts.DataPoint]
 	}
 
 	// Calculate Relative Strength Index (RSI) using historical data.
@@ -814,6 +834,12 @@ func (ts *TradingSystem) Reporting(md *model.AppData, from string)error{
 	if err != nil{
 		return fmt.Errorf("Error creating Line Chart with signals: %v", err)
 	}
+	if from == "Live Trading"{
+		err = ts.AppDatatoCSV(md)
+		if err != nil{
+			return fmt.Errorf("Error creating Writing to CSV File %v", err)
+		}
+	}
 	return nil
 }
 
@@ -837,22 +863,23 @@ func (ts *TradingSystem)ShutDown(md *model.AppData, sigchnl chan os.Signal)  {
 			
 					ts.TradeProfitLoss -= transactionCost + slippageCost
 					// md.TotalProfitLoss += tradeProfitLoss
-			
+	
+					ts.Mu.Lock()
 					ts.QuoteBalance += (ts.BaseBalance * exitPrice) - transactionCost - slippageCost
 					ts.BaseBalance -= ts.BaseBalance
 					ts.Signals = append(ts.Signals, "Sell")
 					ts.InTrade = false
 					ts.TradeCount++
+					ts.Mu.Unlock()
 					fmt.Printf("- SELL-Off at %v Quant: %.8f, QBal: %.8f, BBal: %.8f, TotalP&L %.2f TradeP&L: %.8f PosPcent: %.8f DataPt: %d\n", ts.CurrentPrice, ts.BaseBalance, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, ts.TradeProfitLoss, md.RiskPositionPercentage, ts.DataPoint)
 				}
 				// Print the overall trading performance after backtesting.
-				fmt.Printf("Summary: %d Strategy: %s Combination: %s, ", md.Count, md.Strategy, ts.StrategyCombLogic)
+				fmt.Printf("Summary: Strategy: %s Combination: %s, ", md.Strategy, ts.StrategyCombLogic)
 				fmt.Printf("Total Trades: %d, out of %d trials ", ts.TradeCount, len(ts.Signals))
 				fmt.Printf("Total Profit/Loss: %.2f, ", md.TotalProfitLoss)
 				fmt.Printf("Final Capital: %.2f, ", ts.QuoteBalance)
-				fmt.Printf("Final Asset: %.8f DataPoint: %d\n\n", ts.BaseBalance, ts.DataPoint)
-				fmt.Println()
-
+				fmt.Printf("Final Asset: %.8f tsDataPoint: %d, mdDataPoint: %d\n\n", ts.BaseBalance, ts.DataPoint, md.DataPoint)
+				
 				// if err := ts.APIServices.CloseDB(); err != nil{
 				// 	fmt.Printf("Error while closing the DataBase: %v", err)
 				// 	os.Exit(1)

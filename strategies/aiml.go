@@ -15,9 +15,43 @@ import (
 	"coinbitly.com/model" // Import the AppData struct
 )
 
-func AppDatatoCSV(data []*model.AppData) { //fundamentalAnalysis()
+
+func (ts *TradingSystem)AppDatatoCSV(data *model.AppData)error { //fundamentalAnalysis()
+
+    err := ts.CSVWriter.Write([]string{
+		fmt.Sprintf("%d", data.DataPoint),
+		data.Strategy,
+		fmt.Sprintf("%d", data.ShortPeriod),
+		fmt.Sprintf("%d", data.LongPeriod),
+		fmt.Sprintf("%d", data.ShortMACDPeriod),
+		fmt.Sprintf("%f", data.LongEMA),
+		fmt.Sprintf("%f", data.ShortEMA),
+		fmt.Sprintf("%d", data.LongMACDPeriod),
+		fmt.Sprintf("%d", data.SignalMACDPeriod),
+		fmt.Sprintf("%d", data.RSIPeriod),
+		fmt.Sprintf("%d", data.StochRSIPeriod),
+		fmt.Sprintf("%d", data.SmoothK),
+		fmt.Sprintf("%d", data.SmoothD),
+		fmt.Sprintf("%f", data.RSIOverbought),
+		fmt.Sprintf("%f", data.RSIOversold),
+		fmt.Sprintf("%f", data.StRSIOverbought),
+		fmt.Sprintf("%f", data.StRSIOversold),
+		fmt.Sprintf("%d", data.BollingerPeriod),
+		fmt.Sprintf("%f", data.BollingerNumStdDev),
+		fmt.Sprintf("%f", data.TargetProfit),
+		fmt.Sprintf("%f", data.TargetStopLoss),
+		fmt.Sprintf("%f", data.RiskPositionPercentage),
+		fmt.Sprintf("%f", data.TotalProfitLoss),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func AppDataListtoCSV(data []*model.AppData) { //fundamentalAnalysis()
     // Save data to CSV file
-    file, err := os.Create("data.csv")
+    file, err := os.Create("./webclient/assets/data.csv")
     if err != nil {
         log.Fatal(err)
     }
@@ -28,7 +62,7 @@ func AppDatatoCSV(data []*model.AppData) { //fundamentalAnalysis()
 
     // Write headers to the CSV file
     headers := []string{
-        "Count","Strategy","ShortPeriod","LongPeriod","ShortMACDPeriod",
+        "DataPoint","Strategy","ShortPeriod","LongPeriod","ShortMACDPeriod",
         "LongMACDPeriod","SignalMACDPeriod","RSIPeriod","StochRSIPeriod",
         "SmoothK","SmoothD","RSIOverbought","RSIOversold","StRSIOverbought", 
         "StRSIOversold","BollingerPeriod","BollingerNumStdDev","TargetProfit",
@@ -41,7 +75,7 @@ func AppDatatoCSV(data []*model.AppData) { //fundamentalAnalysis()
 
     for _, d := range data {
         err := writer.Write([]string{
-            fmt.Sprintf("%d", d.Count),
+            fmt.Sprintf("%d", d.DataPoint),
 			d.Strategy,
 			fmt.Sprintf("%d", d.ShortPeriod),
 			fmt.Sprintf("%d", d.LongPeriod),
@@ -86,7 +120,7 @@ func CSVtoAppData(filename string) ([]*model.AppData, error) {
 
     for _, record := range records {
         // Convert record fields to appropriate types and populate AppData instances
-        Count, _ := strconv.Atoi(record[0])
+        DataPoint, _ := strconv.Atoi(record[0])
 		ShortPeriod, _ := strconv.Atoi(record[3])
 		LongPeriod, _ := strconv.Atoi(record[4])
 		ShortMACDPeriod, _ := strconv.Atoi(record[5])
@@ -108,7 +142,7 @@ func CSVtoAppData(filename string) ([]*model.AppData, error) {
 		TotalProfitLoss, _ := strconv.ParseFloat(record[22], 64)
 
         data = append(data, &model.AppData{
-            Count:             Count,
+            DataPoint:             DataPoint,
             Strategy:          record[1],
             ShortPeriod:       ShortPeriod,
             LongPeriod:        LongPeriod,		

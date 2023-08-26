@@ -3,10 +3,12 @@ package model
 // type AppID uint64
 
 type AppData struct{
-	Count int
+	DataPoint int
 	Strategy string
-	ShortPeriod  int     
-	LongPeriod  int     
+	ShortPeriod  int   
+	LongPeriod  int      
+	ShortEMA float64
+	LongEMA float64 
 	ShortMACDPeriod  int     
 	LongMACDPeriod  int 
 	SignalMACDPeriod  int 
