@@ -74,10 +74,9 @@ func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error)
 		// fmt.Printf("Symbol: %s\nPrice: %s\n", ticker.Symbol, ticker.Price)
 		return helper.ParseStringToFloat(ticker.Price), nil
 }
-func (e *APIServices)WriteTickerToDB(ClosePrice float64, Timestamp int64)error{
-	// _ = e.DataBase.WriteTickerToDB(ClosePrice, Timestamp)
-	return nil
-}
+// func (e *APIServices)WriteTickerToDB(ClosePrice float64, Timestamp int64)error{
+// 	return e.DataBase.WriteTickerToDB(ClosePrice, Timestamp)
+// }
 
 // fetchAndDisplay24hrTickerData fetches and displays 24-hour price change statistics for the given symbol
 // func (e *APIServices)Fetch24hrChange(symbol string) (*model.Ticker24hrChange, error){

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
-	"time"
+	// "time"
 
 	"coinbitly.com/config"
 	"coinbitly.com/model"
@@ -58,72 +58,70 @@ func (c *CandleServices)FetchCandles(symbol, interval string, startTime, endTime
 	}
 	return readHistoricalData(c.QueryAPI, c.HistoricalDBBucket, c.HistoricalTimeRange, c.HistoricalMeasurement, tags)
 }
-func (c *CandleServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
-	return nil
-	tags := map[string]string{
-		"Historical" : c.HistoricalTag,
-	}
-	timestamp := Timestamp
+// func (c *CandleServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
+// 	tags := map[string]string{
+// 		"Historical" : c.HistoricalTag,
+// 	}
+// 	timestamp := Timestamp
 
-	exists, err := dataPointExists(c.QueryAPI, c.HistoricalDBBucket, c.HistoricalTimeRange, c.HistoricalMeasurement, tags, timestamp)
-	if err != nil {		
-		fmt.Println("Error checking data point:", err)
-		return fmt.Errorf("Error checking data point: %v", err)
-	}
+// 	exists, err := dataPointExists(c.QueryAPI, c.HistoricalDBBucket, c.HistoricalTimeRange, c.HistoricalMeasurement, tags, timestamp)
+// 	if err != nil {		
+// 		fmt.Println("Error checking data point:", err)
+// 		return fmt.Errorf("Error checking data point: %v", err)
+// 	}
 
-	if exists {
-		fmt.Println("Data point already exists. Skipping write.")
-		return fmt.Errorf("Data point already exists. Skipping write.")
-	}
+// 	if exists {
+// 		fmt.Println("Data point already exists. Skipping write.")
+// 		return fmt.Errorf("Data point already exists. Skipping write.")
+// 	}
 
-    point2 := influxdb2.NewPointWithMeasurement(c.HistoricalMeasurement).
-		AddTag("Historical", c.HistoricalTag).
-        AddField("Close", ClosePrice).
-        SetTime(time.Unix(Timestamp, 0))	
+//     point2 := influxdb2.NewPointWithMeasurement(c.HistoricalMeasurement).
+// 		AddTag("Historical", c.HistoricalTag).
+//         AddField("Close", ClosePrice).
+//         SetTime(time.Unix(Timestamp, 0))	
 
-	// Write the point to the database
-	err = c.HistoricalWriteAPI.WritePoint(context.Background(), point2)
-	if err != nil {
-		return err
-	}
-	// fmt.Println("Candle inserted successfully!")
-	return nil
-}
+// 	// Write the point to the database
+// 	err = c.HistoricalWriteAPI.WritePoint(context.Background(), point2)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	// fmt.Println("Candle inserted successfully!")
+// 	return nil
+// }
 func (c *CandleServices)FetchTicker(symbol string)(CurrentPrice float64, err error){
 	CurrentPrice = rand.Float64()
 	return CurrentPrice, err
 }
-func (c *CandleServices)WriteTickerToDB(ClosePrice float64, Timestamp int64) error {
-	return nil
-	tags := map[string]string{
-		"Live" : c.LiveTag,
-	}
-	timestamp := Timestamp
+// func (c *CandleServices)WriteTickerToDB(ClosePrice float64, Timestamp int64) error {
+// 	tags := map[string]string{
+// 		"Live" : c.LiveTag,
+// 	}
+// 	timestamp := Timestamp
 
-	exists, err := dataPointExists(c.QueryAPI, c.LiveDBBucket, c.LiveTimeRange, c.LiveMeasurement, tags, timestamp)
-	if err != nil {		
-		fmt.Println("Error checking Livedata point:", err)
-		return fmt.Errorf("Error checking Livedata point: %v", err)
-	}
+// 	exists, err := dataPointExists(c.QueryAPI, c.LiveDBBucket, c.LiveTimeRange, c.LiveMeasurement, tags, timestamp)
+// 	if err != nil {		
+// 		fmt.Println("Error checking Livedata point:", err)
+// 		return fmt.Errorf("Error checking Livedata point: %v", err)
+// 	}
 
-	if exists {
-		fmt.Println("LiveData point already exists. Skipping write.")
-		return fmt.Errorf("LiveData point already exists. Skipping write.")
-	}
+// 	if exists {
+// 		fmt.Println("LiveData point already exists. Skipping write.")
+// 		return fmt.Errorf("LiveData point already exists. Skipping write.")
+// 	}
 
-    point2 := influxdb2.NewPointWithMeasurement(c.LiveMeasurement).
-		AddTag("Live", c.LiveTag).
-        AddField("Close", ClosePrice).
-        SetTime(time.Unix(Timestamp, 0))	
+//     point2 := influxdb2.NewPointWithMeasurement(c.LiveMeasurement).
+// 		AddTag("Live", c.LiveTag).
+//         AddField("Close", ClosePrice).
+//         SetTime(time.Unix(Timestamp, 0))	
 
-	// Write the point to the database
-	err = c.LiveWriteAPI.WritePoint(context.Background(), point2)
-	if err != nil {
-		return err
-	}
-	// fmt.Println("Candle inserted successfully!")
-	return nil
-}
+// 	// Write the point to the database
+// 	err = c.LiveWriteAPI.WritePoint(context.Background(), point2)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	// fmt.Println("Candle inserted successfully!")
+// 	return nil
+// }
 func (c *CandleServices)CloseDB()error{
 	c.Client.Close()
 	return nil
@@ -221,43 +219,42 @@ func readAppData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, InfluxDBMeasu
 	return mdcdls, nil
 }
 
-func (c *CandleServices)WriteAppDataToDB(md *model.AppData, timestamp int64) error {
-	return nil
-    // Convert the structs to appropriate InfluxDB line protocol format
-    point1 := influxdb2.NewPointWithMeasurement("strategy_data").
-		AddTag("Strategy", md.Strategy).
-		AddField("Count", md.Count).
-		AddField("Strategy", md.Strategy).
-		AddField("ShortPeriod", md.ShortPeriod).
-		AddField("LongPeriod", md.LongPeriod).
-		AddField("ShortMACDPeriod", md.ShortMACDPeriod).
-		AddField("LongMACDPeriod", md.LongMACDPeriod).
-		AddField("SignalMACDPeriod", md.SignalMACDPeriod).
-		AddField("RSIPeriod", md.RSIPeriod).
-		AddField("StochRSIPeriod", md.StochRSIPeriod).
-		AddField("SmoothK", md.SmoothK).
-		AddField("SmoothD", md.SmoothD).
-		AddField("RSIOverbought", md.RSIOverbought).
-		AddField("RSIOversold", md.RSIOversold).
-		AddField("StRSIOverbought", md.StRSIOverbought).
-		AddField("StRSIOversold", md.StRSIOversold).
-		AddField("BollingerPeriod", md.BollingerPeriod).
-		AddField("BollingerNumStdDev", md.BollingerNumStdDev).
-		AddField("TargetProfit", md.TargetProfit).
-		AddField("TargetStopLoss", md.TargetStopLoss).
-		AddField("RiskPositionPercentage", md.RiskPositionPercentage).
-		AddField("TotalProfitLoss", md.TotalProfitLoss). 
-        SetTime(time.Unix(timestamp, 0))
+// func (c *CandleServices)WriteAppDataToDB(md *model.AppData, timestamp int64) error {
+// 	// Convert the structs to appropriate InfluxDB line protocol format
+//     point1 := influxdb2.NewPointWithMeasurement("strategy_data").
+// 		AddTag("Strategy", md.Strategy).
+// 		AddField("Count", md.Count).
+// 		AddField("Strategy", md.Strategy).
+// 		AddField("ShortPeriod", md.ShortPeriod).
+// 		AddField("LongPeriod", md.LongPeriod).
+// 		AddField("ShortMACDPeriod", md.ShortMACDPeriod).
+// 		AddField("LongMACDPeriod", md.LongMACDPeriod).
+// 		AddField("SignalMACDPeriod", md.SignalMACDPeriod).
+// 		AddField("RSIPeriod", md.RSIPeriod).
+// 		AddField("StochRSIPeriod", md.StochRSIPeriod).
+// 		AddField("SmoothK", md.SmoothK).
+// 		AddField("SmoothD", md.SmoothD).
+// 		AddField("RSIOverbought", md.RSIOverbought).
+// 		AddField("RSIOversold", md.RSIOversold).
+// 		AddField("StRSIOverbought", md.StRSIOverbought).
+// 		AddField("StRSIOversold", md.StRSIOversold).
+// 		AddField("BollingerPeriod", md.BollingerPeriod).
+// 		AddField("BollingerNumStdDev", md.BollingerNumStdDev).
+// 		AddField("TargetProfit", md.TargetProfit).
+// 		AddField("TargetStopLoss", md.TargetStopLoss).
+// 		AddField("RiskPositionPercentage", md.RiskPositionPercentage).
+// 		AddField("TotalProfitLoss", md.TotalProfitLoss). 
+//         SetTime(time.Unix(timestamp, 0))
 
-	// Write the point to the database
-	err := c.HistoricalWriteAPI.WritePoint(context.Background(), point1)
-	if err != nil {
-		return err
-	}
-	fmt.Println("AppData inserted successfully!")
+// 	// Write the point to the database
+// 	err := c.HistoricalWriteAPI.WritePoint(context.Background(), point1)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	fmt.Println("AppData inserted successfully!")
 
-	return nil
-}
+// 	return nil
+// }
 
 func dataPointExists(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, measurement string, tags map[string]string, timestamp int64) (bool, error) {
 	query := fmt.Sprintf(`from(bucket: "%s")
