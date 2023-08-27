@@ -2,9 +2,9 @@ package webclient
 
 import (
 	"encoding/json"
-	"coinbitly.com/model"
-	"net/http"
 	"log"
+	"net/http"
+	"coinbitly.com/model"
 )
 
 // WebService is a user login-aware wrapper for a html/template.

@@ -60,6 +60,7 @@ type TradingSystem struct {
 	ShutDownCh chan string
 	EpochTime time.Duration
 	CSVWriter *csv.Writer
+	RiskProfitLossPercentage float64
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -72,7 +73,8 @@ func NewTradingSystem(liveTrading bool, loadFrom string) (*TradingSystem, error)
 	ts.RiskFactor = 2.0           // Define 1% slippage
 	ts.TransactionCost = 0.0009 // Define 0.1% transaction cost
 	ts.Slippage = 0.0001
-	ts.InitialCapital = 1000.0          //Initial Capital for simulation on backtesting
+	ts.InitialCapital = 100.0          //Initial Capital for simulation on backtesting
+	ts.RiskProfitLossPercentage = 0.005  //percentage of Initial Capital used to represent Target profit or stoplooss amount
 	ts.QuoteBalance = ts.InitialCapital //continer to hold the balance
 	ts.Scalping = "" //"UseTA"
 	ts.StrategyCombLogic = "OR"
@@ -99,29 +101,30 @@ func NewTradingSystem(liveTrading bool, loadFrom string) (*TradingSystem, error)
 	return ts, nil
 }
 
-func NewAppData() *model.AppData {
-	md := &model.AppData{
-		ShortPeriod:     6,  // Define moving average short period for the strategy.
-		LongPeriod:      16, // Define moving average long period for the strategy.
-		ShortMACDPeriod: 12,
-		LongMACDPeriod:  29,
-	}
+func (ts *TradingSystem) NewAppData() *model.AppData {
+	md := &model.AppData{}
 	md.DataPoint = 0
-	md.TargetProfit = 5.0
-	md.TargetStopLoss = 20.0
-	md.RiskPositionPercentage = 0.5 // Define risk management parameter 5% balance
+	md.Strategy = "EMA"
+	md.ShortPeriod = 20  // Define moving average short period for the strategy.
+	md.LongPeriod =  55 // Define moving average long period for the strategy.
+	md.ShortEMA = 0.0
+	md.LongEMA = 0.0
+	md.ShortMACDPeriod = 12
+	md.LongMACDPeriod = 29
+	md.SignalMACDPeriod = 9     // Define MACD period parameter.
 	md.RSIPeriod = 14                // Define RSI period parameter. 12,296,16
-	md.StochRSIPeriod = 3
+	md.StochRSIPeriod = 14
 	md.SmoothK = 3
 	md.SmoothD = 3
-	md.StRSIOverbought = 0.8 // Define overbought for generating RSI signals
-	md.StRSIOversold = 0.2
 	md.RSIOverbought = 0.6      // Define overbought for generating RSI signals
 	md.RSIOversold = 0.4        // Define oversold for generating RSI signals
-	md.SignalMACDPeriod = 9     // Define MACD period parameter.
+	md.StRSIOverbought = 0.7 // Define overbought for generating RSI signals
+	md.StRSIOversold = 0.2
 	md.BollingerPeriod = 20     // Define Bollinger Bands parameter.
 	md.BollingerNumStdDev = 2.0 // Define Bollinger Bands parameter.
-	md.Strategy = "MACD"
+	md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
+	md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
+	md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
 	md.TotalProfitLoss = 0.0
 	return md
 }
@@ -141,8 +144,7 @@ func (ts *TradingSystem) TickerQueueAdjustment() {
 func (ts *TradingSystem) LiveTrade(loadFrom string) {
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl, syscall.SIGINT)
-
-	md := &model.AppData{0, "EMA", 20, 55, 0.0, 0.0, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0}
+	md := ts.NewAppData()
 	fmt.Println("App started. Press Ctrl+C to exit.")
 	go ts.ShutDown(md, sigchnl)
 	ts.BaseBalance = 0.0

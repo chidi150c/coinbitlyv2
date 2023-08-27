@@ -1,32 +1,62 @@
 package server
 
 import (
+	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
+	"time"
 
-	"github.com/pkg/errors"
-	"coinbitly.com/webclient"
 	"coinbitly.com/model"
+	"coinbitly.com/webclient"
 	"github.com/go-chi/chi"
+	"github.com/gorilla/websocket"
+	"github.com/pkg/errors"
 )
 
+// WebService is a user login-aware wrapper for a html/template.
+type SocketService struct {	
+	Upgrader websocket.Upgrader
+}
+
+// parseTemplate applies a given file to the body of the base template.
+func NewSocketService(HostSite string) *SocketService {
+	var upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		CheckOrigin: func(r *http.Request) bool {			
+	// 		if r.Header.Get("Origin") != h.HostSite {
+	// 			return false
+	// 		}
+			return true 
+		},
+	}
+	return &SocketService{
+		Upgrader: upgrader,
+	}
+}
 //TradeHandler is the main request handler for different endpoints, that render your application's Logics and pages
 // using the Chi router and a custom webclient package to handle requests and generate responses.
 //TradeHandler contains the chi mux that implements the ServeMux method
 type TradeHandler struct {
 	mux              *chi.Mux
-	Response *webclient.WebService
-	
+	RESTAPI *webclient.WebService
+	WebSocket *SocketService
+	HostSite string
 }
 
 //NewTradeHandler returns a new instance of *TradeHandler
-func NewTradeHandler() TradeHandler {
+func NewTradeHandler(HostSite string) TradeHandler {
 	h := TradeHandler{
 		mux:              chi.NewRouter(),
-		Response: webclient.NewWebService(),
+		RESTAPI: webclient.NewWebService(),		
+		WebSocket: NewSocketService(HostSite),
+		HostSite:  os.Getenv("HOSTSITE"),
 	}
 	h.mux.Get("/", h.indexHandler)
+	h.mux.Get("/margins/ws", h.realTimeChartHandler)
 	return h
 }
 
@@ -58,13 +88,50 @@ func (h TradeHandler) indexHandler(w http.ResponseWriter, r *http.Request) {
 	msg := struct{}{} // Placeholder for messages
 	code := model.ErrInternal // Placeholder for error code
 
-	err := h.Response.Execute(w, r, data, usr, msg, code)
+	err := h.RESTAPI.Execute(w, r, data, usr, msg, code)
 	if err != nil {
 		// Handle error if needed
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
+func (h TradeHandler) realTimeChartHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		http.Error(w, "Failed to upgrade connection to WebSocket", http.StatusInternalServerError)
+		log.Println("WebSocket upgrade error:", err)
+		return
+	}
+	defer conn.Close()
+
+	for {
+		// Simulate generating real-time data
+		// Replace this with your actual data fetching logic
+		// For illustration, we're generating random data here
+		data := struct {
+			ClosingPrices float64 `json:"ClosingPrices"`
+			Timestamps    int64   `json:"Timestamps"`
+			Signals       string  `json:"Signals"`
+			ShortEMA      float64 `json:"ShortEMA"`
+			LongEMA       float64 `json:"LongEMA"`
+		}{
+			ClosingPrices:  100 + rand.Float64()*50, // Generate random ClosingPrices
+			Timestamps:     time.Now().Unix(),       // Current timestamp
+			Signals:        "Buy",                   // Buy signal for illustration
+			ShortEMA:       110 + rand.Float64()*10, // Generate random ShortEMA
+			LongEMA:        105 + rand.Float64()*10, // Generate random LongEMA
+		}
+
+		err := conn.WriteJSON(data)
+		if err != nil {
+			log.Println("WebSocket write error:", err)
+			break
+		}
+
+		// Simulate real-time updates every second
+		time.Sleep(time.Second)
+	}
+}
 
 
 // ValidateRedirectURL checks that the URL provided is valid.
