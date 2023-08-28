@@ -61,6 +61,7 @@ type TradingSystem struct {
 	EpochTime time.Duration
 	CSVWriter *csv.Writer
 	RiskProfitLossPercentage float64
+	ChartChan chan model.ChartData
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -83,6 +84,7 @@ func NewTradingSystem(liveTrading bool, loadFrom string) (*TradingSystem, error)
 	ts.MaxDataSize = 500
 	ts.ShutDownCh = make(chan string)
 	ts.EpochTime = time.Second * 30
+	ts.ChartChan = make(chan model.ChartData, 1)
 
 	if liveTrading {
 		// Fetch historical data from the exchange
@@ -260,8 +262,20 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 		}
 	// Close the trade if exit conditions are met.
 	} else if ts.InTrade {
-		switch ts.Scalping {
-		case "UseTA":
+
+
+
+		
+		// Calculate profit/loss for the trade.
+		exitPrice := ts.CurrentPrice
+		tradeProfitLoss := CalculateProfitLoss(ts.EntryPrice, exitPrice, ts.EntryQuantity)
+		transactionCost := ts.TransactionCost * exitPrice * ts.EntryQuantity
+		slippageCost := ts.Slippage * exitPrice * ts.EntryQuantity
+		tradeProfitLoss -= transactionCost + slippageCost
+		previousProfit := md.TotalProfitLoss
+		currentProfit := md.TotalProfitLoss + tradeProfitLoss
+		// (ts.TradeProfitLoss < transactionCost+slippageCost+md.TargetProfit)
+		if (ts.BaseBalance > ts.EntryQuantity) && (currentProfit > previousProfit+md.TargetProfit){
 			if ts.ExitRule(md) {
 				// Execute the sell order using the ExecuteStrategy function.
 				resp, err := ts.ExecuteStrategy(md, "Sell")
@@ -287,30 +301,9 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 				}					
 			}else{
 				ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Positio
-			}
-		default:
-			// Execute the sell order using the ExecuteStrategy function.
-			resp, err := ts.ExecuteStrategy(md, "Sell")
-			if err != nil {
-				// fmt.Println("Error:", err, " at:", ts.CurrentPrice, ", TargetStopLoss:", md.TargetStopLoss)
-				ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
-			}else if strings.Contains(resp, "SELL"){
-				// Record Signal for plotting graph later.
-				ts.Signals = append(ts.Signals, "Sell")
-				ts.Log.Println(resp)
-				// Mark that we are no longer in a trade.
-				ts.InTrade = false
-				ts.TradeCount++
-			}else if strings.Contains(resp, "Buy"){
-				// Record Signal for plotting graph later.
-				ts.Signals = append(ts.Signals, "Buy")
-				ts.Log.Println(resp)
-				// Mark that we are no longer in a trade.
-				ts.InTrade = false
-				ts.TradeCount++
-			}else{
-				ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
-			}	
+			}			
+		}else {
+			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 		}
 	} else {
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
@@ -365,21 +358,8 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		if !ts.InTrade {
 			return "", fmt.Errorf("cannot execute a sell order without an existing trade")
 		}
-
-		// Calculate profit/loss for the trade.
-		exitPrice := ts.CurrentPrice
-		tradeProfitLoss := CalculateProfitLoss(ts.EntryPrice, exitPrice, ts.EntryQuantity)
-		transactionCost := ts.TransactionCost * exitPrice * ts.EntryQuantity
-		slippageCost := ts.Slippage * exitPrice * ts.EntryQuantity
-		tradeProfitLoss -= transactionCost + slippageCost
-		previousProfit := md.TotalProfitLoss
-		currentProfit := md.TotalProfitLoss + tradeProfitLoss
-		// (ts.TradeProfitLoss < transactionCost+slippageCost+md.TargetProfit)
-		if (ts.BaseBalance < ts.EntryQuantity) || (currentProfit < previousProfit+md.TargetProfit){
-			if ts.BaseBalance < ts.EntryQuantity {
-				return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, ts.EntryQuantity)
-			}
-			return "", fmt.Errorf("cannot execute a sell order without profit up to prevProfit: %.8f, this trade currentProfit: %.8f, target profit: %.8f", previousProfit, currentProfit, md.TargetProfit)
+		if ts.BaseBalance < ts.EntryQuantity {
+			return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, ts.EntryQuantity)
 		}
 
 		ts.TradeProfitLoss = tradeProfitLoss
@@ -824,9 +804,9 @@ func (ts *TradingSystem) Reporting(md *model.AppData, from string)error{
 		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
 		err = CreateLineChartWithSignals(ts.Timestamps, ts.Container1, ts.Signals, "StrategyOnly")
 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "Bollinger") {
-		err = CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
+		err = ts.CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "EMA") {
-		err = CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
+		err = ts.CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "MACD") {
 		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
 		err = CreateLineChartWithSignalsV2(ts.Timestamps, ts.Container1, ts.Container2, ts.Signals, "StrategiesOnly")

@@ -1,13 +1,15 @@
 package strategies
 
 import (
+	"fmt"
 	"image/color"
 	"time"
+
+	"coinbitly.com/model"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
-	"fmt"
 )
 
 func CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signals []string, graph string) error {
@@ -173,7 +175,14 @@ func CreateLineChartWithSignalsV2(timeSeries []int64, dataSeries []float64, gree
 	return nil
 }
 
-func CreateLineChartWithSignalsV3(timeSeries []int64, dataSeries []float64, greenDataSeries []float64, yellowDataSeries []float64, signals []string, graph string) error {
+func (ts *TradingSystem)CreateLineChartWithSignalsV3(timeSeries []int64, dataSeries []float64, greenDataSeries []float64, yellowDataSeries []float64, signals []string, graph string) error {
+	ts.ChartChan <- model.ChartData{
+		ClosingPrices: dataSeries[len(dataSeries)-1], 
+		Timestamps: timeSeries[len(dataSeries)-1], 
+		Signals: signals[len(dataSeries)-1], 
+		ShortEMA: greenDataSeries[len(dataSeries)-1],
+		LongEMA: yellowDataSeries[len(dataSeries)-1],
+	}
 	// Create a new plot with a title and axis labels.
 	p := plot.New()
 	p.Title.Text = "Line Chart with Trading Signals"

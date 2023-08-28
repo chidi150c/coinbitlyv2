@@ -1,8 +1,8 @@
 package server
 
 import (
+	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -45,15 +45,17 @@ type TradeHandler struct {
 	RESTAPI *webclient.WebService
 	WebSocket *SocketService
 	HostSite string
+	ChartChan chan model.ChartData
 }
 
 //NewTradeHandler returns a new instance of *TradeHandler
-func NewTradeHandler(HostSite string) TradeHandler {
+func NewTradeHandler(chartChan chan model.ChartData, HostSite string) TradeHandler {
 	h := TradeHandler{
 		mux:              chi.NewRouter(),
 		RESTAPI: webclient.NewWebService(),		
 		WebSocket: NewSocketService(HostSite),
 		HostSite:  os.Getenv("HOSTSITE"),
+		ChartChan: chartChan,
 	}
 	h.mux.Get("/", h.indexHandler)
 	h.mux.Get("/margins/ws", h.realTimeChartHandler)
@@ -103,11 +105,13 @@ func (h TradeHandler) realTimeChartHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	defer conn.Close()
-
+	var cd model.ChartData
 	for {
-		// Simulate generating real-time data
-		// Replace this with your actual data fetching logic
-		// For illustration, we're generating random data here
+		select{
+		case cd = <-h.ChartChan:
+			fmt.Println(cd)
+		default:
+		}
 		data := struct {
 			ClosingPrices float64 `json:"ClosingPrices"`
 			Timestamps    int64   `json:"Timestamps"`
@@ -115,13 +119,15 @@ func (h TradeHandler) realTimeChartHandler(w http.ResponseWriter, r *http.Reques
 			ShortEMA      float64 `json:"ShortEMA"`
 			LongEMA       float64 `json:"LongEMA"`
 		}{
-			ClosingPrices:  100 + rand.Float64()*50, // Generate random ClosingPrices
-			Timestamps:     time.Now().Unix(),       // Current timestamp
-			Signals:        "Buy",                   // Buy signal for illustration
-			ShortEMA:       110 + rand.Float64()*10, // Generate random ShortEMA
-			LongEMA:        105 + rand.Float64()*10, // Generate random LongEMA
+			ClosingPrices:  cd.ClosingPrices,
+			Timestamps:     cd.Timestamps,
+			Signals:        cd.Signals,
+			ShortEMA:       cd.ShortEMA,
+			LongEMA:        cd.LongEMA,
 		}
-
+		if data.ClosingPrices > 110.0 {
+			data.Signals = "Sell"
+		}
 		err := conn.WriteJSON(data)
 		if err != nil {
 			log.Println("WebSocket write error:", err)

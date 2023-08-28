@@ -74,7 +74,8 @@ func main() {
 	//You're setting up the web server by creating a server.NewTradeHandler() and server.NewServer(addrp, th) instance. 
 	//Then, you open the server using the server.Open() method.
 	addrp := os.Getenv("PORT4")
-	th := server.NewTradeHandler()
+	hostsite := os.Getenv("HOSTSITE")
+	th := server.NewTradeHandler(ts.ChartChan, hostsite)
 	server := server.NewServer(addrp, th)
 
 	// Create a channel to listen for OS signals
