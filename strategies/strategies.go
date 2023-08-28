@@ -84,7 +84,7 @@ func NewTradingSystem(liveTrading bool, loadFrom string) (*TradingSystem, error)
 	ts.StopLossRecover = math.MaxFloat64 //
 	ts.MaxDataSize = 500
 	ts.ShutDownCh = make(chan string)
-	ts.EpochTime = time.Second * 30
+	ts.EpochTime = time.Second * 15
 	ts.ChartChan = make(chan model.ChartData, 1)
 
 	if liveTrading {
@@ -140,6 +140,7 @@ func (ts *TradingSystem) TickerQueueAdjustment() {
 		ts.DataPoint--
     }
 }
+
 // LiveTrade(): This function performs live trading process using live
 // data. It gets live ticker prices from exchange, checks for entry and exit
 // conditions, and executes trades accordingly. It also tracks trading performance

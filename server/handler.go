@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"coinbitly.com/model"
+	"coinbitly.com/strategies"
 	"coinbitly.com/webclient"
 	"github.com/go-chi/chi"
 	"github.com/gorilla/websocket"
@@ -49,17 +50,17 @@ type TradeHandler struct {
 	RESTAPI *webclient.WebService
 	WebSocket *SocketService
 	HostSite string
-	ChartChan chan model.ChartData
+	ts *strategies.TradingSystem
 }
 
 //NewTradeHandler returns a new instance of *TradeHandler
-func NewTradeHandler(chartChan chan model.ChartData, HostSite string) TradeHandler {
+func NewTradeHandler(ts *strategies.TradingSystem, HostSite string) TradeHandler {
 	h := TradeHandler{
 		mux:              chi.NewRouter(),
 		RESTAPI: webclient.NewWebService(),		
 		WebSocket: NewSocketService(HostSite),
 		HostSite:  os.Getenv("HOSTSITE"),
-		ChartChan: chartChan,
+		ts: ts,
 	}
 	h.mux.Get("/", h.indexHandler)
 	h.mux.Get("/ImageReceiver/ws", h.ImageReceiverHandler)
@@ -113,7 +114,7 @@ func (h TradeHandler) realTimeChartHandler(w http.ResponseWriter, r *http.Reques
 	var cd model.ChartData
 	for {
 		select{
-		case cd = <-h.ChartChan:
+		case cd = <-h.ts.ChartChan:
 			fmt.Println(cd)
 		default:
 		}
@@ -153,22 +154,25 @@ func (h TradeHandler) ImageReceiverHandler(w http.ResponseWriter, r *http.Reques
 	}
 	defer conn.Close()
 
-	// Load an image
-	imagePath := "./webclient/assets/line_chart_with_signals.png"
-	imageData, err := loadImageData(imagePath)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	for{		
+		// Load an image
+		imagePath := "./webclient/assets/line_chart_with_signals.png"
+		imageData, err := loadImageData(imagePath)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 
-	// Encode image data to base64
-	base64ImageData := base64.StdEncoding.EncodeToString(imageData)
+		// Encode image data to base64
+		base64ImageData := base64.StdEncoding.EncodeToString(imageData)
 
-	// Send the encoded image data over WebSocket
-	err = conn.WriteMessage(websocket.TextMessage, []byte(base64ImageData))
-	if err != nil {
-		fmt.Println(err)
-		return
+		// Send the encoded image data over WebSocket
+		err = conn.WriteMessage(websocket.TextMessage, []byte(base64ImageData))
+		if err != nil {
+			fmt.Printf("Unable to write to socket: %v", err)
+			return
+		}
+		time.Sleep(h.ts.EpochTime)
 	}
 }
 

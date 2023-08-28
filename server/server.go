@@ -4,8 +4,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"github.com/gorilla/handlers"
-	"os"
 )
 
 //Server, handles the opening and closing of an HTTP server using the net/http and gorilla/handlers packages. 
@@ -38,7 +36,8 @@ func (s *Server) Open() (err error) {
     log.Printf("Server listening on %s", s.Port)
 
     // Start serving
-	log.Fatal(http.Serve(s.Listener, handlers.CombinedLoggingHandler(os.Stderr, s.HttpHandler)))
+	// log.Fatal(http.Serve(s.Listener, handlers.CombinedLoggingHandler(os.Stderr, s.HttpHandler)))
+	log.Fatal(http.Serve(s.Listener, s.HttpHandler))
 	return nil
 }
 
