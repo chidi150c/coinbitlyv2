@@ -402,8 +402,8 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		md.TotalProfitLoss += ts.TradeProfitLoss
 
 		// Update the quote and base balances after the trade.
-		ts.QuoteBalance += (ts.EntryQuantity * exitPrice) - transactionCost - slippageCost
-		ts.BaseBalance -= ts.EntryQuantity
+		ts.QuoteBalance -= (ts.EntryQuantity * exitPrice) + transactionCost + slippageCost
+		ts.BaseBalance += ts.EntryQuantity
 
 		// Mark that we are no longer in a trade.
 		ts.InTrade = false
