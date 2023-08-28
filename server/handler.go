@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"image"
-	"image/jpeg"
+	"image/png"
 	"log"
 	"net/http"
 	"net/url"
@@ -186,19 +186,17 @@ func loadImageData(imagePath string) ([]byte, error) {
 		return nil, err
 	}
 
-	// Encode image as JPEG
-	var imageData bytes.Buffer
-	err = jpeg.Encode(&imageData, img, nil)
+	// Encode image as PNG
+	var imageData []byte
+	pngBuffer := &bytes.Buffer{}
+	err = png.Encode(pngBuffer, img)
 	if err != nil {
 		return nil, err
 	}
+	imageData = pngBuffer.Bytes()
 
-	return imageData.Bytes(), nil
+	return imageData, nil
 }
-
-
-
-
 
 
 
