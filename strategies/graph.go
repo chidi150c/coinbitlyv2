@@ -12,7 +12,14 @@ import (
 	"gonum.org/v1/plot/vg"
 )
 
-func CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signals []string, graph string) error {
+func (ts *TradingSystem)CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signals []string, graph string) error {
+	ts.ChartChan <- model.ChartData{
+		ClosingPrices: dataSeries[len(dataSeries)-1], 
+		Timestamps: timeSeries[len(dataSeries)-1], 
+		Signals: signals[len(dataSeries)-1], 
+		ShortEMA: 0.0,
+		LongEMA: 0.0,
+	}
 	// Create a new plot with a title and axis labels.
 	p := plot.New()
 	p.Title.Text = "Line Chart with Trading Signals"

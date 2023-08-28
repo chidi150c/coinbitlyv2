@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 	"time"
+	"encoding/base64"
+	"image/jpeg"
 
 	"coinbitly.com/model"
 	"coinbitly.com/webclient"
@@ -138,6 +140,63 @@ func (h TradeHandler) realTimeChartHandler(w http.ResponseWriter, r *http.Reques
 		time.Sleep(time.Second)
 	}
 }
+
+func (h TradeHandler) wsHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		http.Error(w, "Failed to upgrade connection to WebSocket", http.StatusInternalServerError)
+		log.Println("WebSocket upgrade error:", err)
+		return
+	}
+	defer conn.Close()
+
+	// Load an image
+	imagePath := ""./webclient/assets/"+graph+"line_chart_with_signals.png""
+	imageData, err := loadImageData(imagePath)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Encode image data to base64
+	base64ImageData := base64.StdEncoding.EncodeToString(imageData)
+
+	// Send the encoded image data over WebSocket
+	err = conn.WriteMessage(websocket.TextMessage, []byte(base64ImageData))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+func loadImageData(imagePath string) ([]byte, error) {
+	// Load image from file
+	imageFile, err := os.Open(imagePath)
+	if err != nil {
+		return nil, err
+	}
+	defer imageFile.Close()
+
+	// Decode image
+	img, _, err := image.Decode(imageFile)
+	if err != nil {
+		return nil, err
+	}
+
+	// Encode image as JPEG
+	var imageData bytes.Buffer
+	err = jpeg.Encode(&imageData, img, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return imageData.Bytes(), nil
+}
+
+
+
+
+
 
 
 // ValidateRedirectURL checks that the URL provided is valid.

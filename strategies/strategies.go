@@ -54,7 +54,8 @@ type TradingSystem struct {
 	StopLossTrigered bool
 	StopLossRecover        float64
 	RiskFactor 			   float64
-	EMASpecial       []float64
+	EMABuySpecial       []float64
+	EMASellSpecial       []float64
 	MaxDataSize int
 	Log *log.Logger
 	ShutDownCh chan string
@@ -261,51 +262,35 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Positio				
 		}
 	// Close the trade if exit conditions are met.
-	} else if ts.InTrade {
-
-
-
-		
-		// Calculate profit/loss for the trade.
-		exitPrice := ts.CurrentPrice
-		tradeProfitLoss := CalculateProfitLoss(ts.EntryPrice, exitPrice, ts.EntryQuantity)
-		transactionCost := ts.TransactionCost * exitPrice * ts.EntryQuantity
-		slippageCost := ts.Slippage * exitPrice * ts.EntryQuantity
-		tradeProfitLoss -= transactionCost + slippageCost
-		previousProfit := md.TotalProfitLoss
-		currentProfit := md.TotalProfitLoss + tradeProfitLoss
-		// (ts.TradeProfitLoss < transactionCost+slippageCost+md.TargetProfit)
-		if (ts.BaseBalance > ts.EntryQuantity) && (currentProfit > previousProfit+md.TargetProfit){
-			if ts.ExitRule(md) {
-				// Execute the sell order using the ExecuteStrategy function.
-				resp, err := ts.ExecuteStrategy(md, "Sell")
-				if err != nil {
-					// fmt.Println("Error:", err, " at:", ts.CurrentPrice, ", TargetStopLoss:", md.TargetStopLoss)
-					ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
-				}else if strings.Contains(resp, "SELL"){
-					// Record Signal for plotting graph later.
-					ts.Signals = append(ts.Signals, "Sell")
-					ts.Log.Println(resp)
-					// Mark that we are no longer in a trade.
-					ts.InTrade = false
-					ts.TradeCount++
-				}else if strings.Contains(resp, "Buy"){
-					// Record Signal for plotting graph later.
-					ts.Signals = append(ts.Signals, "Buy")
-					ts.Log.Println(resp)
-					// Mark that we are no longer in a trade.
-					ts.InTrade = false
-					ts.TradeCount++
-				}else{
-					ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
-				}					
+	} else if ts.InTrade || (ts.StopLossTrigered && ts.CurrentPrice > ts.StopLossRecover){
+		if ts.ExitRule(md) {
+			// Execute the sell order using the ExecuteStrategy function.
+			resp, err := ts.ExecuteStrategy(md, "Sell")
+			if err != nil {
+				// fmt.Println("Error:", err, " at:", ts.CurrentPrice, ", TargetStopLoss:", md.TargetStopLoss)
+				ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
+			}else if strings.Contains(resp, "SELL"){
+				// Record Signal for plotting graph later.
+				ts.Signals = append(ts.Signals, "Sell")
+				ts.Log.Println(resp)
+				// Mark that we are no longer in a trade.
+				ts.InTrade = false
+				ts.TradeCount++
+			}else if strings.Contains(resp, "Buy"){
+				// Record Signal for plotting graph later.
+				ts.Signals = append(ts.Signals, "Buy")
+				ts.Log.Println(resp)
+				// Mark that we are no longer in a trade.
+				ts.InTrade = false
+				ts.TradeCount++
 			}else{
-				ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Positio
-			}			
-		}else {
-			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
+				ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
+			}					
+		}else{
+			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Positio
 		}
 	} else {
+		ts.EntryRule(md)
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
 	return md.TotalProfitLoss
@@ -358,9 +343,22 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		if !ts.InTrade {
 			return "", fmt.Errorf("cannot execute a sell order without an existing trade")
 		}
-		if ts.BaseBalance < ts.EntryQuantity {
-			return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, ts.EntryQuantity)
-		}
+
+		// Calculate profit/loss for the trade.
+		exitPrice := ts.CurrentPrice
+		tradeProfitLoss := CalculateProfitLoss(ts.EntryPrice, exitPrice, ts.EntryQuantity)
+		transactionCost := ts.TransactionCost * exitPrice * ts.EntryQuantity
+		slippageCost := ts.Slippage * exitPrice * ts.EntryQuantity
+		tradeProfitLoss -= transactionCost + slippageCost
+		// previousProfit := md.TotalProfitLoss
+		// currentProfit := md.TotalProfitLoss + tradeProfitLoss
+		// // (ts.TradeProfitLoss < transactionCost+slippageCost+md.TargetProfit)
+		// if (ts.BaseBalance < ts.EntryQuantity) || (currentProfit < previousProfit+md.TargetProfit){
+		// 	if ts.BaseBalance < ts.EntryQuantity {
+		// 		return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, ts.EntryQuantity)
+		// 	}
+		// 	return "", fmt.Errorf("cannot execute a sell order without profit up to prevProfit: %.8f, this trade currentProfit: %.8f, target profit: %.8f", previousProfit, currentProfit, md.TargetProfit)
+		// }
 
 		ts.TradeProfitLoss = tradeProfitLoss
 		// Store profit/loss for the trade.
@@ -512,25 +510,41 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData) (buySignal, sellSi
 				ts.Container2 = longEMA
 
 				crossed = (shortEMA[ts.DataPoint-2] > longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
-				if (len(ts.EMASpecial) >= 1) || crossed || (ts.EnableStoploss && ts.StopLossTrigered){
+				if (len(ts.EMABuySpecial) >= 1) || crossed || (ts.EnableStoploss && ts.StopLossTrigered){
 					if crossed {
-						ts.EMASpecial = []float64{}
+						ts.EMABuySpecial = []float64{}
 					}
-					ts.EMASpecial = append(ts.EMASpecial, longEMA[ts.DataPoint] - shortEMA[ts.DataPoint])
-					if (len(ts.EMASpecial) > 7) && 
-					(ts.EMASpecial[len(ts.EMASpecial)-7] >= ts.EMASpecial[len(ts.EMASpecial)-8]) && 
-					(ts.EMASpecial[len(ts.EMASpecial)-6] >= ts.EMASpecial[len(ts.EMASpecial)-7]) && 
-					(ts.EMASpecial[len(ts.EMASpecial)-5] >= ts.EMASpecial[len(ts.EMASpecial)-6]) && 
-					(ts.EMASpecial[len(ts.EMASpecial)-4] >= ts.EMASpecial[len(ts.EMASpecial)-5]) && 
-					(ts.EMASpecial[len(ts.EMASpecial)-3] >= ts.EMASpecial[len(ts.EMASpecial)-4]) && 
-					(ts.EMASpecial[len(ts.EMASpecial)-2] >= ts.EMASpecial[len(ts.EMASpecial)-3]) && 
-					(ts.EMASpecial[len(ts.EMASpecial)-1] < ts.EMASpecial[len(ts.EMASpecial)-2]){
+					ts.EMABuySpecial = append(ts.EMABuySpecial, longEMA[ts.DataPoint] - shortEMA[ts.DataPoint])
+					if (len(ts.EMABuySpecial) > 7) && 
+					(ts.EMABuySpecial[len(ts.EMABuySpecial)-7] >= ts.EMABuySpecial[len(ts.EMABuySpecial)-8]) && 
+					(ts.EMABuySpecial[len(ts.EMABuySpecial)-6] >= ts.EMABuySpecial[len(ts.EMABuySpecial)-7]) && 
+					(ts.EMABuySpecial[len(ts.EMABuySpecial)-5] >= ts.EMABuySpecial[len(ts.EMABuySpecial)-6]) && 
+					(ts.EMABuySpecial[len(ts.EMABuySpecial)-4] >= ts.EMABuySpecial[len(ts.EMABuySpecial)-5]) && 
+					(ts.EMABuySpecial[len(ts.EMABuySpecial)-3] >= ts.EMABuySpecial[len(ts.EMABuySpecial)-4]) && 
+					(ts.EMABuySpecial[len(ts.EMABuySpecial)-2] >= ts.EMABuySpecial[len(ts.EMABuySpecial)-3]) && 
+					(ts.EMABuySpecial[len(ts.EMABuySpecial)-1] < ts.EMABuySpecial[len(ts.EMABuySpecial)-2]){
 						buySignal = buySignal || true
-						ts.EMASpecial = []float64{}
+						ts.EMABuySpecial = []float64{}
 					} 
 				}
-				sellSignal = sellSignal || (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
-			
+				crossed = (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
+				if (len(ts.EMASellSpecial) >= 1) || crossed || (ts.EnableStoploss && ts.StopLossTrigered){
+					if crossed {
+						ts.EMASellSpecial = []float64{}
+					}
+					ts.EMASellSpecial = append(ts.EMASellSpecial, shortEMA[ts.DataPoint] - longEMA[ts.DataPoint])
+					if (len(ts.EMASellSpecial) > 7) && 
+					(ts.EMASellSpecial[len(ts.EMASellSpecial)-7] >= ts.EMASellSpecial[len(ts.EMASellSpecial)-8]) && 
+					(ts.EMASellSpecial[len(ts.EMASellSpecial)-6] >= ts.EMASellSpecial[len(ts.EMASellSpecial)-7]) && 
+					(ts.EMASellSpecial[len(ts.EMASellSpecial)-5] >= ts.EMASellSpecial[len(ts.EMASellSpecial)-6]) && 
+					(ts.EMASellSpecial[len(ts.EMASellSpecial)-4] >= ts.EMASellSpecial[len(ts.EMASellSpecial)-5]) && 
+					(ts.EMASellSpecial[len(ts.EMASellSpecial)-3] >= ts.EMASellSpecial[len(ts.EMASellSpecial)-4]) && 
+					(ts.EMASellSpecial[len(ts.EMASellSpecial)-2] >= ts.EMASellSpecial[len(ts.EMASellSpecial)-3]) && 
+					(ts.EMASellSpecial[len(ts.EMASellSpecial)-1] < ts.EMASellSpecial[len(ts.EMASellSpecial)-2]){
+						sellSignal = sellSignal || true
+						ts.EMASellSpecial = []float64{}
+					} 
+				}
 			} 
 			if strings.Contains(md.Strategy, "RSI") && ts.DataPoint > 0 && ts.DataPoint <= len(rsi) {
 				count++
@@ -801,17 +815,17 @@ func (ts *TradingSystem) Reporting(md *model.AppData, from string)error{
 	var err error
 	
 	if len(ts.Container1) > 0 && (!strings.Contains(md.Strategy, "Bollinger")) && (!strings.Contains(md.Strategy, "EMA")) && (!strings.Contains(md.Strategy, "MACD")) {
-		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
-		err = CreateLineChartWithSignals(ts.Timestamps, ts.Container1, ts.Signals, "StrategyOnly")
+		err = ts.CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
+		err = ts.CreateLineChartWithSignals(ts.Timestamps, ts.Container1, ts.Signals, "StrategyOnly")
 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "Bollinger") {
 		err = ts.CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "EMA") {
 		err = ts.CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "MACD") {
-		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
+		err = ts.CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
 		err = CreateLineChartWithSignalsV2(ts.Timestamps, ts.Container1, ts.Container2, ts.Signals, "StrategiesOnly")
 	} else {
-		err = CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
+		err = ts.CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
 	}
 	if err != nil{
 		return fmt.Errorf("Error creating Line Chart with signals: %v", err)
