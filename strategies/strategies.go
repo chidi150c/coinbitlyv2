@@ -351,15 +351,15 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		transactionCost := ts.TransactionCost * exitPrice * ts.EntryQuantity
 		slippageCost := ts.Slippage * exitPrice * ts.EntryQuantity
 		tradeProfitLoss -= transactionCost + slippageCost
-		// previousProfit := md.TotalProfitLoss
-		// currentProfit := md.TotalProfitLoss + tradeProfitLoss
-		// // (ts.TradeProfitLoss < transactionCost+slippageCost+md.TargetProfit)
-		// if (ts.BaseBalance < ts.EntryQuantity) || (currentProfit < previousProfit+md.TargetProfit){
-		// 	if ts.BaseBalance < ts.EntryQuantity {
-		// 		return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, ts.EntryQuantity)
-		// 	}
-		// 	return "", fmt.Errorf("cannot execute a sell order without profit up to prevProfit: %.8f, this trade currentProfit: %.8f, target profit: %.8f", previousProfit, currentProfit, md.TargetProfit)
-		// }
+		previousProfit := md.TotalProfitLoss
+		currentProfit := md.TotalProfitLoss + tradeProfitLoss
+		// (ts.TradeProfitLoss < transactionCost+slippageCost+md.TargetProfit)
+		if (ts.BaseBalance < ts.EntryQuantity) || (currentProfit < previousProfit+md.TargetProfit){
+			if ts.BaseBalance < ts.EntryQuantity {
+				return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, ts.EntryQuantity)
+			}
+			return "", fmt.Errorf("cannot execute a sell order without profit up to prevProfit: %.8f, this trade currentProfit: %.8f, target profit: %.8f", previousProfit, currentProfit, md.TargetProfit)
+		}
 
 		ts.TradeProfitLoss = tradeProfitLoss
 		// Store profit/loss for the trade.
