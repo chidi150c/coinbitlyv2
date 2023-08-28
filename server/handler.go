@@ -1,15 +1,17 @@
 package server
 
 import (
+	"bytes"
+	"encoding/base64"
 	"fmt"
+	"image"
+	"image/jpeg"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 	"time"
-	"encoding/base64"
-	"image/jpeg"
 
 	"coinbitly.com/model"
 	"coinbitly.com/webclient"
@@ -60,7 +62,8 @@ func NewTradeHandler(chartChan chan model.ChartData, HostSite string) TradeHandl
 		ChartChan: chartChan,
 	}
 	h.mux.Get("/", h.indexHandler)
-	h.mux.Get("/margins/ws", h.realTimeChartHandler)
+	h.mux.Get("/ImageReceiver/ws", h.ImageReceiverHandler)
+	h.mux.Get("/margins/ws", h.realTimeChartHandler)//this.socket = new WebSocket.w3cwebsocket("ws://localhost:35260/ImageReceiver/ws");
 	return h
 }
 
@@ -141,7 +144,7 @@ func (h TradeHandler) realTimeChartHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (h TradeHandler) wsHandler(w http.ResponseWriter, r *http.Request) {
+func (h TradeHandler) ImageReceiverHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, "Failed to upgrade connection to WebSocket", http.StatusInternalServerError)
@@ -151,7 +154,7 @@ func (h TradeHandler) wsHandler(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	// Load an image
-	imagePath := ""./webclient/assets/"+graph+"line_chart_with_signals.png""
+	imagePath := "./webclient/assets/line_chart_with_signals.png"
 	imageData, err := loadImageData(imagePath)
 	if err != nil {
 		fmt.Println(err)
