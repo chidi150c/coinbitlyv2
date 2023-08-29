@@ -195,19 +195,6 @@ func readAppData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, InfluxDBMeasu
 			md.Strategy = record.ValueByKey("Strategy").(string)
 			md.ShortPeriod = record.ValueByKey("ShortPeriod").(int)
 			md.LongPeriod = record.ValueByKey("LongPeriod").(int)
-			md.ShortMACDPeriod = record.ValueByKey("ShortMACDPeriod").(int)
-			md.LongMACDPeriod = record.ValueByKey("LongMACDPeriod").(int)
-			md.SignalMACDPeriod = record.ValueByKey("SignalMACDPeriod").(int)
-			md.RSIPeriod = record.ValueByKey("RSIPeriod").(int)
-			md.StochRSIPeriod = record.ValueByKey("StochRSIPeriod").(int)
-			md.SmoothK = record.ValueByKey("SmoothK").(int)
-			md.SmoothD = record.ValueByKey("SmoothD").(int)
-			md.RSIOverbought = record.ValueByKey("RSIOverbought").(float64)
-			md.RSIOversold = record.ValueByKey("RSIOversold").(float64)
-			md.StRSIOverbought = record.ValueByKey("StRSIOverbought").(float64)
-			md.StRSIOversold = record.ValueByKey("StRSIOversold").(float64)
-			md.BollingerPeriod = record.ValueByKey("BollingerPeriod").(int)
-			md.BollingerNumStdDev = record.ValueByKey("BollingerNumStdDev").(float64)
 			md.TargetProfit = record.ValueByKey("TargetProfit").(float64)
 			md.TargetStopLoss = record.ValueByKey("TargetStopLoss").(float64)
 			md.RiskPositionPercentage = record.ValueByKey("RiskPositionPercentage").(float64)
@@ -218,43 +205,6 @@ func readAppData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, InfluxDBMeasu
 	}
 	return mdcdls, nil
 }
-
-// func (c *CandleServices)WriteAppDataToDB(md *model.AppData, timestamp int64) error {
-// 	// Convert the structs to appropriate InfluxDB line protocol format
-//     point1 := influxdb2.NewPointWithMeasurement("strategy_data").
-// 		AddTag("Strategy", md.Strategy).
-// 		AddField("DataPoint", md.DataPoint).
-// 		AddField("Strategy", md.Strategy).
-// 		AddField("ShortPeriod", md.ShortPeriod).
-// 		AddField("LongPeriod", md.LongPeriod).
-// 		AddField("ShortMACDPeriod", md.ShortMACDPeriod).
-// 		AddField("LongMACDPeriod", md.LongMACDPeriod).
-// 		AddField("SignalMACDPeriod", md.SignalMACDPeriod).
-// 		AddField("RSIPeriod", md.RSIPeriod).
-// 		AddField("StochRSIPeriod", md.StochRSIPeriod).
-// 		AddField("SmoothK", md.SmoothK).
-// 		AddField("SmoothD", md.SmoothD).
-// 		AddField("RSIOverbought", md.RSIOverbought).
-// 		AddField("RSIOversold", md.RSIOversold).
-// 		AddField("StRSIOverbought", md.StRSIOverbought).
-// 		AddField("StRSIOversold", md.StRSIOversold).
-// 		AddField("BollingerPeriod", md.BollingerPeriod).
-// 		AddField("BollingerNumStdDev", md.BollingerNumStdDev).
-// 		AddField("TargetProfit", md.TargetProfit).
-// 		AddField("TargetStopLoss", md.TargetStopLoss).
-// 		AddField("RiskPositionPercentage", md.RiskPositionPercentage).
-// 		AddField("TotalProfitLoss", md.TotalProfitLoss). 
-//         SetTime(time.Unix(timestamp, 0))
-
-// 	// Write the point to the database
-// 	err := c.HistoricalWriteAPI.WritePoint(context.Background(), point1)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	fmt.Println("AppData inserted successfully!")
-
-// 	return nil
-// }
 
 func dataPointExists(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, measurement string, tags map[string]string, timestamp int64) (bool, error) {
 	query := fmt.Sprintf(`from(bucket: "%s")

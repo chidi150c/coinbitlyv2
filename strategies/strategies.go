@@ -54,8 +54,6 @@ type TradingSystem struct {
 	StopLossTrigered bool
 	StopLossRecover        float64
 	RiskFactor 			   float64
-	EMABuySpecial       []float64
-	EMASellSpecial       []float64
 	MaxDataSize int
 	Log *log.Logger
 	ShutDownCh chan string
@@ -112,19 +110,6 @@ func (ts *TradingSystem) NewAppData() *model.AppData {
 	md.LongPeriod =  55 // Define moving average long period for the strategy.
 	md.ShortEMA = 0.0
 	md.LongEMA = 0.0
-	md.ShortMACDPeriod = 12
-	md.LongMACDPeriod = 29
-	md.SignalMACDPeriod = 9     // Define MACD period parameter.
-	md.RSIPeriod = 14                // Define RSI period parameter. 12,296,16
-	md.StochRSIPeriod = 14
-	md.SmoothK = 3
-	md.SmoothD = 3
-	md.RSIOverbought = 0.6      // Define overbought for generating RSI signals
-	md.RSIOversold = 0.4        // Define oversold for generating RSI signals
-	md.StRSIOverbought = 0.7 // Define overbought for generating RSI signals
-	md.StRSIOversold = 0.2
-	md.BollingerPeriod = 20     // Define Bollinger Bands parameter.
-	md.BollingerNumStdDev = 2.0 // Define Bollinger Bands parameter.
 	md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
 	md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
 	md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
@@ -198,21 +183,7 @@ func (ts *TradingSystem) Backtest(loadFrom string) {
 	//StRSIOverbought,StRSIOversold,BollingerPeriod,BollingerNumStdDev,TargetProfit,
 	//TargetStopLoss,RiskPositionPercentage
 	backT := []*model.AppData{ //StochRSI
-		// {1, "MACD", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {2, "RSI", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		{0, "EMA", 20, 55, 0.0, 0.0, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.5, 3.0, 0.25, 0.0},
-		// {4, "StochR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {5, "Bollinger", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {6, "MACD,RSI", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {7, "RSI,MACD", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {8, "EMA,MACD", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {9, "StochR,MACD", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {10, "Bollinger,MACD", "AND", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {11, "MACD,RSI", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {12, "RSI,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {13, "EMA,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {14, "StochR,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
-		// {15, "Bollinger,MACD", "OR", 6, 16, 12, 29, 9, 14, 14, 3, 3, 0.6, 0.4, 0.7, 0.2, 20, 2.0, 0.02, 0.5, 0.25, 0.0},
+		{0, "EMA", 20, 55, 0.0, 0.0,  0.5, 3.0, 0.25, 0.0},
 	}
 
 	fmt.Println("App started. Press Ctrl+C to exit.")
@@ -351,15 +322,15 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		transactionCost := ts.TransactionCost * exitPrice * ts.EntryQuantity
 		slippageCost := ts.Slippage * exitPrice * ts.EntryQuantity
 		tradeProfitLoss -= transactionCost + slippageCost
-		previousProfit := md.TotalProfitLoss
-		currentProfit := md.TotalProfitLoss + tradeProfitLoss
-		// (ts.TradeProfitLoss < transactionCost+slippageCost+md.TargetProfit)
-		if (ts.BaseBalance < ts.EntryQuantity) || (currentProfit < previousProfit+md.TargetProfit){
-			if ts.BaseBalance < ts.EntryQuantity {
-				return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, ts.EntryQuantity)
-			}
-			return "", fmt.Errorf("cannot execute a sell order without profit up to prevProfit: %.8f, this trade currentProfit: %.8f, target profit: %.8f", previousProfit, currentProfit, md.TargetProfit)
-		}
+		// previousProfit := md.TotalProfitLoss
+		// currentProfit := md.TotalProfitLoss + tradeProfitLoss
+		// // (ts.TradeProfitLoss < transactionCost+slippageCost+md.TargetProfit)
+		// if (ts.BaseBalance < ts.EntryQuantity) || (currentProfit < previousProfit+md.TargetProfit){
+		// 	if ts.BaseBalance < ts.EntryQuantity {
+		// 		return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, ts.EntryQuantity)
+		// 	}
+		// 	return "", fmt.Errorf("cannot execute a sell order without profit up to prevProfit: %.8f, this trade currentProfit: %.8f, target profit: %.8f", previousProfit, currentProfit, md.TargetProfit)
+		// }
 
 		ts.TradeProfitLoss = tradeProfitLoss
 		// Store profit/loss for the trade.
@@ -422,195 +393,43 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 // calculated moving averages (short and long EMA), RSI, MACD line, and Bollinger
 // Bands. It determines the buy and sell signals based on various strategy rules.
 func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData) (buySignal, sellSignal bool) {
-	var crossed bool
 	// Calculate moving averages (MA) using historical data.
-	longEMA, shortEMA, timeStamps, err := CandleExponentialMovingAverage(ts.ClosingPrices, ts.Timestamps, md.LongPeriod, md.ShortPeriod)
+	longEMA, shortEMA, _, err := CandleExponentialMovingAverage(ts.ClosingPrices, ts.Timestamps, md.LongPeriod, md.ShortPeriod)
 	if err != nil {
 		log.Printf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
 		md.LongEMA, md.ShortEMA = 0.0, 0.0
 	}else{
 		md.LongEMA, md.ShortEMA =  longEMA[ts.DataPoint], shortEMA[ts.DataPoint]
 	}
-
-	// Calculate Relative Strength Index (RSI) using historical data.
-	rsi, err := CalculateRSI(ts.ClosingPrices, md.RSIPeriod)
-	if err != nil {
-		log.Printf("Error: in TechnicalAnalysis Unable to get RSI: %v", err)
-	}
-	// Calculate Stochastic RSI and SmoothK, SmoothD values
-	stochRSI, smoothKRSI, err := StochasticRSI(rsi, md.StochRSIPeriod, md.SmoothK, md.SmoothD)
-	if err != nil {
-		log.Printf("Error: in TechnicalAnalysis Unable to get StochRSI: %v", err)
-	}
-	// Calculate MACD and Signal Line using historical data.
-	macdLine, signalLine, macdHistogram, err := CalculateMACD(md.SignalMACDPeriod, ts.ClosingPrices, ts.Timestamps, md.LongMACDPeriod, md.ShortMACDPeriod)
-	if err != nil {
-		log.Printf("Error: in TechnicalAnalysis Unable to get StochRSI: %v", err)
-	}
-
-	// Calculate Bollinger Bands using historical data.
-	_, upperBand, lowerBand, err := CalculateBollingerBands(ts.ClosingPrices, md.BollingerPeriod, md.BollingerNumStdDev)
-	if err != nil {
-		return false, false
-	}
-
 	// Determine the buy and sell signals based on the moving averages, RSI, MACD line, and Bollinger Bands.
-	if len(stochRSI) > 1 && len(smoothKRSI) > 1 && len(shortEMA) > 1 && len(longEMA) > 1 && len(rsi) > 0 && len(macdLine) > 1 && len(signalLine) > 1 && len(upperBand) > 0 && len(lowerBand) > 0 {
-		// Generate buy/sell signals based on conditions
-		count := 0
-		switch ts.StrategyCombLogic {
-		case "AND":
-			buySignal, sellSignal = true, true
-			if strings.Contains(md.Strategy, "StochR") && (ts.DataPoint < len(stochRSI)) && ts.DataPoint >= (md.StochRSIPeriod+md.SmoothK+md.SmoothD-1) {
-				count++
-				ts.Container1 = stochRSI
-				ts.Container2 = smoothKRSI
-				buySignal = buySignal && ((stochRSI[ts.DataPoint-1] < smoothKRSI[ts.DataPoint-1] && stochRSI[ts.DataPoint] >= smoothKRSI[ts.DataPoint]) && (stochRSI[ts.DataPoint] < md.StRSIOversold))
-				sellSignal = sellSignal && ((stochRSI[ts.DataPoint-1] >= smoothKRSI[ts.DataPoint-1] && stochRSI[ts.DataPoint] < smoothKRSI[ts.DataPoint]) && (stochRSI[ts.DataPoint] > md.StRSIOverbought))
-				// buySignal = buySignal && (stochRSI[ts.DataPoint] > ts.StRSIOverbought && smoothKRSI[ts.DataPoint-md.StochRSIPeriod-md.SmoothK] > ts.StRSIOverbought)
-				// sellSignal = sellSignal && (stochRSI[ts.DataPoint] < md.StRSIOversold && smoothKRSI[ts.DataPoint-md.StochRSIPeriod-md.SmoothK] < md.StRSIOversold)
-			}
-			if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 0 {
-				count++
-				ts.Container1 = shortEMA
-				ts.Container2 = longEMA
-				buySignal = buySignal && (shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] >= longEMA[ts.DataPoint])
-				sellSignal = sellSignal && (shortEMA[ts.DataPoint-1] >= longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
-			}
-			if strings.Contains(md.Strategy, "RSI") && ts.DataPoint > 0 && ts.DataPoint <= len(rsi) {
-				count++
-				ts.Container1 = rsi
-				buySignal = buySignal && (rsi[ts.DataPoint-1] < md.RSIOversold)
-				sellSignal = sellSignal && (rsi[ts.DataPoint-1] > md.RSIOverbought)
-			}
-			if strings.Contains(md.Strategy, "MACD") && ts.DataPoint > 0 {
-				count++
-				ts.Container1 = signalLine
-				ts.Container2 = macdLine
-				buySignal = buySignal && (macdLine[ts.DataPoint-1] <= signalLine[ts.DataPoint] && macdLine[ts.DataPoint] > signalLine[ts.DataPoint] && macdHistogram[ts.DataPoint] > 0)
-				sellSignal = sellSignal && (macdLine[ts.DataPoint-1] >= signalLine[ts.DataPoint] && macdLine[ts.DataPoint] < signalLine[ts.DataPoint] && macdHistogram[ts.DataPoint] < 0)
-			}
-			if strings.Contains(md.Strategy, "Bollinger") && ts.DataPoint > 0 && ts.DataPoint < len(upperBand) {
-				count++
-				ts.Container1 = lowerBand
-				ts.Container2 = upperBand
-				buySignal = buySignal && (ts.ClosingPrices[len(ts.ClosingPrices)-1] < lowerBand[ts.DataPoint])
-				sellSignal = sellSignal && (ts.ClosingPrices[len(ts.ClosingPrices)-1] > upperBand[ts.DataPoint])
-			}
-		case "OR":
-			if strings.Contains(md.Strategy, "StochR") && (ts.DataPoint < len(stochRSI)) && ts.DataPoint >= (md.StochRSIPeriod+md.SmoothK+md.SmoothD-1) {
-				count++
-				buySignal = buySignal || ((stochRSI[ts.DataPoint-1] < smoothKRSI[ts.DataPoint-1] && stochRSI[ts.DataPoint] >= smoothKRSI[ts.DataPoint]) && (stochRSI[ts.DataPoint] < md.StRSIOversold))
-				sellSignal = sellSignal || ((stochRSI[ts.DataPoint-1] >= smoothKRSI[ts.DataPoint-1] && stochRSI[ts.DataPoint] < smoothKRSI[ts.DataPoint]) && (stochRSI[ts.DataPoint] < md.StRSIOversold))
-				// buySignal = buySignal || (stochRSI[ts.DataPoint] > ts.StRSIOverbought && smoothKRSI[ts.DataPoint-md.StochRSIPeriod-md.SmoothK] > ts.StRSIOverbought)
-				// sellSignal = sellSignal || (stochRSI[ts.DataPoint] < md.StRSIOversold && smoothKRSI[ts.DataPoint-md.StochRSIPeriod-md.SmoothK] < md.StRSIOversold)
-			}
-			if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 1 {
-				count++
-				ts.Container1 = shortEMA
-				ts.Container2 = longEMA
-
-				crossed = (shortEMA[ts.DataPoint-2] > longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
-				if (len(ts.EMABuySpecial) >= 1) || crossed || (ts.EnableStoploss && ts.StopLossTrigered){
-					if crossed {
-						ts.EMABuySpecial = []float64{}
-					}
-					ts.EMABuySpecial = append(ts.EMABuySpecial, longEMA[ts.DataPoint] - shortEMA[ts.DataPoint])
-					if (len(ts.EMABuySpecial) > 7) && 
-					(ts.EMABuySpecial[len(ts.EMABuySpecial)-7] >= ts.EMABuySpecial[len(ts.EMABuySpecial)-8]) && 
-					(ts.EMABuySpecial[len(ts.EMABuySpecial)-6] >= ts.EMABuySpecial[len(ts.EMABuySpecial)-7]) && 
-					(ts.EMABuySpecial[len(ts.EMABuySpecial)-5] >= ts.EMABuySpecial[len(ts.EMABuySpecial)-6]) && 
-					(ts.EMABuySpecial[len(ts.EMABuySpecial)-4] >= ts.EMABuySpecial[len(ts.EMABuySpecial)-5]) && 
-					(ts.EMABuySpecial[len(ts.EMABuySpecial)-3] >= ts.EMABuySpecial[len(ts.EMABuySpecial)-4]) && 
-					(ts.EMABuySpecial[len(ts.EMABuySpecial)-2] >= ts.EMABuySpecial[len(ts.EMABuySpecial)-3]) && 
-					(ts.EMABuySpecial[len(ts.EMABuySpecial)-1] < ts.EMABuySpecial[len(ts.EMABuySpecial)-2]){
-						buySignal = buySignal || true
-						ts.EMABuySpecial = []float64{}
-					} 
-				}
-				crossed = (shortEMA[ts.DataPoint-2] < longEMA[ts.DataPoint-2] && shortEMA[ts.DataPoint-1] > longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] > longEMA[ts.DataPoint])
-				if (len(ts.EMASellSpecial) >= 1) || crossed || (ts.EnableStoploss && ts.StopLossTrigered){
-					if crossed {
-						ts.EMASellSpecial = []float64{}
-					}
-					ts.EMASellSpecial = append(ts.EMASellSpecial, shortEMA[ts.DataPoint] - longEMA[ts.DataPoint])
-					if (len(ts.EMASellSpecial) > 7) && 
-					(ts.EMASellSpecial[len(ts.EMASellSpecial)-7] >= ts.EMASellSpecial[len(ts.EMASellSpecial)-8]) && 
-					(ts.EMASellSpecial[len(ts.EMASellSpecial)-6] >= ts.EMASellSpecial[len(ts.EMASellSpecial)-7]) && 
-					(ts.EMASellSpecial[len(ts.EMASellSpecial)-5] >= ts.EMASellSpecial[len(ts.EMASellSpecial)-6]) && 
-					(ts.EMASellSpecial[len(ts.EMASellSpecial)-4] >= ts.EMASellSpecial[len(ts.EMASellSpecial)-5]) && 
-					(ts.EMASellSpecial[len(ts.EMASellSpecial)-3] >= ts.EMASellSpecial[len(ts.EMASellSpecial)-4]) && 
-					(ts.EMASellSpecial[len(ts.EMASellSpecial)-2] >= ts.EMASellSpecial[len(ts.EMASellSpecial)-3]) && 
-					(ts.EMASellSpecial[len(ts.EMASellSpecial)-1] < ts.EMASellSpecial[len(ts.EMASellSpecial)-2]){
-						sellSignal = sellSignal || true
-						ts.EMASellSpecial = []float64{}
-					} 
-				}
+	if len(shortEMA) > 7 && len(longEMA) > 7 && ts.DataPoint > 7{
+		if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 1 {
+			ts.Container1 = shortEMA
+			ts.Container2 = longEMA
+			fmt.Println(ts.DataPoint, len(longEMA))
+			if longEMA[ts.DataPoint-6] > shortEMA[ts.DataPoint-7] &&
+			(longEMA[ts.DataPoint-6] - shortEMA[ts.DataPoint-6] >= longEMA[ts.DataPoint-6] - shortEMA[ts.DataPoint-7]) && 
+			(longEMA[ts.DataPoint-5] - shortEMA[ts.DataPoint-5] >= longEMA[ts.DataPoint-6] - shortEMA[ts.DataPoint-6]) && 
+			(longEMA[ts.DataPoint-4] - shortEMA[ts.DataPoint-4] >= longEMA[ts.DataPoint-5] - shortEMA[ts.DataPoint-5]) && 
+			(longEMA[ts.DataPoint-3] - shortEMA[ts.DataPoint-3] >= longEMA[ts.DataPoint-4] - shortEMA[ts.DataPoint-4]) && 
+			(longEMA[ts.DataPoint-2] - shortEMA[ts.DataPoint-2] >= longEMA[ts.DataPoint-3] - shortEMA[ts.DataPoint-3]) && 
+			(longEMA[ts.DataPoint-1] - shortEMA[ts.DataPoint-1] >= longEMA[ts.DataPoint-2] - shortEMA[ts.DataPoint-2]) && 
+			(longEMA[ts.DataPoint] - shortEMA[ts.DataPoint] < longEMA[ts.DataPoint-1] - shortEMA[ts.DataPoint-1]){
+				buySignal = buySignal || true
 			} 
-			if strings.Contains(md.Strategy, "RSI") && ts.DataPoint > 0 && ts.DataPoint <= len(rsi) {
-				count++
-				buySignal = buySignal || (rsi[ts.DataPoint-1] < md.RSIOversold)
-				sellSignal = sellSignal || (rsi[ts.DataPoint-1] > md.RSIOverbought)
-			}
-			if strings.Contains(md.Strategy, "MACD") && ts.DataPoint > 0 {
-				count++
-				buySignal = buySignal || (macdLine[ts.DataPoint-1] <= signalLine[ts.DataPoint] && macdLine[ts.DataPoint] > signalLine[ts.DataPoint] && macdHistogram[ts.DataPoint] > 0)
-				sellSignal = sellSignal || (macdLine[ts.DataPoint-1] >= signalLine[ts.DataPoint] && macdLine[ts.DataPoint] < signalLine[ts.DataPoint] && macdHistogram[ts.DataPoint] < 0)
-			}
-			if strings.Contains(md.Strategy, "Bollinger") && ts.DataPoint > 0 && ts.DataPoint < len(upperBand) {
-				count++
-				buySignal = buySignal || (ts.ClosingPrices[len(ts.ClosingPrices)-1] < lowerBand[ts.DataPoint])
-				sellSignal = sellSignal || (ts.ClosingPrices[len(ts.ClosingPrices)-1] > upperBand[ts.DataPoint])
-			}
-		default:
-			if strings.Contains(md.Strategy, "StochR") && (ts.DataPoint < len(stochRSI)) && ts.DataPoint >= (md.StochRSIPeriod+md.SmoothK+md.SmoothD-1) {
-				count++
-				ts.Container1 = stochRSI
-				ts.Container2 = smoothKRSI
-				buySignal = (stochRSI[ts.DataPoint-1] < smoothKRSI[ts.DataPoint-1] && stochRSI[ts.DataPoint] >= smoothKRSI[ts.DataPoint]) && (stochRSI[ts.DataPoint] < md.StRSIOversold)
-				sellSignal = (stochRSI[ts.DataPoint-1] >= smoothKRSI[ts.DataPoint-1] && stochRSI[ts.DataPoint] < smoothKRSI[ts.DataPoint]) && (stochRSI[ts.DataPoint] < md.StRSIOversold)
-				// buySignal = stochRSI[ts.DataPoint] > ts.StRSIOverbought && smoothKRSI[ts.DataPoint-md.StochRSIPeriod-md.SmoothK] > ts.StRSIOverbought)
-				// sellSignal = stochRSI[ts.DataPoint] < md.StRSIOversold && smoothKRSI[ts.DataPoint-md.StochRSIPeriod-md.SmoothK] < md.StRSIOversold)
-			}
-			if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 0 {
-				count++
-				ts.Container1 = shortEMA
-				ts.Container2 = longEMA
-				buySignal = shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] >= longEMA[ts.DataPoint]
-				sellSignal = shortEMA[ts.DataPoint-1] >= longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint]
-			}
-			if strings.Contains(md.Strategy, "RSI") && ts.DataPoint > 0 && ts.DataPoint <= len(rsi) {
-				count++
-				ts.Container1 = rsi
-				buySignal = rsi[ts.DataPoint-1] < md.RSIOversold
-				sellSignal = rsi[ts.DataPoint-1] > md.RSIOverbought
-			}
-			if strings.Contains(md.Strategy, "MACD") && ts.DataPoint > 0 {
-				count++
-				ts.Container1 = signalLine
-				ts.Container2 = macdLine
-				buySignal = macdLine[ts.DataPoint-1] <= signalLine[ts.DataPoint] && macdLine[ts.DataPoint] > signalLine[ts.DataPoint] && macdHistogram[ts.DataPoint] > 0
-				sellSignal = macdLine[ts.DataPoint-1] >= signalLine[ts.DataPoint] && macdLine[ts.DataPoint] < signalLine[ts.DataPoint] && macdHistogram[ts.DataPoint] < 0
-			}
-			if strings.Contains(md.Strategy, "Bollinger") && ts.DataPoint > 0 && ts.DataPoint < len(upperBand) {
-				count++
-				ts.Container1 = lowerBand
-				ts.Container2 = upperBand
-				buySignal = buySignal || ts.ClosingPrices[len(ts.ClosingPrices)-1] < lowerBand[ts.DataPoint]
-				sellSignal = sellSignal || ts.ClosingPrices[len(ts.ClosingPrices)-1] > upperBand[ts.DataPoint]
-			}
-		}
-
-		if count == 0 {
-			buySignal, sellSignal = false, false
-		}
-		_ = timeStamps
-		// PlotEMA(timeStamps, stochRSI, smoothKRSI)
-		// PlotRSI(stochRSI[290:315], smoothKRSI[290:315])
-
-		// fmt.Printf("EMA: %v, RSI: %v, MACD: %v, Bollinger: %v buySignal: %v, sellSignal: %v", md.Strategy.UseEMA, md.Strategy.UseRSI, md.Strategy.UseMACD, md.Strategy.UseBollinger, buySignal, sellSignal)
+			//shortEMA[ts.DataPoint] - longEMA[ts.DataPoint]
+			if shortEMA[ts.DataPoint-6] > longEMA[ts.DataPoint-7] &&
+			(shortEMA[ts.DataPoint-6] - longEMA[ts.DataPoint-6] >= shortEMA[ts.DataPoint-6] - longEMA[ts.DataPoint-7]) && 
+			(shortEMA[ts.DataPoint-5] - longEMA[ts.DataPoint-5] >= shortEMA[ts.DataPoint-6] - longEMA[ts.DataPoint-6]) && 
+			(shortEMA[ts.DataPoint-4] - longEMA[ts.DataPoint-4] >= shortEMA[ts.DataPoint-5] - longEMA[ts.DataPoint-5]) && 
+			(shortEMA[ts.DataPoint-3] - longEMA[ts.DataPoint-3] >= shortEMA[ts.DataPoint-4] - longEMA[ts.DataPoint-4]) && 
+			(shortEMA[ts.DataPoint-2] - longEMA[ts.DataPoint-2] >= shortEMA[ts.DataPoint-3] - longEMA[ts.DataPoint-3]) && 
+			(shortEMA[ts.DataPoint-1] - longEMA[ts.DataPoint-1] >= shortEMA[ts.DataPoint-2] - longEMA[ts.DataPoint-2]) && 
+			(shortEMA[ts.DataPoint] - longEMA[ts.DataPoint] < shortEMA[ts.DataPoint-1] - longEMA[ts.DataPoint-1]){
+				buySignal = buySignal || true
+			} 	
+		} 
 	}
-
 	return buySignal, sellSignal
 }
 
