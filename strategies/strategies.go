@@ -82,7 +82,7 @@ func NewTradingSystem(liveTrading bool, loadFrom string) (*TradingSystem, error)
 	ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64) //
 	ts.MaxDataSize = 500
 	ts.ShutDownCh = make(chan string)
-	ts.EpochTime = time.Second * 15
+	ts.EpochTime = time.Second * 30
 	ts.ChartChan = make(chan model.ChartData, 1)
 
 	if liveTrading {
@@ -235,7 +235,7 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Positio				
 		}
 	// Close the trade if exit conditions are met.
-	} else if ts.InTrade || (ts.StopLossTrigered && ts.CurrentPrice > ts.StopLossRecover[len(ts.StopLossRecover)-1]){
+	} else if ts.InTrade || (ts.StopLossTrigered && (ts.CurrentPrice > ts.StopLossRecover[len(ts.StopLossRecover)-1])){
 		if ts.ExitRule(md) {
 			// Execute the sell order using the ExecuteStrategy function.
 			resp, err := ts.ExecuteStrategy(md, "Sell")
@@ -246,25 +246,25 @@ func (ts *TradingSystem)Trading(md *model.AppData, loadFrom string)(totalProfitL
 				// Record Signal for plotting graph later.
 				ts.Signals = append(ts.Signals, "Sell")
 				ts.Log.Println(resp)
-				// Mark that we are no longer in a trade.
-				ts.InTrade = false
-				if ts.EnableStoploss && ts.StopLossTrigered{			
-					// md.RiskPositionPercentage /= ts.RiskFactor //reduce riskPosition by a factor
-					ts.StopLossTrigered = false
-					if len(ts.EntryPrice) > 1 {
-						ts.EntryPrice = ts.EntryPrice[:len(ts.EntryPrice)-1] 
-						ts.EntryCostLoss = ts.EntryCostLoss[:len(ts.EntryCostLoss)-1] 
-						ts.StopLossRecover = ts.StopLossRecover[:len(ts.StopLossRecover)-1] 
-						ts.EntryQuantity = ts.EntryQuantity[:len(ts.EntryQuantity)-1]
-					}else if len(ts.EntryPrice) == 1  {
-						ts.StopLossRecover[len(ts.StopLossRecover)-1] = math.MaxFloat64	
-						ts.EntryPrice = []float64{}
-						ts.EntryCostLoss = []float64{}
-						ts.EntryQuantity = []float64{}
-					}
-					ts.InTrade = true
-					// ts.RiskStopLossPercentage /= ts.RiskFactor
+				if len(ts.StopLossRecover) > 1 {
+					ts.EntryPrice = ts.EntryPrice[:len(ts.EntryPrice)-1] 
+					ts.EntryCostLoss = ts.EntryCostLoss[:len(ts.EntryCostLoss)-1] 
+					ts.EntryQuantity = ts.EntryQuantity[:len(ts.EntryQuantity)-1]	
+					ts.StopLossRecover = ts.StopLossRecover[:len(ts.StopLossRecover)-1] 
+					md.RiskPositionPercentage /= ts.RiskFactor //reduce riskPosition by a factor
+					ts.InTrade = true	
+					ts.StopLossTrigered = true		
+				}else if len(ts.StopLossRecover) == 1  {
+					// Mark that we are no longer in a trade.
+					ts.InTrade = false		
+					ts.StopLossTrigered = false		
+					ts.StopLossRecover[len(ts.StopLossRecover)-1] = math.MaxFloat64	
+					ts.EntryPrice = []float64{}
+					ts.EntryCostLoss = []float64{}
+					ts.EntryQuantity = []float64{}
 				}
+				// ts.RiskStopLossPercentage /= ts.RiskFactor
+				
 				ts.TradeCount++
 			}else{
 				ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
@@ -299,6 +299,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		localProfitLoss -= transactionCost+slippageCost
 		//check if there is enough Quote (USDT) for the buy transaction
 		if ts.QuoteBalance < (ts.PositionSize*ts.CurrentPrice)+transactionCost+slippageCost {
+			ts.Log.Printf("Unable to buY!!!! Insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f + transactionCost %.8f+ slippageCost %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice, transactionCost, slippageCost)
 			return "", fmt.Errorf("cannot execute a buy order due to insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f + transactionCost %.8f+ slippageCost %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice, transactionCost, slippageCost)
 		}
 
@@ -329,16 +330,15 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], exitPrice, tsEntryQuantity)
 		transactionCost := ts.TransactionCost * exitPrice * tsEntryQuantity
 		slippageCost := ts.Slippage * exitPrice * tsEntryQuantity
-		localProfitLoss -= transactionCost + slippageCost
+		localProfitLoss -= transactionCost + slippageCost + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]
 
-		currentProfit := ts.EntryCostLoss[len(ts.EntryCostLoss)-1] + localProfitLoss
 		// (localProfitLoss < transactionCost+slippageCost+md.TargetProfit)
-		if (ts.BaseBalance < tsEntryQuantity) || (currentProfit < md.TargetProfit){
+		if (ts.BaseBalance < tsEntryQuantity) || (localProfitLoss < md.TargetProfit){
 			if ts.BaseBalance < tsEntryQuantity {
 				return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, tsEntryQuantity)
 			}
-			ts.Log.Println("TA Signalled: SELL at currentPrice:", exitPrice, "currentProfit:", currentProfit, "expecting Profit:", md.TargetProfit)
-			return "", fmt.Errorf("cannot execute a sell order this trade currentProfit: %.8f, target profit: %.8f", currentProfit, md.TargetProfit)
+			ts.Log.Println("TA Signalled: SELL at currentPrice:", exitPrice, "localProfitLoss:", localProfitLoss, "expecting Profit:", md.TargetProfit)
+			return "", fmt.Errorf("cannot execute a sell order this trade localProfitLoss: %.8f, target profit: %.8f", localProfitLoss, md.TargetProfit)
 		}
 
 		// Mark that we are no longer in a trade.
@@ -377,11 +377,10 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], exitPrice, tsEntryQuantity)
 	transactionCost := ts.TransactionCost * exitPrice * tsEntryQuantity
 	slippageCost := ts.Slippage * exitPrice * tsEntryQuantity
-	localProfitLoss -= transactionCost + slippageCost
-	currentProfit := ts.EntryCostLoss[len(ts.EntryCostLoss)-1] + localProfitLoss
+	localProfitLoss -= transactionCost + slippageCost + ts.EntryCostLoss[len(ts.EntryCostLoss)-1] 
 
-	// Check if the current price breaches the stop-loss level and triggers a sell signal.
-	if (currentProfit <= -md.TargetStopLoss) && ts.EnableStoploss{  //&& (ts.BaseBalance >= tsEntryQuantity)
+	// Check if the current price breaches the stop-loss level to trigger a buy signal.
+	if (localProfitLoss <= -md.TargetStopLoss) && ts.EnableStoploss{  //&& (ts.BaseBalance >= tsEntryQuantity)
 
 		// I commented it out to make stoploss just a marker
 		// // Update the quote and base balances after the trade.
@@ -395,13 +394,13 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		md.RiskPositionPercentage *= ts.RiskFactor //increase riskPosition by a factor
 		ts.StopLossRecover = append(ts.StopLossRecover, ts.CurrentPrice) //* (1.0 - ts.RiskStopLossPercentage)	
 		ts.Log.Println("Stoploss Marked!!! at this Price:", exitPrice, "based on EntryPrice[",len(ts.EntryPrice)-1,
-		"] = ", ts.EntryPrice[len(ts.EntryPrice)-1], "currentLoss:", currentProfit, "expecting Loss:", -md.TargetStopLoss)
+		"] = ", ts.EntryPrice[len(ts.EntryPrice)-1], "currentLoss:", localProfitLoss, "expecting Loss:", -md.TargetStopLoss)
 		// I commented it out to make stoploss just a marker
 		resp := fmt.Sprintf("Stoploss Marked!!! at this Price: %.8f currentLoss: %.8f expecting Loss: %.8f", exitPrice, localProfitLoss, -md.TargetStopLoss)
 		// 	ts.CurrentPrice, tsEntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 		return resp
 	}else{
-		ts.Log.Println("Stoploss not Marked yet at this Price:", exitPrice, "currentLoss:", currentProfit, "expecting Loss:", -md.TargetStopLoss)
+		ts.Log.Println("Stoploss not Marked yet at this Price:", exitPrice, "currentLoss:", localProfitLoss, "expecting Loss:", -md.TargetStopLoss)
 	}
 	return "false"
 }

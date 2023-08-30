@@ -1,0 +1,347 @@
+2023/08/30 13:55:55 started.................................
+2023/08/30 13:55:55 TA Signalled: Sell: true
+2023/08/30 13:55:55 TA Signalled: Sell: true
+2023/08/30 13:55:55 TA Signalled: Buy: true
+2023/08/30 13:55:55 - BUY at EntryPrice[0]: 25985.37000000, EntryQuant[0]: 0.00096208, QBal: 74.97500000, BBal: 0.00096208, GlobalP&L -0.02 LocalP&L: -0.02500000 PosPcent: 0.25000000 tsDataPt: 71 mdDataPt: 0 nextsEllPt 26089.31148000 nextLossPt 25881.42852000 TargProfit 0.10000000 TargLoss -0.10000000
+
+2023/08/30 13:55:55 TA Signalled: Buy: true
+2023/08/30 13:55:55 TA Signalled: Buy: true
+2023/08/30 13:55:55 TA Signalled: Sell: true
+2023/08/30 13:55:55 Stoploss not Marked yet at this Price: 25974.38 currentLoss: -0.010562683925606952 expecting Loss: -0.1
+2023/08/30 13:55:55 TA Signalled: SELL at currentPrice: 25974.38 localProfitLoss: -0.010562683925606952 expecting Profit: 0.1
+2023/08/30 13:55:55 TA Signalled: Sell: true
+2023/08/30 13:55:55 Stoploss not Marked yet at this Price: 25980.24 currentLoss: -0.004930533988930485 expecting Loss: -0.1
+2023/08/30 13:55:55 TA Signalled: SELL at currentPrice: 25980.24 localProfitLoss: -0.004930533988930485 expecting Profit: 0.1
+2023/08/30 13:55:55 TA Signalled: Sell: true
+2023/08/30 13:55:55 Stoploss not Marked yet at this Price: 25984.47 currentLoss: -0.0008650059629686064 expecting Loss: -0.1
+2023/08/30 13:55:55 TA Signalled: SELL at currentPrice: 25984.47 localProfitLoss: -0.0008650059629686064 expecting Profit: 0.1
+2023/08/30 13:55:55 TA Signalled: Buy: true
+2023/08/30 13:55:55 TA Signalled: Sell: true
+2023/08/30 13:55:55 Stoploss not Marked yet at this Price: 26030.01 currentLoss: 0.04290429576334628 expecting Loss: -0.1
+2023/08/30 13:55:55 TA Signalled: SELL at currentPrice: 26030.01 localProfitLoss: 0.04290429576334628 expecting Profit: 0.1
+2023/08/30 13:55:55 TA Signalled: Buy: true
+2023/08/30 13:55:55 TA Signalled: Sell: true
+2023/08/30 13:55:55 Stoploss not Marked yet at this Price: 25999.12 currentLoss: 0.013215368878719061 expecting Loss: -0.1
+2023/08/30 13:55:55 TA Signalled: SELL at currentPrice: 25999.12 localProfitLoss: 0.013215368878719061 expecting Profit: 0.1
+2023/08/30 13:55:55 TA Signalled: Sell: true
+2023/08/30 13:55:55 Stoploss not Marked yet at this Price: 26016.53 currentLoss: 0.02994842867351884 expecting Loss: -0.1
+2023/08/30 13:55:55 TA Signalled: SELL at currentPrice: 26016.53 localProfitLoss: 0.02994842867351884 expecting Profit: 0.1
+2023/08/30 13:55:55 TA Signalled: Sell: true
+2023/08/30 13:55:55 Stoploss not Marked yet at this Price: 26034.16 currentLoss: 0.04689293437037924 expecting Loss: -0.1
+2023/08/30 13:55:55 TA Signalled: SELL at currentPrice: 26034.16 localProfitLoss: 0.04689293437037924 expecting Profit: 0.1
+2023/08/30 13:55:55 TA Signalled: Sell: true
+2023/08/30 13:55:55 Stoploss not Marked yet at this Price: 26074.61 currentLoss: 0.08577014681722986 expecting Loss: -0.1
+2023/08/30 13:55:55 TA Signalled: SELL at currentPrice: 26074.61 localProfitLoss: 0.08577014681722986 expecting Profit: 0.1
+2023/08/30 13:55:55 TA Signalled: Sell: true
+2023/08/30 13:55:55 Stoploss not Marked yet at this Price: 26166.3 currentLoss: 0.17389503208921048 expecting Loss: -0.1
+2023/08/30 13:55:55 - SELL at EntryPrice[0]: 25985.37000000, EntryQuant[0]: 0.00096208, QBal: 100.12389503, BBal: 0.00000000, GlobalP&L 0.15 LocalP&L: 0.17389503 PosPcent: 0.25000000 tsDataPt: 433 mdDataPt: 0 
+
+2023/08/30 13:55:55 TA Signalled: Sell: true
+2023/08/30 14:01:53 started.................................
+2023/08/30 14:01:53 TA Signalled: Sell: true
+2023/08/30 14:01:53 TA Signalled: Sell: true
+2023/08/30 14:01:53 TA Signalled: Buy: true
+2023/08/30 14:01:53 - BUY at EntryPrice[0]: 26006.00000000, EntryQuant[0]: 0.00096132, QBal: 74.97500000, BBal: 0.00096132, GlobalP&L -0.03 LocalP&L: -0.02500000 PosPcent: 0.25000000 tsDataPt: 48 mdDataPt: 0 nextsEllPt 26110.02400000 nextLossPt 25901.97600000 TargProfit 0.10000000 TargLoss -0.10000000
+
+2023/08/30 14:01:53 TA Signalled: Buy: true
+2023/08/30 14:01:53 TA Signalled: Buy: true
+2023/08/30 14:01:53 TA Signalled: Buy: true
+2023/08/30 14:01:53 TA Signalled: Sell: true
+2023/08/30 14:01:53 Stoploss not Marked yet at this Price: 25974.38 currentLoss: -0.03036643466892158 expecting Loss: -0.1
+2023/08/30 14:01:53 TA Signalled: SELL at currentPrice: 25974.38 localProfitLoss: -0.03036643466892158 expecting Profit: 0.1
+2023/08/30 14:01:53 TA Signalled: Sell: true
+2023/08/30 14:01:53 Stoploss not Marked yet at this Price: 25980.24 currentLoss: -0.02473875259555333 expecting Loss: -0.1
+2023/08/30 14:01:53 TA Signalled: SELL at currentPrice: 25980.24 localProfitLoss: -0.02473875259555333 expecting Profit: 0.1
+2023/08/30 14:01:53 TA Signalled: Sell: true
+2023/08/30 14:01:53 Stoploss not Marked yet at this Price: 25984.47 currentLoss: -0.020676449665460703 expecting Loss: -0.1
+2023/08/30 14:01:53 TA Signalled: SELL at currentPrice: 25984.47 localProfitLoss: -0.020676449665460703 expecting Profit: 0.1
+2023/08/30 14:01:53 TA Signalled: Buy: true
+2023/08/30 14:01:53 TA Signalled: Sell: true
+2023/08/30 14:01:53 Stoploss not Marked yet at this Price: 26030.01 currentLoss: 0.02305813081596401 expecting Loss: -0.1
+2023/08/30 14:01:53 TA Signalled: SELL at currentPrice: 26030.01 localProfitLoss: 0.02305813081596401 expecting Profit: 0.1
+2023/08/30 14:01:53 TA Signalled: Buy: true
+2023/08/30 14:01:53 TA Signalled: Sell: true
+2023/08/30 14:01:53 Stoploss not Marked yet at this Price: 25999.12 currentLoss: -0.006607244482043584 expecting Loss: -0.1
+2023/08/30 14:01:53 TA Signalled: SELL at currentPrice: 25999.12 localProfitLoss: -0.006607244482043584 expecting Profit: 0.1
+2023/08/30 14:01:53 TA Signalled: Sell: true
+2023/08/30 14:01:53 Stoploss not Marked yet at this Price: 26016.53 currentLoss: 0.01011254133661351 expecting Loss: -0.1
+2023/08/30 14:01:53 TA Signalled: SELL at currentPrice: 26016.53 localProfitLoss: 0.01011254133661351 expecting Profit: 0.1
+2023/08/30 14:01:53 TA Signalled: Sell: true
+2023/08/30 14:01:53 Stoploss not Marked yet at this Price: 26034.16 currentLoss: 0.027043605321848668 expecting Loss: -0.1
+2023/08/30 14:01:53 TA Signalled: SELL at currentPrice: 26034.16 localProfitLoss: 0.027043605321848668 expecting Profit: 0.1
+2023/08/30 14:01:53 TA Signalled: Sell: true
+2023/08/30 14:01:53 Stoploss not Marked yet at this Price: 26074.61 currentLoss: 0.06588997731292834 expecting Loss: -0.1
+2023/08/30 14:01:53 TA Signalled: SELL at currentPrice: 26074.61 localProfitLoss: 0.06588997731292834 expecting Profit: 0.1
+2023/08/30 14:01:53 TA Signalled: Sell: true
+2023/08/30 14:01:53 Stoploss not Marked yet at this Price: 26166.3 currentLoss: 0.15394495501038152 expecting Loss: -0.1
+2023/08/30 14:01:53 - SELL at EntryPrice[0]: 26006.00000000, EntryQuant[0]: 0.00096132, QBal: 100.10394496, BBal: 0.00000000, GlobalP&L 0.13 LocalP&L: 0.15394496 PosPcent: 0.25000000 tsDataPt: 427 mdDataPt: 0 
+
+2023/08/30 14:01:53 TA Signalled: Sell: true
+2023/08/30 14:03:11 started.................................
+2023/08/30 14:03:11 TA Signalled: Sell: true
+2023/08/30 14:03:11 TA Signalled: Sell: true
+2023/08/30 14:03:11 TA Signalled: Buy: true
+2023/08/30 14:03:11 - BUY at EntryPrice[0]: 26006.00000000, EntryQuant[0]: 0.00096132, QBal: 74.97500000, BBal: 0.00096132, GlobalP&L -0.03 LocalP&L: -0.02500000 PosPcent: 0.25000000 tsDataPt: 46 mdDataPt: 0 nextsEllPt 26110.02400000 nextLossPt 25901.97600000 TargProfit 0.10000000 TargLoss -0.10000000
+
+2023/08/30 14:03:11 TA Signalled: Buy: true
+2023/08/30 14:03:11 TA Signalled: Buy: true
+2023/08/30 14:03:11 TA Signalled: Buy: true
+2023/08/30 14:03:11 TA Signalled: Sell: true
+2023/08/30 14:03:11 Stoploss not Marked yet at this Price: 25974.38 currentLoss: -0.03036643466892158 expecting Loss: -0.1
+2023/08/30 14:03:11 TA Signalled: SELL at currentPrice: 25974.38 localProfitLoss: -0.03036643466892158 expecting Profit: 0.1
+2023/08/30 14:03:11 TA Signalled: Sell: true
+2023/08/30 14:03:11 Stoploss not Marked yet at this Price: 25980.24 currentLoss: -0.02473875259555333 expecting Loss: -0.1
+2023/08/30 14:03:11 TA Signalled: SELL at currentPrice: 25980.24 localProfitLoss: -0.02473875259555333 expecting Profit: 0.1
+2023/08/30 14:03:11 TA Signalled: Sell: true
+2023/08/30 14:03:11 Stoploss not Marked yet at this Price: 25984.47 currentLoss: -0.020676449665460703 expecting Loss: -0.1
+2023/08/30 14:03:11 TA Signalled: SELL at currentPrice: 25984.47 localProfitLoss: -0.020676449665460703 expecting Profit: 0.1
+2023/08/30 14:03:11 TA Signalled: Buy: true
+2023/08/30 14:03:11 TA Signalled: Sell: true
+2023/08/30 14:03:11 Stoploss not Marked yet at this Price: 26030.01 currentLoss: 0.02305813081596401 expecting Loss: -0.1
+2023/08/30 14:03:11 TA Signalled: SELL at currentPrice: 26030.01 localProfitLoss: 0.02305813081596401 expecting Profit: 0.1
+2023/08/30 14:03:11 TA Signalled: Buy: true
+2023/08/30 14:03:11 TA Signalled: Sell: true
+2023/08/30 14:03:11 Stoploss not Marked yet at this Price: 25999.12 currentLoss: -0.006607244482043584 expecting Loss: -0.1
+2023/08/30 14:03:11 TA Signalled: SELL at currentPrice: 25999.12 localProfitLoss: -0.006607244482043584 expecting Profit: 0.1
+2023/08/30 14:03:11 TA Signalled: Sell: true
+2023/08/30 14:03:11 Stoploss not Marked yet at this Price: 26016.53 currentLoss: 0.01011254133661351 expecting Loss: -0.1
+2023/08/30 14:03:11 TA Signalled: SELL at currentPrice: 26016.53 localProfitLoss: 0.01011254133661351 expecting Profit: 0.1
+2023/08/30 14:03:11 TA Signalled: Sell: true
+2023/08/30 14:03:11 Stoploss not Marked yet at this Price: 26034.16 currentLoss: 0.027043605321848668 expecting Loss: -0.1
+2023/08/30 14:03:11 TA Signalled: SELL at currentPrice: 26034.16 localProfitLoss: 0.027043605321848668 expecting Profit: 0.1
+2023/08/30 14:03:11 TA Signalled: Sell: true
+2023/08/30 14:03:11 Stoploss not Marked yet at this Price: 26074.61 currentLoss: 0.06588997731292834 expecting Loss: -0.1
+2023/08/30 14:03:11 TA Signalled: SELL at currentPrice: 26074.61 localProfitLoss: 0.06588997731292834 expecting Profit: 0.1
+2023/08/30 14:03:11 TA Signalled: Sell: true
+2023/08/30 14:03:11 Stoploss not Marked yet at this Price: 26166.3 currentLoss: 0.15394495501038152 expecting Loss: -0.1
+2023/08/30 14:03:11 - SELL at EntryPrice[0]: 26006.00000000, EntryQuant[0]: 0.00096132, QBal: 100.10394496, BBal: 0.00000000, GlobalP&L 0.13 LocalP&L: 0.15394496 PosPcent: 0.25000000 tsDataPt: 425 mdDataPt: 0 
+
+2023/08/30 14:03:11 TA Signalled: Sell: true
+2023/08/30 14:12:19 started.................................
+2023/08/30 14:12:19 TA Signalled: Sell: true
+2023/08/30 14:12:19 TA Signalled: Sell: true
+2023/08/30 14:12:19 TA Signalled: Buy: true
+2023/08/30 14:12:19 - BUY at EntryPrice[0]: 25985.37000000, EntryQuant[0]: 0.00096208, QBal: 74.97500000, BBal: 0.00096208, GlobalP&L -0.02 LocalP&L: -0.02500000 PosPcent: 0.25000000 tsDataPt: 54 mdDataPt: 0 nextsEllPt 26089.31148000 nextLossPt 25881.42852000 TargProfit 0.10000000 TargLoss -0.10000000
+
+2023/08/30 14:12:19 TA Signalled: Buy: true
+2023/08/30 14:12:19 TA Signalled: Buy: true
+2023/08/30 14:12:19 TA Signalled: Sell: true
+2023/08/30 14:12:19 Stoploss not Marked yet at this Price: 25974.38 currentLoss: -0.010562683925606952 expecting Loss: -0.1
+2023/08/30 14:12:19 TA Signalled: SELL at currentPrice: 25974.38 localProfitLoss: -0.010562683925606952 expecting Profit: 0.1
+2023/08/30 14:12:19 TA Signalled: Sell: true
+2023/08/30 14:12:19 Stoploss not Marked yet at this Price: 25980.24 currentLoss: -0.004930533988930485 expecting Loss: -0.1
+2023/08/30 14:12:19 TA Signalled: SELL at currentPrice: 25980.24 localProfitLoss: -0.004930533988930485 expecting Profit: 0.1
+2023/08/30 14:12:19 TA Signalled: Sell: true
+2023/08/30 14:12:19 Stoploss not Marked yet at this Price: 25984.47 currentLoss: -0.0008650059629686064 expecting Loss: -0.1
+2023/08/30 14:12:19 TA Signalled: SELL at currentPrice: 25984.47 localProfitLoss: -0.0008650059629686064 expecting Profit: 0.1
+2023/08/30 14:12:19 TA Signalled: Buy: true
+2023/08/30 14:12:19 TA Signalled: Sell: true
+2023/08/30 14:12:19 Stoploss not Marked yet at this Price: 26030.01 currentLoss: 0.04290429576334628 expecting Loss: -0.1
+2023/08/30 14:12:19 TA Signalled: SELL at currentPrice: 26030.01 localProfitLoss: 0.04290429576334628 expecting Profit: 0.1
+2023/08/30 14:12:19 TA Signalled: Buy: true
+2023/08/30 14:12:19 TA Signalled: Sell: true
+2023/08/30 14:12:19 Stoploss not Marked yet at this Price: 25999.12 currentLoss: 0.013215368878719061 expecting Loss: -0.1
+2023/08/30 14:12:19 TA Signalled: SELL at currentPrice: 25999.12 localProfitLoss: 0.013215368878719061 expecting Profit: 0.1
+2023/08/30 14:12:19 TA Signalled: Sell: true
+2023/08/30 14:12:19 Stoploss not Marked yet at this Price: 26016.53 currentLoss: 0.02994842867351884 expecting Loss: -0.1
+2023/08/30 14:12:19 TA Signalled: SELL at currentPrice: 26016.53 localProfitLoss: 0.02994842867351884 expecting Profit: 0.1
+2023/08/30 14:12:19 TA Signalled: Sell: true
+2023/08/30 14:12:19 Stoploss not Marked yet at this Price: 26034.16 currentLoss: 0.04689293437037924 expecting Loss: -0.1
+2023/08/30 14:12:19 TA Signalled: SELL at currentPrice: 26034.16 localProfitLoss: 0.04689293437037924 expecting Profit: 0.1
+2023/08/30 14:12:19 TA Signalled: Sell: true
+2023/08/30 14:12:19 Stoploss not Marked yet at this Price: 26074.61 currentLoss: 0.08577014681722986 expecting Loss: -0.1
+2023/08/30 14:12:19 TA Signalled: SELL at currentPrice: 26074.61 localProfitLoss: 0.08577014681722986 expecting Profit: 0.1
+2023/08/30 14:12:19 TA Signalled: Sell: true
+2023/08/30 14:12:19 Stoploss not Marked yet at this Price: 26166.3 currentLoss: 0.17389503208921048 expecting Loss: -0.1
+2023/08/30 14:12:19 - SELL at EntryPrice[0]: 25985.37000000, EntryQuant[0]: 0.00096208, QBal: 100.12389503, BBal: 0.00000000, GlobalP&L 0.15 LocalP&L: 0.17389503 PosPcent: 0.25000000 tsDataPt: 416 mdDataPt: 0 
+
+2023/08/30 14:12:19 TA Signalled: Sell: true
+2023/08/30 14:19:46 started.................................
+2023/08/30 14:19:46 TA Signalled: Buy: true
+2023/08/30 14:19:46 - BUY at EntryPrice[0]: 25985.37000000, EntryQuant[0]: 0.00096208, QBal: 74.97500000, BBal: 0.00096208, GlobalP&L -0.02 LocalP&L: -0.02500000 PosPcent: 0.25000000 tsDataPt: 47 mdDataPt: 0 nextsEllPt 26089.31148000 nextLossPt 25881.42852000 TargProfit 0.10000000 TargLoss -0.10000000
+
+2023/08/30 14:19:46 TA Signalled: Buy: true
+2023/08/30 14:19:46 TA Signalled: Buy: true
+2023/08/30 14:19:46 TA Signalled: Sell: true
+2023/08/30 14:19:46 Stoploss not Marked yet at this Price: 25974.38 currentLoss: -0.060562683925606944 expecting Loss: -0.1
+2023/08/30 14:19:46 TA Signalled: SELL at currentPrice: 25974.38 currentProfit: -0.060562683925606944 expecting Profit: 0.1
+2023/08/30 14:19:46 TA Signalled: Sell: true
+2023/08/30 14:19:46 Stoploss not Marked yet at this Price: 25980.24 currentLoss: -0.05493053398893048 expecting Loss: -0.1
+2023/08/30 14:19:46 TA Signalled: SELL at currentPrice: 25980.24 currentProfit: -0.05493053398893048 expecting Profit: 0.1
+2023/08/30 14:19:46 TA Signalled: Sell: true
+2023/08/30 14:19:46 Stoploss not Marked yet at this Price: 25984.47 currentLoss: -0.0508650059629686 expecting Loss: -0.1
+2023/08/30 14:19:46 TA Signalled: SELL at currentPrice: 25984.47 currentProfit: -0.0508650059629686 expecting Profit: 0.1
+2023/08/30 14:19:46 TA Signalled: Buy: true
+2023/08/30 14:19:46 TA Signalled: Sell: true
+2023/08/30 14:19:46 Stoploss not Marked yet at this Price: 26030.01 currentLoss: -0.007095704236653719 expecting Loss: -0.1
+2023/08/30 14:19:46 TA Signalled: SELL at currentPrice: 26030.01 currentProfit: -0.007095704236653719 expecting Profit: 0.1
+2023/08/30 14:19:46 TA Signalled: Buy: true
+2023/08/30 14:19:46 TA Signalled: Sell: true
+2023/08/30 14:19:46 Stoploss not Marked yet at this Price: 25999.12 currentLoss: -0.036784631121280935 expecting Loss: -0.1
+2023/08/30 14:19:46 TA Signalled: SELL at currentPrice: 25999.12 currentProfit: -0.036784631121280935 expecting Profit: 0.1
+2023/08/30 14:19:46 TA Signalled: Sell: true
+2023/08/30 14:19:46 Stoploss not Marked yet at this Price: 26016.53 currentLoss: -0.020051571326481155 expecting Loss: -0.1
+2023/08/30 14:19:46 TA Signalled: SELL at currentPrice: 26016.53 currentProfit: -0.020051571326481155 expecting Profit: 0.1
+2023/08/30 14:19:46 TA Signalled: Sell: true
+2023/08/30 14:19:46 Stoploss not Marked yet at this Price: 26034.16 currentLoss: -0.003107065629620754 expecting Loss: -0.1
+2023/08/30 14:19:46 TA Signalled: SELL at currentPrice: 26034.16 currentProfit: -0.003107065629620754 expecting Profit: 0.1
+2023/08/30 14:19:46 TA Signalled: Sell: true
+2023/08/30 14:19:46 Stoploss not Marked yet at this Price: 26074.61 currentLoss: 0.035770146817229856 expecting Loss: -0.1
+2023/08/30 14:19:46 TA Signalled: SELL at currentPrice: 26074.61 currentProfit: 0.035770146817229856 expecting Profit: 0.1
+2023/08/30 14:19:46 TA Signalled: Sell: true
+2023/08/30 14:19:46 Stoploss not Marked yet at this Price: 26166.3 currentLoss: 0.12389503208921046 expecting Loss: -0.1
+2023/08/30 14:19:46 - SELL at EntryPrice[0]: 25985.37000000, EntryQuant[0]: 0.00096208, QBal: 100.12389503, BBal: 0.00000000, GlobalP&L 0.12 LocalP&L: 0.14889503 PosPcent: 0.25000000 tsDataPt: 409 mdDataPt: 0 
+
+2023/08/30 14:19:46 TA Signalled: Sell: true
+2023/08/30 14:21:07 started.................................
+2023/08/30 14:21:07 TA Signalled: Buy: true
+2023/08/30 14:21:07 - BUY at EntryPrice[0]: 25985.37000000, EntryQuant[0]: 0.00096208, QBal: 74.97500000, BBal: 0.00096208, GlobalP&L -0.02 LocalP&L: -0.02500000 PosPcent: 0.25000000 tsDataPt: 45 mdDataPt: 0 nextsEllPt 26089.31148000 nextLossPt 25881.42852000 TargProfit 0.10000000 TargLoss -0.10000000
+
+2023/08/30 14:21:07 TA Signalled: Buy: true
+2023/08/30 14:21:07 TA Signalled: Buy: true
+2023/08/30 14:21:07 TA Signalled: Sell: true
+2023/08/30 14:21:07 Stoploss not Marked yet at this Price: 25974.38 currentLoss: -0.060562683925606944 expecting Loss: -0.1
+2023/08/30 14:21:07 TA Signalled: SELL at currentPrice: 25974.38 currentProfit: -0.060562683925606944 expecting Profit: 0.1
+2023/08/30 14:21:07 TA Signalled: Sell: true
+2023/08/30 14:21:07 Stoploss not Marked yet at this Price: 25980.24 currentLoss: -0.05493053398893048 expecting Loss: -0.1
+2023/08/30 14:21:07 TA Signalled: SELL at currentPrice: 25980.24 currentProfit: -0.05493053398893048 expecting Profit: 0.1
+2023/08/30 14:21:07 TA Signalled: Sell: true
+2023/08/30 14:21:07 Stoploss not Marked yet at this Price: 25984.47 currentLoss: -0.0508650059629686 expecting Loss: -0.1
+2023/08/30 14:21:07 TA Signalled: SELL at currentPrice: 25984.47 currentProfit: -0.0508650059629686 expecting Profit: 0.1
+2023/08/30 14:21:07 TA Signalled: Buy: true
+2023/08/30 14:21:07 TA Signalled: Sell: true
+2023/08/30 14:21:07 Stoploss not Marked yet at this Price: 26030.01 currentLoss: -0.007095704236653719 expecting Loss: -0.1
+2023/08/30 14:21:07 TA Signalled: SELL at currentPrice: 26030.01 currentProfit: -0.007095704236653719 expecting Profit: 0.1
+2023/08/30 14:21:07 TA Signalled: Buy: true
+2023/08/30 14:21:07 TA Signalled: Sell: true
+2023/08/30 14:21:07 Stoploss not Marked yet at this Price: 25999.12 currentLoss: -0.036784631121280935 expecting Loss: -0.1
+2023/08/30 14:21:07 TA Signalled: SELL at currentPrice: 25999.12 currentProfit: -0.036784631121280935 expecting Profit: 0.1
+2023/08/30 14:21:07 TA Signalled: Sell: true
+2023/08/30 14:21:07 Stoploss not Marked yet at this Price: 26016.53 currentLoss: -0.020051571326481155 expecting Loss: -0.1
+2023/08/30 14:21:07 TA Signalled: SELL at currentPrice: 26016.53 currentProfit: -0.020051571326481155 expecting Profit: 0.1
+2023/08/30 14:21:07 TA Signalled: Sell: true
+2023/08/30 14:21:07 Stoploss not Marked yet at this Price: 26034.16 currentLoss: -0.003107065629620754 expecting Loss: -0.1
+2023/08/30 14:21:07 TA Signalled: SELL at currentPrice: 26034.16 currentProfit: -0.003107065629620754 expecting Profit: 0.1
+2023/08/30 14:21:07 TA Signalled: Sell: true
+2023/08/30 14:21:07 Stoploss not Marked yet at this Price: 26074.61 currentLoss: 0.035770146817229856 expecting Loss: -0.1
+2023/08/30 14:21:07 TA Signalled: SELL at currentPrice: 26074.61 currentProfit: 0.035770146817229856 expecting Profit: 0.1
+2023/08/30 14:21:07 TA Signalled: Sell: true
+2023/08/30 14:21:07 Stoploss not Marked yet at this Price: 26166.3 currentLoss: 0.12389503208921046 expecting Loss: -0.1
+2023/08/30 14:21:07 - SELL at EntryPrice[0]: 25985.37000000, EntryQuant[0]: 0.00096208, QBal: 100.12389503, BBal: 0.00000000, GlobalP&L 0.12 LocalP&L: 0.14889503 PosPcent: 0.25000000 tsDataPt: 407 mdDataPt: 0 
+
+2023/08/30 14:21:07 TA Signalled: Sell: true
+2023/08/30 14:21:07 TA Signalled: Sell: true
+2023/08/30 14:21:07 TA Signalled: Sell: true
+2023/08/30 14:21:07 TA Signalled: Sell: true
+2023/08/30 14:29:00 started.................................
+2023/08/30 14:29:00 TA Signalled: Buy: true
+2023/08/30 14:29:00 - BUY at EntryPrice[0]: 25988.82000000, EntryQuant[0]: 0.00096195, QBal: 74.97500000, BBal: 0.00096195, GlobalP&L -0.03 LocalP&L: -0.02500000 PosPcent: 0.25000000 tsDataPt: 77 mdDataPt: 0 nextsEllPt 26092.77528000 nextLossPt 25884.86472000 TargProfit 0.10000000 TargLoss -0.10000000
+
+2023/08/30 14:29:00 TA Signalled: Buy: true
+2023/08/30 14:29:00 TA Signalled: Sell: true
+2023/08/30 14:29:00 Stoploss not Marked yet at this Price: 25974.38 currentLoss: -0.013876697749261695 expecting Loss: -0.1
+2023/08/30 14:29:00 TA Signalled: SELL at currentPrice: 25974.38 localProfitLoss: -0.013876697749261695 expecting Profit: 0.1
+2023/08/30 14:29:00 TA Signalled: Sell: true
+2023/08/30 14:29:00 Stoploss not Marked yet at this Price: 25980.24 currentLoss: -0.008245295477053315 expecting Loss: -0.1
+2023/08/30 14:29:00 TA Signalled: SELL at currentPrice: 25980.24 localProfitLoss: -0.008245295477053315 expecting Profit: 0.1
+2023/08/30 14:29:00 TA Signalled: Sell: true
+2023/08/30 14:29:00 Stoploss not Marked yet at this Price: 25984.47 currentLoss: -0.004180307147456622 expecting Loss: -0.1
+2023/08/30 14:29:00 TA Signalled: SELL at currentPrice: 25984.47 localProfitLoss: -0.004180307147456622 expecting Profit: 0.1
+2023/08/30 14:29:01 TA Signalled: Buy: true
+2023/08/30 14:29:01 TA Signalled: Sell: true
+2023/08/30 14:29:01 Stoploss not Marked yet at this Price: 26030.01 currentLoss: 0.03958318423075643 expecting Loss: -0.1
+2023/08/30 14:29:01 TA Signalled: SELL at currentPrice: 26030.01 localProfitLoss: 0.03958318423075643 expecting Profit: 0.1
+2023/08/30 14:29:01 TA Signalled: Buy: true
+2023/08/30 14:29:01 TA Signalled: Sell: true
+2023/08/30 14:29:01 Stoploss not Marked yet at this Price: 25999.12 currentLoss: 0.009898198533060827 expecting Loss: -0.1
+2023/08/30 14:29:01 TA Signalled: SELL at currentPrice: 25999.12 localProfitLoss: 0.009898198533060827 expecting Profit: 0.1
+2023/08/30 14:29:01 TA Signalled: Sell: true
+2023/08/30 14:29:01 Stoploss not Marked yet at this Price: 26016.53 currentLoss: 0.026629037024381186 expecting Loss: -0.1
+2023/08/30 14:29:01 TA Signalled: SELL at currentPrice: 26016.53 localProfitLoss: 0.026629037024381186 expecting Profit: 0.1
+2023/08/30 14:29:01 TA Signalled: Sell: true
+2023/08/30 14:29:01 Stoploss not Marked yet at this Price: 26034.16 currentLoss: 0.04357129334844767 expecting Loss: -0.1
+2023/08/30 14:29:01 TA Signalled: SELL at currentPrice: 26034.16 localProfitLoss: 0.04357129334844767 expecting Profit: 0.1
+2023/08/30 14:29:01 TA Signalled: Sell: true
+2023/08/30 14:29:01 Stoploss not Marked yet at this Price: 26074.61 currentLoss: 0.08244334486906378 expecting Loss: -0.1
+2023/08/30 14:29:01 TA Signalled: SELL at currentPrice: 26074.61 localProfitLoss: 0.08244334486906378 expecting Profit: 0.1
+2023/08/30 14:29:01 TA Signalled: Sell: true
+2023/08/30 14:29:01 Stoploss not Marked yet at this Price: 26166.3 currentLoss: 0.17055653161628692 expecting Loss: -0.1
+2023/08/30 14:29:01 - SELL at EntryPrice[0]: 25988.82000000, EntryQuant[0]: 0.00096195, QBal: 100.12055653, BBal: 0.00000000, GlobalP&L 0.15 LocalP&L: 0.17055653 PosPcent: 0.25000000 tsDataPt: 400 mdDataPt: 0 
+
+2023/08/30 14:29:01 TA Signalled: Sell: true
+2023/08/30 14:29:01 TA Signalled: Sell: true
+2023/08/30 14:29:01 TA Signalled: Sell: true
+2023/08/30 14:29:01 TA Signalled: Sell: true
+2023/08/30 14:30:43 started.................................
+2023/08/30 14:30:43 TA Signalled: Buy: true
+2023/08/30 14:30:43 - BUY at EntryPrice[0]: 25985.37000000, EntryQuant[0]: 0.00096208, QBal: 74.97500000, BBal: 0.00096208, GlobalP&L -0.02 LocalP&L: -0.02500000 PosPcent: 0.25000000 tsDataPt: 36 mdDataPt: 0 nextsEllPt 26089.31148000 nextLossPt 25881.42852000 TargProfit 0.10000000 TargLoss -0.10000000
+
+2023/08/30 14:30:43 TA Signalled: Buy: true
+2023/08/30 14:30:43 TA Signalled: Buy: true
+2023/08/30 14:30:43 TA Signalled: Sell: true
+2023/08/30 14:30:43 Stoploss not Marked yet at this Price: 25974.38 currentLoss: -0.010562683925606952 expecting Loss: -0.1
+2023/08/30 14:30:43 TA Signalled: SELL at currentPrice: 25974.38 localProfitLoss: -0.010562683925606952 expecting Profit: 0.1
+2023/08/30 14:30:43 TA Signalled: Sell: true
+2023/08/30 14:30:43 Stoploss not Marked yet at this Price: 25980.24 currentLoss: -0.004930533988930485 expecting Loss: -0.1
+2023/08/30 14:30:43 TA Signalled: SELL at currentPrice: 25980.24 localProfitLoss: -0.004930533988930485 expecting Profit: 0.1
+2023/08/30 14:30:43 TA Signalled: Sell: true
+2023/08/30 14:30:43 Stoploss not Marked yet at this Price: 25984.47 currentLoss: -0.0008650059629686064 expecting Loss: -0.1
+2023/08/30 14:30:43 TA Signalled: SELL at currentPrice: 25984.47 localProfitLoss: -0.0008650059629686064 expecting Profit: 0.1
+2023/08/30 14:30:43 TA Signalled: Buy: true
+2023/08/30 14:30:43 TA Signalled: Sell: true
+2023/08/30 14:30:43 Stoploss not Marked yet at this Price: 26030.01 currentLoss: 0.04290429576334628 expecting Loss: -0.1
+2023/08/30 14:30:43 TA Signalled: SELL at currentPrice: 26030.01 localProfitLoss: 0.04290429576334628 expecting Profit: 0.1
+2023/08/30 14:30:43 TA Signalled: Buy: true
+2023/08/30 14:30:43 TA Signalled: Sell: true
+2023/08/30 14:30:43 Stoploss not Marked yet at this Price: 25999.12 currentLoss: 0.013215368878719061 expecting Loss: -0.1
+2023/08/30 14:30:43 TA Signalled: SELL at currentPrice: 25999.12 localProfitLoss: 0.013215368878719061 expecting Profit: 0.1
+2023/08/30 14:30:43 TA Signalled: Sell: true
+2023/08/30 14:30:43 Stoploss not Marked yet at this Price: 26016.53 currentLoss: 0.02994842867351884 expecting Loss: -0.1
+2023/08/30 14:30:43 TA Signalled: SELL at currentPrice: 26016.53 localProfitLoss: 0.02994842867351884 expecting Profit: 0.1
+2023/08/30 14:30:43 TA Signalled: Sell: true
+2023/08/30 14:30:43 Stoploss not Marked yet at this Price: 26034.16 currentLoss: 0.04689293437037924 expecting Loss: -0.1
+2023/08/30 14:30:43 TA Signalled: SELL at currentPrice: 26034.16 localProfitLoss: 0.04689293437037924 expecting Profit: 0.1
+2023/08/30 14:30:43 TA Signalled: Sell: true
+2023/08/30 14:30:43 Stoploss not Marked yet at this Price: 26074.61 currentLoss: 0.08577014681722986 expecting Loss: -0.1
+2023/08/30 14:30:43 TA Signalled: SELL at currentPrice: 26074.61 localProfitLoss: 0.08577014681722986 expecting Profit: 0.1
+2023/08/30 14:30:43 TA Signalled: Sell: true
+2023/08/30 14:30:43 Stoploss not Marked yet at this Price: 26166.3 currentLoss: 0.17389503208921048 expecting Loss: -0.1
+2023/08/30 14:30:43 - SELL at EntryPrice[0]: 25985.37000000, EntryQuant[0]: 0.00096208, QBal: 100.12389503, BBal: 0.00000000, GlobalP&L 0.15 LocalP&L: 0.17389503 PosPcent: 0.25000000 tsDataPt: 398 mdDataPt: 0 
+
+2023/08/30 14:30:43 TA Signalled: Sell: true
+2023/08/30 14:30:43 TA Signalled: Sell: true
+2023/08/30 14:30:43 TA Signalled: Sell: true
+2023/08/30 14:30:43 TA Signalled: Sell: true
+2023/08/30 16:25:15 started.................................
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 TA Signalled: Buy: true
+2023/08/30 16:25:15 - BUY at EntryPrice[0]: 25947.04000000, EntryQuant[0]: 0.00096350, QBal: 74.97500000, BBal: 0.00096350, GlobalP&L -0.02 LocalP&L: -0.02500000 PosPcent: 0.25000000 tsDataPt: 74 mdDataPt: 0 nextsEllPt 26050.82816000 nextLossPt 25843.25184000 TargProfit 0.10000000 TargLoss -0.10000000
+
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 Stoploss not Marked yet at this Price: 26030.01 currentLoss: 0.07986173952789753 expecting Loss: -0.1
+2023/08/30 16:25:15 TA Signalled: SELL at currentPrice: 26030.01 localProfitLoss: 0.07986173952789753 expecting Profit: 0.1
+2023/08/30 16:25:15 TA Signalled: Buy: true
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 Stoploss not Marked yet at this Price: 25999.12 currentLoss: 0.05012895497906323 expecting Loss: -0.1
+2023/08/30 16:25:15 TA Signalled: SELL at currentPrice: 25999.12 localProfitLoss: 0.05012895497906323 expecting Profit: 0.1
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 Stoploss not Marked yet at this Price: 26016.53 currentLoss: 0.06688673351565146 expecting Loss: -0.1
+2023/08/30 16:25:15 TA Signalled: SELL at currentPrice: 26016.53 localProfitLoss: 0.06688673351565146 expecting Profit: 0.1
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 Stoploss not Marked yet at this Price: 26034.16 currentLoss: 0.08385627031060092 expecting Loss: -0.1
+2023/08/30 16:25:15 TA Signalled: SELL at currentPrice: 26034.16 localProfitLoss: 0.08385627031060092 expecting Profit: 0.1
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 Stoploss not Marked yet at this Price: 26074.61 currentLoss: 0.12279091372272108 expecting Loss: -0.1
+2023/08/30 16:25:15 - SELL at EntryPrice[0]: 25947.04000000, EntryQuant[0]: 0.00096350, QBal: 100.07279091, BBal: 0.00000000, GlobalP&L 0.10 LocalP&L: 0.12279091 PosPcent: 0.25000000 tsDataPt: 263 mdDataPt: 0 
+
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/30 16:25:15 TA Signalled: Sell: true
