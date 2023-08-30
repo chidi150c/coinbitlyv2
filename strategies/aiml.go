@@ -46,11 +46,9 @@ func AppDataListtoCSV(data []*model.AppData) { //fundamentalAnalysis()
     defer writer.Flush()
 
     // Write headers to the CSV file
+
     headers := []string{
-        "DataPoint","Strategy","ShortPeriod","LongPeriod","ShortMACDPeriod",
-        "LongMACDPeriod","SignalMACDPeriod","RSIPeriod","StochRSIPeriod",
-        "SmoothK","SmoothD","RSIOverbought","RSIOversold","StRSIOverbought", 
-        "StRSIOversold","BollingerPeriod","BollingerNumStdDev","TargetProfit",
+        "DataPoint","Strategy","ShortPeriod","LongPeriod","ShortEMA", "LongEMA", "TargetProfit",
         "TargetStopLoss","RiskPositionPercentage","TotalProfitLoss",   
     }
     err = writer.Write(headers)

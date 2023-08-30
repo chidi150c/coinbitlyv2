@@ -67,8 +67,8 @@ func NewExchangesConfig() map[string]*ExchConfig {
 			SecretKey:       os.Getenv("BINANCE_API_SECRET"),  // Replace with your Binance API secret key
 			Symbol:          "BTCUSDT",
 			CandleInterval:  "1m",
-			CandleStartTime: time.Now().Add(time.Duration(timeRange) * 20 * time.Hour).Unix(), // 3 days ago
-			CandleEndTime:   time.Now().Unix(),
+			CandleStartTime: time.Now().Add(time.Duration(-1) * 30 * time.Hour).Unix(), // 3 days ago
+			CandleEndTime:   time.Now().Add(time.Duration(-1) * 9 * time.Hour).Unix(), // 3 days ago
 		},
 		"HitBTC": {
 			Name: "HitBTC",
