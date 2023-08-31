@@ -61,13 +61,14 @@ type TradingSystem struct {
 	CSVWriter *csv.Writer
 	RiskProfitLossPercentage float64
 	ChartChan chan model.ChartData
+	BaseCurrency string
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
 // historical data from the exchange using the GetCandlesFromExch() function.
 // It sets various strategy parameters like short and long EMA periods, RSI period,
 // MACD signal period, Bollinger Bands period, and more.
-func NewTradingSystem(liveTrading bool, loadFrom string) (*TradingSystem, error) {
+func NewTradingSystem(BaseCurrency string, liveTrading bool, loadFrom string) (*TradingSystem, error) {
 	// Initialize the trading system.
 	ts := &TradingSystem{}
 	ts.RiskFactor = 2.0           // Define 1% slippage
@@ -84,6 +85,7 @@ func NewTradingSystem(liveTrading bool, loadFrom string) (*TradingSystem, error)
 	ts.ShutDownCh = make(chan string)
 	ts.EpochTime = time.Second * 30
 	ts.ChartChan = make(chan model.ChartData, 1)
+	ts.BaseCurrency = BaseCurrency
 
 	if liveTrading {
 		// Fetch historical data from the exchange
@@ -661,9 +663,9 @@ func (ts *TradingSystem) Reporting(md *model.AppData, from string)error{
 		err = ts.CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
 		err = ts.CreateLineChartWithSignals(ts.Timestamps, ts.Container1, ts.Signals, "StrategyOnly")
 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "Bollinger") {
-		err = ts.CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
+		err = ts.CreateLineChartWithSignalsV3(ts.BaseCurrency, ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "EMA") {
-		err = ts.CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
+		err = ts.CreateLineChartWithSignalsV3(ts.BaseCurrency, ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
 	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "MACD") {
 		err = ts.CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
 		err = CreateLineChartWithSignalsV2(ts.Timestamps, ts.Container1, ts.Container2, ts.Signals, "StrategiesOnly")

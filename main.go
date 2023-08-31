@@ -24,7 +24,7 @@ func main() {
 	liveTrading := true
 
     //You're initializing your trading system using the strategies.NewTradingSystem function. 
-	ts, err := strategies.NewTradingSystem(liveTrading, loadFrom)
+	ts, err := strategies.NewTradingSystem("BTC", liveTrading, loadFrom)
 	if err != nil {
 		log.Fatal("Error initializing trading system:", err)
 		return
@@ -49,10 +49,7 @@ func main() {
     ts.CSVWriter = csv.NewWriter(appfile)
 	// Write headers to the CSV file
 	headers := []string{
-		"Count","Strategy","ShortPeriod","LongPeriod", "ShortEMA", "LongEMA", "ShortMACDPeriod",
-		"LongMACDPeriod","SignalMACDPeriod","RSIPeriod","StochRSIPeriod",
-		"SmoothK","SmoothD","RSIOverbought","RSIOversold","StRSIOverbought", 
-		"StRSIOversold","BollingerPeriod","BollingerNumStdDev","TargetProfit",
+		"Count","Strategy","ShortPeriod","LongPeriod", "ShortEMA", "LongEMA", "TargetProfit",
 		"TargetStopLoss","RiskPositionPercentage","TotalProfitLoss",   
 	}
 	err = ts.CSVWriter.Write(headers)

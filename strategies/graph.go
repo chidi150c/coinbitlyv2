@@ -181,7 +181,7 @@ func CreateLineChartWithSignalsV2(timeSeries []int64, dataSeries []float64, gree
 	return nil
 }
 
-func (ts *TradingSystem)CreateLineChartWithSignalsV3(timeSeries []int64, dataSeries []float64, greenDataSeries []float64, yellowDataSeries []float64, signals []string, graph string) error {
+func (ts *TradingSystem)CreateLineChartWithSignalsV3(BaseCurrency string, timeSeries []int64, dataSeries []float64, greenDataSeries []float64, yellowDataSeries []float64, signals []string, graph string) error {
 	// ts.ChartChan <- model.ChartData{
 	// 	ClosingPrices: dataSeries[len(dataSeries)-1], 
 	// 	Timestamps: timeSeries[len(dataSeries)-1], 
@@ -193,7 +193,7 @@ func (ts *TradingSystem)CreateLineChartWithSignalsV3(timeSeries []int64, dataSer
 	p := plot.New()
 	p.Title.Text = "Line Chart with Trading Signals"
 	p.X.Label.Text = "Time"
-	p.Y.Label.Text = "Data Value"
+	p.Y.Label.Text = BaseCurrency+" Price in USDT"
 
 	// Create a new set of points based on the data.
 	pts := make(plotter.XYs, len(dataSeries))
