@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"coinbitly.com/config"
 	"coinbitly.com/server"
 	"coinbitly.com/strategies"
 )
@@ -23,8 +24,9 @@ func main() {
 	//You specify whether you're performing live trading 
 	liveTrading := true
 
+	config := config.NewExchangesConfig()[loadFrom]
     //You're initializing your trading system using the strategies.NewTradingSystem function. 
-	ts, err := strategies.NewTradingSystem("BTC", liveTrading, loadFrom)
+	ts, err := strategies.NewTradingSystem(config.BaseCurrency, liveTrading, loadFrom)
 	if err != nil {
 		log.Fatal("Error initializing trading system:", err)
 		return

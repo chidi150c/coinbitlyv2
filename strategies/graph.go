@@ -11,7 +11,7 @@ import (
 	"gonum.org/v1/plot/vg"
 )
 
-func (ts *TradingSystem)CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signals []string, graph string) error {
+func (ts *TradingSystem)CreateLineChartWithSignals(BaseCurrency string, timeSeries []int64, dataSeries []float64, signals []string, graph string) error {
 	// ts.ChartChan <- model.ChartData{
 	// 	ClosingPrices: dataSeries[len(dataSeries)-1], 
 	// 	Timestamps: timeSeries[len(dataSeries)-1], 
@@ -23,7 +23,7 @@ func (ts *TradingSystem)CreateLineChartWithSignals(timeSeries []int64, dataSerie
 	p := plot.New()
 	p.Title.Text = "Line Chart with Trading Signals"
 	p.X.Label.Text = "Time"
-	p.Y.Label.Text = "Data Value"
+	p.Y.Label.Text = BaseCurrency+" Price in USDT"
 
 	// Create a new set of points based on the data.
 	pts := make(plotter.XYs, len(dataSeries))
@@ -83,6 +83,15 @@ func (ts *TradingSystem)CreateLineChartWithSignals(timeSeries []int64, dataSerie
 	// Add the scatter plots to the plot.
 	p.Add(buyScatter, sellScatter)
 
+	
+	// Create a legend and add entries for your plots.
+	p.Legend.Add("Data Series", line)
+	p.Legend.Add("Buy Signals", buyScatter)
+	p.Legend.Add("Sell Signals", sellScatter)
+	p.Legend.Top = true
+	p.Legend.Left = false
+	p.Legend.Padding = 5.0
+
 	// Save the plot to a file (you can also display it in a window if you prefer).
 	if err := p.Save(10*vg.Inch, 6*vg.Inch, "./webclient/assets/"+graph+"line_chart_with_signals.png"); err != nil {
 		return err
@@ -90,12 +99,12 @@ func (ts *TradingSystem)CreateLineChartWithSignals(timeSeries []int64, dataSerie
 	return nil
 }
 
-func CreateLineChartWithSignalsV2(timeSeries []int64, dataSeries []float64, greenDataSeries []float64, signals []string, graph string) error {
+func CreateLineChartWithSignalsV2(BaseCurrency string, timeSeries []int64, dataSeries []float64, greenDataSeries []float64, signals []string, graph string) error {
 	// Create a new plot with a title and axis labels.
 	p := plot.New()
 	p.Title.Text = "Line Chart with Trading Signals"
 	p.X.Label.Text = "Time"
-	p.Y.Label.Text = "Data Value"
+	p.Y.Label.Text = BaseCurrency+" Price in USDT"
 
 	// Create a new set of points based on the data.
 	pts := make(plotter.XYs, len(dataSeries))
@@ -302,6 +311,19 @@ func (ts *TradingSystem)CreateLineChartWithSignalsV3(BaseCurrency string, timeSe
 
 	// Add the scatter plots to the plot.
 	p.Add(buyScatter, sellScatter)
+
+	// Create a legend and add entries for your plots.
+	p.Legend.Add("Data Series", line)
+	p.Legend.Add("Green Data Series", greenLine)
+	p.Legend.Add("Yellow Data Series", yellowLine)
+	p.Legend.Add("Buy Signals", buyScatter)
+	p.Legend.Add("Sell Signals", sellScatter)
+	p.Legend.Top = true
+	p.Legend.Left = false
+	p.Legend.Padding = 5.0
+
+	// Add the legend to the plot.
+	// p.Add(p.Legend)
 
 	// Save the plot to a file (you can also display it in a window if you prefer).
 	if err := p.Save(10*vg.Inch, 6*vg.Inch, "./webclient/assets/"+graph+"line_chart_with_signals.png"); err != nil {

@@ -345,3 +345,11 @@
 2023/08/30 16:25:15 TA Signalled: Sell: true
 2023/08/30 16:25:15 TA Signalled: Sell: true
 2023/08/30 16:25:15 TA Signalled: Sell: true
+2023/08/31 10:10:51 started.................................
+2023/08/31 10:22:00 started.................................
+2023/08/31 10:41:32 TA Signalled: Sell: true
+2023/08/31 10:41:32 TA Signalled: Sell: true
+2023/08/31 10:58:52 TA Signalled: Buy: true
+2023/08/31 10:58:52 - BUY at EntryPrice[0]: 27198.26000000, EntryQuant[0]: 0.00091918, QBal: 74.97500000, BBal: 0.00091918, GlobalP&L -0.02 LocalP&L: -0.02500000 PosPcent: 0.25000000 tsDataPt: 73 mdDataPt: 73 nextsEllPt 27307.05304000 nextLossPt 27089.46696000 TargProfit 0.10000000 TargLoss -0.10000000
+
+2023/08/31 11:04:43 started.................................
