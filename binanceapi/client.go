@@ -9,9 +9,6 @@ import (
 	"coinbitly.com/model"
 )
 
-const (
-	exchname = "Binance"
-)
 type APIServices struct{
 	*config.ExchConfig
 	DataBase model.APIServices
@@ -27,10 +24,6 @@ func NewAPIServices(infDB model.APIServices, exchConfig *config.ExchConfig)(*API
 }
 // FetchHistoricalCandlesticks fetches historical candlestick data for the given symbol and time interval
 func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime int64) ([]model.Candle, error) {
-	if e.Name != exchname{
-		fmt.Println("Error Missmatch Exchange Name:")
-		return []model.Candle{}, errors.New("Missmatch Exchange Name")		
-	}
 	candles, err := fetchHistoricalCandlesticks(symbol, e.BaseURL, e.ApiVersion, e.ApiKey, interval, startTime, endTime)
 	if err != nil {
 		fmt.Println("Error fetching Candle data:", err)
@@ -42,7 +35,7 @@ func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime in
 	for _, v := range candles{
 		// fmt.Println(v)
 		ct = model.Candle{
-			ExchName: exchname,
+			ExchName: e.Name,
 			Timestamp: v.Timestamp,
 			Open: v.Open,
 			High: v.High,
@@ -116,7 +109,7 @@ func (e *APIServices)PlaceLimitBuyOrder(symbol string, price, quantity float64) 
 	Quantity := fmt.Sprintf("%.8f", quantity)
 	return placeOrder(symbol, side, orderType, timeInForce, Price, Quantity, e.BaseURL, e.ApiVersion, e.ApiKey, e.SecretKey)
 }
-func (e *APIServices)PlaceLimitSellOrder(symbol, price, quantity string) (exitOrderID int64, err error){
+func (e *APIServices)PlaceLimitSellOrder(symbol string, price, quantity float64) (exitOrderID int64, err error){
 	side := "SELL"
 	orderType := "LIMIT"
 	timeInForce := "GTC"

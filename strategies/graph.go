@@ -50,7 +50,9 @@ func (ts *TradingSystem)CreateLineChartWithSignals(md *model.AppData, timeSeries
 	}
 
 	// Add custom tick marks for the X-axis (time labels).
-	p.NominalX(timeLabels...)
+	if len(timeLabels) > 0 {
+		p.NominalX(timeLabels...)
+	}
 
 	// Create separate scatter plots for Buy and Sell signals.
 	var buySignalPoints, sellSignalPoints plotter.XYs

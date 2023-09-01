@@ -18,8 +18,8 @@ import (
 func main() {
 	
 
-	//You specify the source of data (e.g., "HitBTC", "Binance" or "InfluxDB")
-	loadFrom := "Binance" 
+	//You specify the source of data (e.g., "HitBTC", "Binance", "BinanceTestnet" or "InfluxDB")
+	loadFrom := "BinanceTestnet" 
 	
 	//You specify whether you're performing live trading 
 	liveTrading := false

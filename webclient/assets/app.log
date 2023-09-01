@@ -1,108 +1,165 @@
-2023/09/01 02:00:42 started.................................
-2023/09/01 02:00:42 TA Signalled: Buy: true at currentPrice: 27233.43
-2023/09/01 02:00:42 - BUY at EntryPrice[0]: 27233.43000000, EntryQuant[0]: 0.00036720, QBal: 89.98200000, BBal: 0.00036720, GlobalP&L -0.02 LocalP&L: -0.01800000 PosPcent: 0.10000000 tsDataPt: 18 mdDataPt: 0 nextsEllPt 27301.51357500 nextLossPt 27165.34642500 TargProfit 0.02500000 TargLoss -0.02500000
-
-2023/09/01 02:00:42 TA Signalled: Sell: true at currentPrice: 27263.16
-2023/09/01 02:00:42 Stoploss not Marked yet at this Price: 27263.16 currentLoss: 0.010897079802286954 expecting Loss: -0.025
-2023/09/01 02:00:42 TA Signalled: SELL at currentPrice: 27263.16 localProfitLoss: 0.010897079802286954 expecting Profit: 0.025
-2023/09/01 02:00:42 TA Signalled: Sell: true at currentPrice: 27260.68
-2023/09/01 02:00:42 Stoploss not Marked yet at this Price: 27260.68 currentLoss: 0.009988073481746514 expecting Loss: -0.025
-2023/09/01 02:00:42 TA Signalled: SELL at currentPrice: 27260.68 localProfitLoss: 0.009988073481746514 expecting Profit: 0.025
-2023/09/01 02:00:42 TA Signalled: Sell: true at currentPrice: 27260.15
-2023/09/01 02:00:42 Stoploss not Marked yet at this Price: 27260.15 currentLoss: 0.009793810034212057 expecting Loss: -0.025
-2023/09/01 02:00:42 TA Signalled: SELL at currentPrice: 27260.15 localProfitLoss: 0.009793810034212057 expecting Profit: 0.025
-2023/09/01 02:00:42 TA Signalled: Sell: true at currentPrice: 27252.22
-2023/09/01 02:00:42 Stoploss not Marked yet at this Price: 27252.22 currentLoss: 0.006887189017322047 expecting Loss: -0.025
-2023/09/01 02:00:42 TA Signalled: SELL at currentPrice: 27252.22 localProfitLoss: 0.006887189017322047 expecting Profit: 0.025
-2023/09/01 02:00:42 TA Signalled: Sell: true at currentPrice: 27258.05
-2023/09/01 02:00:42 Stoploss not Marked yet at this Price: 27258.05 currentLoss: 0.0090240869402051 expecting Loss: -0.025
-2023/09/01 02:00:42 TA Signalled: SELL at currentPrice: 27258.05 localProfitLoss: 0.0090240869402051 expecting Profit: 0.025
-2023/09/01 02:00:42 TA Signalled: Sell: true at currentPrice: 27288.67
-2023/09/01 02:00:42 Stoploss not Marked yet at this Price: 27288.67 currentLoss: 0.02024738272042778 expecting Loss: -0.025
-2023/09/01 02:00:42 TA Signalled: SELL at currentPrice: 27288.67 localProfitLoss: 0.02024738272042778 expecting Profit: 0.025
-2023/09/01 02:00:42 TA Signalled: Sell: true at currentPrice: 27216.43
-2023/09/01 02:00:42 Stoploss not Marked yet at this Price: 27216.43 currentLoss: -0.006231091713383145 expecting Loss: -0.025
-2023/09/01 02:00:42 TA Signalled: SELL at currentPrice: 27216.43 localProfitLoss: -0.006231091713383145 expecting Profit: 0.025
-2023/09/01 02:00:42 TA Signalled: Sell: true at currentPrice: 27230.57
-2023/09/01 02:00:42 Stoploss not Marked yet at this Price: 27230.57 currentLoss: -0.00104828954707526 expecting Loss: -0.025
-2023/09/01 02:00:42 TA Signalled: SELL at currentPrice: 27230.57 localProfitLoss: -0.00104828954707526 expecting Profit: 0.025
-2023/09/01 02:00:42 TA Signalled: Sell: true at currentPrice: 27295.35
-2023/09/01 02:00:42 Stoploss not Marked yet at this Price: 27295.35 currentLoss: 0.022695835228980797 expecting Loss: -0.025
-2023/09/01 02:00:42 TA Signalled: SELL at currentPrice: 27295.35 localProfitLoss: 0.022695835228980797 expecting Profit: 0.025
-2023/09/01 02:00:42 TA Signalled: Sell: true at currentPrice: 27407.43
-2023/09/01 02:00:42 Stoploss not Marked yet at this Price: 27407.43 currentLoss: 0.06377705636050984 expecting Loss: -0.025
-2023/09/01 02:00:42 - SELL at ExitPrice: 27407.43000000, EntryPrice[0]: 27233.43000000, EntryQuant[0]: 0.00036720, QBal: 100.02777706, BBal: 0.00000000, GlobalP&L 0.05 LocalP&L: 0.06377706 PosPcent: 0.10000000 tsDataPt: 407 mdDataPt: 0 
-
-2023/09/01 02:00:42 TA Signalled: Buy: true at currentPrice: 27233.21
-2023/09/01 02:00:42 - BUY at EntryPrice[0]: 27233.21000000, EntryQuant[0]: 0.00036730, QBal: 90.00699435, BBal: 0.00036730, GlobalP&L 0.03 LocalP&L: -0.01800500 PosPcent: 0.10000000 tsDataPt: 426 mdDataPt: 0 nextsEllPt 27301.27411879 nextLossPt 27165.14588121 TargProfit 0.02500000 TargLoss -0.02500000
-
-2023/09/01 04:11:35 started.................................
-2023/09/01 04:11:36 TA Signalled: Buy: true at currentPrice: 27246.46
-2023/09/01 04:11:36 - BUY at EntryPrice[0]: 27246.46000000, EntryQuant[0]: 0.00036702, QBal: 89.98200000, BBal: 0.00036702, GlobalP&L -0.02 LocalP&L: -0.01800000 PosPcent: 0.10000000 tsDataPt: 39 mdDataPt: 0 nextsEllPt 27314.57615000 nextLossPt 27178.34385000 TargProfit 0.02500000 TargLoss -0.02500000
-
-2023/09/01 04:11:36 TA Signalled: Sell: true at currentPrice: 27216.43
-2023/09/01 04:11:36 Stoploss not Marked yet at this Price: 27216.43 currentLoss: -0.011001776377554676 expecting Loss: -0.025
-2023/09/01 04:11:36 TA Signalled: SELL at currentPrice: 27216.43 localProfitLoss: -0.011001776377554676 expecting Profit: 0.025
-2023/09/01 04:11:36 TA Signalled: Sell: true at currentPrice: 27230.57
-2023/09/01 04:11:36 Stoploss not Marked yet at this Price: 27230.57 currentLoss: -0.00582145276854293 expecting Loss: -0.025
-2023/09/01 04:11:36 TA Signalled: SELL at currentPrice: 27230.57 localProfitLoss: -0.00582145276854293 expecting Profit: 0.025
-2023/09/01 04:11:36 TA Signalled: Sell: true at currentPrice: 27295.35
-2023/09/01 04:11:36 Stoploss not Marked yet at this Price: 27295.35 currentLoss: 0.017911316919702384 expecting Loss: -0.025
-2023/09/01 04:11:36 TA Signalled: SELL at currentPrice: 27295.35 localProfitLoss: 0.017911316919702384 expecting Profit: 0.025
-2023/09/01 04:11:36 TA Signalled: Sell: true at currentPrice: 27407.43
-2023/09/01 04:11:36 Stoploss not Marked yet at this Price: 27407.43 currentLoss: 0.058972891891277315 expecting Loss: -0.025
-2023/09/01 04:11:36 - SELL at ExitPrice: 27407.43000000, EntryPrice[0]: 27246.46000000, EntryQuant[0]: 0.00036702, QBal: 100.02297289, BBal: 0.00000000, GlobalP&L 0.04 LocalP&L: 0.05897289 PosPcent: 0.10000000 tsDataPt: 276 mdDataPt: 0 
-
-2023/09/01 04:11:36 TA Signalled: Buy: true at currentPrice: 27233.21
-2023/09/01 04:11:36 - BUY at EntryPrice[0]: 27233.21000000, EntryQuant[0]: 0.00036728, QBal: 90.00267147, BBal: 0.00036728, GlobalP&L 0.02 LocalP&L: -0.01800414 PosPcent: 0.10000000 tsDataPt: 295 mdDataPt: 0 nextsEllPt 27301.27738795 nextLossPt 27165.14261205 TargProfit 0.02500000 TargLoss -0.02500000
-
-2023/09/01 04:11:36 TA Signalled: Sell: true at currentPrice: 27122.53
-2023/09/01 04:11:36 Stoploss Marked!!! at this Price: 27122.53 based on EntryPrice[ 0 ] =  27233.21 currentLoss: -0.040577719860872594 expecting Loss: -0.025
-2023/09/01 04:11:36 TA Signalled: Sell: true at currentPrice: 27160.01
-2023/09/01 04:16:37 started.................................
-2023/09/01 04:18:36 started.................................
-2023/09/01 04:18:36 TA Signalled: Buy: true at currentPrice: 27246.46
-2023/09/01 04:18:36 - BUY at EntryPrice[0]: 27246.46000000, EntryQuant[0]: 0.00036702, QBal: 89.98200000, BBal: 0.00036702, GlobalP&L -0.02 LocalP&L: -0.01800000 PosPcent: 0.10000000 tsDataPt: 32 mdDataPt: 0 nextsEllPt 27314.57615000 nextLossPt 27178.34385000 TargProfit 0.02500000 TargLoss -0.02500000
-
-2023/09/01 04:18:36 TA Signalled: Sell: true at currentPrice: 27216.43
-2023/09/01 04:18:36 Stoploss not Marked yet at this Price: 27216.43 currentLoss: -0.011001776377554676 expecting Loss: -0.025
-2023/09/01 04:18:36 TA Signalled: SELL at currentPrice: 27216.43 localProfitLoss: -0.011001776377554676 expecting Profit: 0.025
-2023/09/01 04:18:36 TA Signalled: Sell: true at currentPrice: 27230.57
-2023/09/01 04:18:36 Stoploss not Marked yet at this Price: 27230.57 currentLoss: -0.00582145276854293 expecting Loss: -0.025
-2023/09/01 04:18:36 TA Signalled: SELL at currentPrice: 27230.57 localProfitLoss: -0.00582145276854293 expecting Profit: 0.025
-2023/09/01 04:18:36 TA Signalled: Sell: true at currentPrice: 27295.35
-2023/09/01 04:18:36 Stoploss not Marked yet at this Price: 27295.35 currentLoss: 0.017911316919702384 expecting Loss: -0.025
-2023/09/01 04:18:36 TA Signalled: SELL at currentPrice: 27295.35 localProfitLoss: 0.017911316919702384 expecting Profit: 0.025
-2023/09/01 04:18:36 TA Signalled: Sell: true at currentPrice: 27407.43
-2023/09/01 04:18:36 Stoploss not Marked yet at this Price: 27407.43 currentLoss: 0.058972891891277315 expecting Loss: -0.025
-2023/09/01 04:18:36 - SELL at ExitPrice: 27407.43000000, EntryPrice[0]: 27246.46000000, EntryQuant[0]: 0.00036702, QBal: 100.02297289, BBal: 0.00000000, GlobalP&L 0.04 LocalP&L: 0.05897289 PosPcent: 0.10000000 tsDataPt: 269 mdDataPt: 0 
-
-2023/09/01 04:18:36 TA Signalled: Buy: true at currentPrice: 27233.21
-2023/09/01 04:18:36 - BUY at EntryPrice[0]: 27233.21000000, EntryQuant[0]: 0.00036728, QBal: 90.00267147, BBal: 0.00036728, GlobalP&L 0.02 LocalP&L: -0.01800414 PosPcent: 0.10000000 tsDataPt: 288 mdDataPt: 0 nextsEllPt 27301.27738795 nextLossPt 27165.14261205 TargProfit 0.02500000 TargLoss -0.02500000
-
-2023/09/01 04:18:36 TA Signalled: Sell: true at currentPrice: 27122.53
-2023/09/01 04:18:36 Stoploss Marked!!! at this Price: 27122.53 based on EntryPrice[ 0 ] =  27233.21 currentLoss: -0.040577719860872594 expecting Loss: -0.025
-2023/09/01 04:18:36 TA Signalled: Sell: true at currentPrice: 27160.01
-2023/09/01 04:23:16 started.................................
-2023/09/01 04:23:16 TA Signalled: Buy: true at currentPrice: 27246.46
-2023/09/01 04:23:16 - BUY at EntryPrice[0]: 27246.46000000, EntryQuant[0]: 0.00036702, QBal: 89.98200000, BBal: 0.00036702, GlobalP&L -0.02 LocalP&L: -0.01800000 PosPcent: 0.10000000 tsDataPt: 27 mdDataPt: 0 nextsEllPt 27314.57615000 nextLossPt 27178.34385000 TargProfit 0.02500000 TargLoss -0.02500000
-
-2023/09/01 04:23:16 TA Signalled: Sell: true at currentPrice: 27216.43
-2023/09/01 04:23:16 Stoploss not Marked yet at this Price: 27216.43 currentLoss: -0.011001776377554676 expecting Loss: -0.025
-2023/09/01 04:23:16 TA Signalled: SELL at currentPrice: 27216.43 localProfitLoss: -0.011001776377554676 expecting Profit: 0.025
-2023/09/01 04:23:16 TA Signalled: Sell: true at currentPrice: 27230.57
-2023/09/01 04:23:16 Stoploss not Marked yet at this Price: 27230.57 currentLoss: -0.00582145276854293 expecting Loss: -0.025
-2023/09/01 04:23:16 TA Signalled: SELL at currentPrice: 27230.57 localProfitLoss: -0.00582145276854293 expecting Profit: 0.025
-2023/09/01 04:23:16 TA Signalled: Sell: true at currentPrice: 27295.35
-2023/09/01 04:23:16 Stoploss not Marked yet at this Price: 27295.35 currentLoss: 0.017911316919702384 expecting Loss: -0.025
-2023/09/01 04:23:16 TA Signalled: SELL at currentPrice: 27295.35 localProfitLoss: 0.017911316919702384 expecting Profit: 0.025
-2023/09/01 04:23:16 TA Signalled: Sell: true at currentPrice: 27407.43
-2023/09/01 04:23:16 Stoploss not Marked yet at this Price: 27407.43 currentLoss: 0.058972891891277315 expecting Loss: -0.025
-2023/09/01 04:23:16 - SELL at ExitPrice: 27407.43000000, EntryPrice[0]: 27246.46000000, EntryQuant[0]: 0.00036702, QBal: 100.02297289, BBal: 0.00000000, GlobalP&L 0.04 LocalP&L: 0.05897289 PosPcent: 0.10000000 tsDataPt: 264 mdDataPt: 0 
-
-2023/09/01 04:23:16 TA Signalled: Buy: true at currentPrice: 27233.21
-2023/09/01 04:23:16 - BUY at EntryPrice[0]: 27233.21000000, EntryQuant[0]: 0.00036728, QBal: 90.00267147, BBal: 0.00036728, GlobalP&L 0.02 LocalP&L: -0.01800414 PosPcent: 0.10000000 tsDataPt: 283 mdDataPt: 0 nextsEllPt 27301.27738795 nextLossPt 27165.14261205 TargProfit 0.02500000 TargLoss -0.02500000
-
-2023/09/01 04:23:16 TA Signalled: Sell: true at currentPrice: 27122.53
-2023/09/01 04:23:16 Stoploss Marked!!! at this Price: 27122.53 based on EntryPrice[ 0 ] =  27233.21 currentLoss: -0.040577719860872594 expecting Loss: -0.025
-2023/09/01 04:23:16 TA Signalled: Sell: true at currentPrice: 27160.01
+2023/09/01 10:30:12 started.................................
+2023/09/01 10:33:10 started.................................
+2023/09/01 10:34:11 started.................................
+2023/09/01 10:34:11 TA Signalled: Buy: true at currentPrice: 27133.78
+2023/09/01 10:34:12 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:34:12 TA Signalled: Buy: true at currentPrice: 27100.57
+2023/09/01 10:34:12 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:34:12 TA Signalled: Buy: true at currentPrice: 26948.06
+2023/09/01 10:34:13 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:34:13 TA Signalled: Buy: true at currentPrice: 26828.14
+2023/09/01 10:34:14 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:34:14 TA Signalled: Buy: true at currentPrice: 26597.67
+2023/09/01 10:34:15 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:34:15 TA Signalled: Buy: true at currentPrice: 26358.48
+2023/09/01 10:34:15 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:34:15 TA Signalled: Buy: true at currentPrice: 26300.72
+2023/09/01 10:34:16 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:34:16 TA Signalled: Buy: true at currentPrice: 26316.58
+2023/09/01 10:34:16 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:34:16 TA Signalled: Buy: true at currentPrice: 26262.23
+2023/09/01 10:34:17 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:34:17 TA Signalled: Buy: true at currentPrice: 26130.81
+2023/09/01 10:34:17 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:34:17 TA Signalled: Buy: true at currentPrice: 26064.05
+2023/09/01 10:34:18 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:34:18 TA Signalled: Buy: true at currentPrice: 25870.12
+2023/09/01 10:34:18 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:35:34 started.................................
+2023/09/01 10:35:34 TA Signalled: Buy: true at currentPrice: 27133.78
+2023/09/01 10:35:35 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:35:35 TA Signalled: Buy: true at currentPrice: 27100.57
+2023/09/01 10:35:35 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:35:35 TA Signalled: Buy: true at currentPrice: 26948.06
+2023/09/01 10:35:36 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:35:36 TA Signalled: Buy: true at currentPrice: 26828.14
+2023/09/01 10:35:36 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:35:36 TA Signalled: Buy: true at currentPrice: 26597.67
+2023/09/01 10:35:37 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:35:37 TA Signalled: Buy: true at currentPrice: 26358.48
+2023/09/01 10:35:37 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:35:37 TA Signalled: Buy: true at currentPrice: 26300.72
+2023/09/01 10:35:38 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:35:38 TA Signalled: Buy: true at currentPrice: 26316.58
+2023/09/01 10:35:38 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:35:38 TA Signalled: Buy: true at currentPrice: 26262.23
+2023/09/01 10:35:39 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:35:39 TA Signalled: Buy: true at currentPrice: 26130.81
+2023/09/01 10:35:39 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:35:39 TA Signalled: Buy: true at currentPrice: 26064.05
+2023/09/01 10:35:40 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:35:40 TA Signalled: Buy: true at currentPrice: 25870.12
+2023/09/01 10:35:40 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:38:03 started.................................
+2023/09/01 10:45:10 started.................................
+2023/09/01 10:45:10 TA Signalled: Buy: true at currentPrice: 27133.04
+2023/09/01 10:45:11 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:45:11 TA Signalled: Buy: true at currentPrice: 27098.2
+2023/09/01 10:45:12 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:45:12 TA Signalled: Buy: true at currentPrice: 26944.72
+2023/09/01 10:45:13 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:45:13 TA Signalled: Buy: true at currentPrice: 26828.14
+2023/09/01 10:45:13 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:45:13 TA Signalled: Buy: true at currentPrice: 26592.26
+2023/09/01 10:45:14 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:45:14 TA Signalled: Buy: true at currentPrice: 26355.99
+2023/09/01 10:45:15 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:45:15 TA Signalled: Buy: true at currentPrice: 26299.74
+2023/09/01 10:45:15 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:45:15 TA Signalled: Buy: true at currentPrice: 26317.95
+2023/09/01 10:45:16 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:45:16 TA Signalled: Buy: true at currentPrice: 26262.21
+2023/09/01 10:45:17 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:45:17 TA Signalled: Buy: true at currentPrice: 26133.5
+2023/09/01 10:45:18 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:45:18 TA Signalled: Buy: true at currentPrice: 26018.06
+2023/09/01 10:45:19 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:45:19 TA Signalled: Buy: true at currentPrice: 25870.09
+2023/09/01 10:45:20 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 10:49:29 started.................................
+2023/09/01 11:02:43 started.................................
+2023/09/01 11:02:43 TA Signalled: Buy: true at currentPrice: 27098.2
+2023/09/01 11:02:44 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:02:44 TA Signalled: Buy: true at currentPrice: 26944.72
+2023/09/01 11:02:45 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:02:45 TA Signalled: Buy: true at currentPrice: 26828.14
+2023/09/01 11:02:45 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:02:45 TA Signalled: Buy: true at currentPrice: 26592.26
+2023/09/01 11:02:46 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:02:46 TA Signalled: Buy: true at currentPrice: 26355.99
+2023/09/01 11:02:47 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:02:47 TA Signalled: Buy: true at currentPrice: 26299.74
+2023/09/01 11:02:48 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:02:48 TA Signalled: Buy: true at currentPrice: 26317.95
+2023/09/01 11:02:48 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:02:48 TA Signalled: Buy: true at currentPrice: 26262.21
+2023/09/01 11:02:49 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:02:49 TA Signalled: Buy: true at currentPrice: 26133.5
+2023/09/01 11:02:50 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:02:50 TA Signalled: Buy: true at currentPrice: 26018.06
+2023/09/01 11:02:52 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:02:52 TA Signalled: Buy: true at currentPrice: 25870.09
+2023/09/01 11:02:53 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:21:32 started.................................
+2023/09/01 11:21:32 TA Signalled: Buy: true at currentPrice: 26944.72
+2023/09/01 11:21:33 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:21:33 TA Signalled: Buy: true at currentPrice: 26828.14
+2023/09/01 11:21:34 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:21:34 TA Signalled: Buy: true at currentPrice: 26592.26
+2023/09/01 11:21:35 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:21:35 TA Signalled: Buy: true at currentPrice: 26355.99
+2023/09/01 11:21:37 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:21:37 TA Signalled: Buy: true at currentPrice: 26299.74
+2023/09/01 11:21:38 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:21:38 TA Signalled: Buy: true at currentPrice: 26317.95
+2023/09/01 11:21:39 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:21:39 TA Signalled: Buy: true at currentPrice: 26262.21
+2023/09/01 11:21:40 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:21:40 TA Signalled: Buy: true at currentPrice: 26133.5
+2023/09/01 11:21:41 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:21:41 TA Signalled: Buy: true at currentPrice: 26018.06
+2023/09/01 11:21:42 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 11:21:42 TA Signalled: Buy: true at currentPrice: 25870.09
+2023/09/01 11:21:43 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 12:08:00 started.................................
+2023/09/01 12:08:00 TA Signalled: Buy: true at currentPrice: 26944.72
+2023/09/01 12:08:01 Error placing entry order: API request failed with status: 400 Bad Request
+2023/09/01 12:08:01 TA Signalled: Buy: true at currentPrice: 26828.14
+2023/09/01 12:08:01 Error placing entry order: API request failed with status: 400 Bad Request
+2023/09/01 12:08:01 TA Signalled: Buy: true at currentPrice: 26592.26
+2023/09/01 12:08:02 Error placing entry order: API request failed with status: 400 Bad Request
+2023/09/01 12:08:02 TA Signalled: Buy: true at currentPrice: 26355.99
+2023/09/01 12:08:03 Error placing entry order: API request failed with status: 400 Bad Request
+2023/09/01 12:08:03 TA Signalled: Buy: true at currentPrice: 26299.74
+2023/09/01 12:08:04 Error placing entry order: API request failed with status: 400 Bad Request
+2023/09/01 12:08:04 TA Signalled: Buy: true at currentPrice: 26317.95
+2023/09/01 12:08:05 Error placing entry order: API request failed with status: 400 Bad Request
+2023/09/01 12:08:05 TA Signalled: Buy: true at currentPrice: 26262.21
+2023/09/01 12:08:06 Error placing entry order: API request failed with status: 400 Bad Request
+2023/09/01 12:08:06 TA Signalled: Buy: true at currentPrice: 26133.5
+2023/09/01 12:08:07 Error placing entry order: API request failed with status: 400 Bad Request
+2023/09/01 12:08:07 TA Signalled: Buy: true at currentPrice: 26018.06
+2023/09/01 12:08:07 Error placing entry order: API request failed with status: 400 Bad Request
+2023/09/01 12:08:07 TA Signalled: Buy: true at currentPrice: 25870.09
+2023/09/01 12:08:08 Error placing entry order: API request failed with status: 400 Bad Request
+2023/09/01 13:26:49 started.................................
+2023/09/01 13:26:49 TA Signalled: Buy: true at currentPrice: 26562.4
+2023/09/01 13:26:50 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 13:26:50 TA Signalled: Buy: true at currentPrice: 26354.34
+2023/09/01 13:26:50 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 13:26:50 TA Signalled: Buy: true at currentPrice: 26300.72
+2023/09/01 13:26:51 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 13:26:51 TA Signalled: Buy: true at currentPrice: 26316.58
+2023/09/01 13:26:51 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 13:26:51 TA Signalled: Buy: true at currentPrice: 26262.23
+2023/09/01 13:26:52 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 13:26:52 TA Signalled: Buy: true at currentPrice: 26130.81
+2023/09/01 13:26:52 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 13:26:52 TA Signalled: Buy: true at currentPrice: 26064.05
+2023/09/01 13:26:53 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 13:26:53 TA Signalled: Buy: true at currentPrice: 25870.12
+2023/09/01 13:26:54 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 13:26:54 TA Signalled: Buy: true at currentPrice: 25976.18
+2023/09/01 13:26:55 Error placing entry order: API request failed with status: 401 Unauthorized
+2023/09/01 13:26:55 TA Signalled: Buy: true at currentPrice: 25941.68
+2023/09/01 13:26:56 Error placing entry order: API request failed with status: 401 Unauthorized
