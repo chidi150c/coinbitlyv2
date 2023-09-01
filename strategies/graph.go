@@ -5,13 +5,14 @@ import (
 	"image/color"
 	"time"
 
+	"coinbitly.com/model"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
 )
 
-func (ts *TradingSystem)CreateLineChartWithSignals(BaseCurrency string, timeSeries []int64, dataSeries []float64, signals []string, graph string) error {
+func (ts *TradingSystem)CreateLineChartWithSignals(md *model.AppData, timeSeries []int64, dataSeries []float64, signals []string, graph string) error {
 	// ts.ChartChan <- model.ChartData{
 	// 	ClosingPrices: dataSeries[len(dataSeries)-1], 
 	// 	Timestamps: timeSeries[len(dataSeries)-1], 
@@ -21,9 +22,9 @@ func (ts *TradingSystem)CreateLineChartWithSignals(BaseCurrency string, timeSeri
 	// }
 	// Create a new plot with a title and axis labels.
 	p := plot.New()
-	p.Title.Text = "Line Chart with Trading Signals"
+	p.Title.Text = "BTC Price and Buy/Sell Signal Trading Chart"
 	p.X.Label.Text = "Time"
-	p.Y.Label.Text = BaseCurrency+" Price in USDT"
+	p.Y.Label.Text = ts.BaseCurrency+" Price in USDT"
 
 	// Create a new set of points based on the data.
 	pts := make(plotter.XYs, len(dataSeries))
@@ -85,7 +86,7 @@ func (ts *TradingSystem)CreateLineChartWithSignals(BaseCurrency string, timeSeri
 
 	
 	// Create a legend and add entries for your plots.
-	p.Legend.Add("Data Series", line)
+	p.Legend.Add(ts.BaseCurrency+" Price", line)
 	p.Legend.Add("Buy Signals", buyScatter)
 	p.Legend.Add("Sell Signals", sellScatter)
 	p.Legend.Top = true
@@ -99,98 +100,7 @@ func (ts *TradingSystem)CreateLineChartWithSignals(BaseCurrency string, timeSeri
 	return nil
 }
 
-func CreateLineChartWithSignalsV2(BaseCurrency string, timeSeries []int64, dataSeries []float64, greenDataSeries []float64, signals []string, graph string) error {
-	// Create a new plot with a title and axis labels.
-	p := plot.New()
-	p.Title.Text = "Line Chart with Trading Signals"
-	p.X.Label.Text = "Time"
-	p.Y.Label.Text = BaseCurrency+" Price in USDT"
-
-	// Create a new set of points based on the data.
-	pts := make(plotter.XYs, len(dataSeries))
-	for i := range pts {
-		pts[i].X = float64(i)
-		pts[i].Y = dataSeries[i]
-	}
-
-	// Create a new set of points based on the green data series.
-	greenPts := make(plotter.XYs, len(greenDataSeries))
-	for i := range greenPts {
-		greenPts[i].X = float64(i)
-		greenPts[i].Y = greenDataSeries[i]
-	}
-
-	// Create a new line plot and set its style.
-	line, err := plotter.NewLine(pts)
-	if err != nil {
-		return err
-	}
-	line.Color = color.RGBA{B: 255, A: 255} // Blue color
-
-	// Create a new line plot for the green data series and set its style.
-	greenLine, err := plotter.NewLine(greenPts)
-	if err != nil {
-		return err
-	}
-	greenLine.Color = color.RGBA{G: 255, A: 255} // Green color
-
-	// Add the line plot to the plot.
-	p.Add(line)
-
-	// Add the green line plot to the plot.
-	p.Add(greenLine)
-
-	// Convert UNIX timestamps to formatted strings for X-axis labels.
-	timeLabels := make([]string, len(timeSeries))
-	for i, timestamp := range timeSeries {
-		timeLabels[i] = time.Unix(timestamp, 0).Format("2006-01-02")
-	}
-
-	// Add custom tick marks for the X-axis (time labels).
-	p.NominalX(timeLabels...)
-
-	
-	// Create separate scatter plots for Buy and Sell signals.
-	var buySignalPoints, sellSignalPoints plotter.XYs
-	for i, signal := range signals {
-		if i < len(dataSeries){
-			if signal == "Buy" {
-				buySignalPoints = append(buySignalPoints, plotter.XY{X: float64(i), Y: dataSeries[i]})
-			} else if signal == "Sell" {
-				sellSignalPoints = append(sellSignalPoints, plotter.XY{X: float64(i), Y: dataSeries[i]})
-			}
-		}
-	}
-
-	// Create scatter plots for Buy and Sell signals.
-	buyScatter, err := plotter.NewScatter(buySignalPoints)
-	if err != nil {
-		return err
-	}
-	buyScatter.Shape = plotutil.Shape(3) // Triangle shape for Buy signals
-	buyScatter.Color = color.RGBA{R: 255, G: 0, B: 0, A: 255} // Green color for Buy signals
-	buyScatter.GlyphStyle.Radius = vg.Points(5)
-
-	sellScatter, err := plotter.NewScatter(sellSignalPoints)
-	if err != nil {
-		return err
-	}
-	sellScatter.Shape = plotutil.Shape(1) // Circle shape for Sell signals
-	sellScatter.Color = color.RGBA{R: 255, G: 0, B: 0, A: 255} // Red color for Sell signals
-	sellScatter.GlyphStyle.Radius = vg.Points(5)
-
-	// Add the scatter plots to the plot.
-	p.Add(buyScatter, sellScatter)
-
-	// Save the plot to a file (you can also display it in a window if you prefer).
-	if err := p.Save(10*vg.Inch, 6*vg.Inch, "./webclient/assets/"+graph+"line_chart_with_signals.png"); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (ts *TradingSystem)CreateLineChartWithSignalsV3(BaseCurrency string, timeSeries []int64, dataSeries []float64, greenDataSeries []float64, yellowDataSeries []float64, signals []string, graph string) error {
+func (ts *TradingSystem)CreateLineChartWithSignalsV3(md *model.AppData, timeSeries []int64, dataSeries []float64, greenDataSeries []float64, yellowDataSeries []float64, signals []string, graph string) error {
 	// ts.ChartChan <- model.ChartData{
 	// 	ClosingPrices: dataSeries[len(dataSeries)-1], 
 	// 	Timestamps: timeSeries[len(dataSeries)-1], 
@@ -200,9 +110,9 @@ func (ts *TradingSystem)CreateLineChartWithSignalsV3(BaseCurrency string, timeSe
 	// }
 	// Create a new plot with a title and axis labels.
 	p := plot.New()
-	p.Title.Text = "Line Chart with Trading Signals"
+	p.Title.Text = "BTC Price, EMA and Buy/Sell Signal Trading Chart"
 	p.X.Label.Text = "Time"
-	p.Y.Label.Text = BaseCurrency+" Price in USDT"
+	p.Y.Label.Text = ts.BaseCurrency+" Price in USDT"
 
 	// Create a new set of points based on the data.
 	pts := make(plotter.XYs, len(dataSeries))
@@ -313,9 +223,9 @@ func (ts *TradingSystem)CreateLineChartWithSignalsV3(BaseCurrency string, timeSe
 	p.Add(buyScatter, sellScatter)
 
 	// Create a legend and add entries for your plots.
-	p.Legend.Add("Data Series", line)
-	p.Legend.Add("Green Data Series", greenLine)
-	p.Legend.Add("Yellow Data Series", yellowLine)
+	p.Legend.Add(ts.BaseCurrency+" Price", line)
+	p.Legend.Add(fmt.Sprintf("%d", md.ShortPeriod)+"PeriodEMA", greenLine)
+	p.Legend.Add(fmt.Sprintf("%d", md.LongPeriod)+"PeriodEMA", yellowLine)
 	p.Legend.Add("Buy Signals", buyScatter)
 	p.Legend.Add("Sell Signals", sellScatter)
 	p.Legend.Top = true

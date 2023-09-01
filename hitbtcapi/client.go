@@ -62,7 +62,17 @@ func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error)
 	CurrentPrice = rand.Float64()
 	return CurrentPrice, err
 }
+func (e *APIServices)FetchMiniQuantity(symbol string)(CurrentPrice float64, err error){
+	//to be implemented
+	return 0.0, fmt.Errorf("FetchMiniQuantity Not Implemented yet in HiTBTC")
+}
 
+func (e *APIServices)PlaceLimitBuyOrder(symbol string, price, quantity float64) (entryOrderID int64, err error){
+	return 0, fmt.Errorf("PlaceLimitBuyOrder Not Implemented yet in HiTBTC")
+}
+func (e *APIServices)PlaceLimitSellOrder(symbol string, price, quantity float64) (exitOrderID int64, err error){
+	return 0, fmt.Errorf("PlaceLimitSellOrder Not Implemented yet in HiTBTC")
+}
 // func (e *APIServices)WriteTickerToDB(ClosePrice float64, Timestamp int64)error{
 // 	return e.DataBase.WriteTickerToDB(ClosePrice, Timestamp)
 // }

@@ -58,6 +58,17 @@ func (c *CandleServices)FetchCandles(symbol, interval string, startTime, endTime
 	}
 	return readHistoricalData(c.QueryAPI, c.HistoricalDBBucket, c.HistoricalTimeRange, c.HistoricalMeasurement, tags)
 }
+func (c *CandleServices)FetchMiniQuantity(symbol string)(CurrentPrice float64, err error){
+	//to be implemented
+	return 0.0, fmt.Errorf("FetchMiniQuantity Not Implemented yet in InfluxDB")
+}
+
+func (c *CandleServices)PlaceLimitBuyOrder(symbol string, price, quantity float64) (entryOrderID int64, err error){
+	return 0, fmt.Errorf("PlaceLimitBuyOrder Not Implemented yet in InfluxDB")
+}
+func (c *CandleServices)PlaceLimitSellOrder(symbol string, price, quantity float64) (exitOrderID int64, err error){
+	return 0, fmt.Errorf("PlaceLimitSellOrder Not Implemented yet in InfluxDB")
+}
 // func (c *CandleServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
 // 	tags := map[string]string{
 // 		"Historical" : c.HistoricalTag,
@@ -225,7 +236,6 @@ func dataPointExists(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, measureme
 
 	return result.Next(), nil
 }
-
 // func (c *CandleServices)DeleteBucket(client influxdb2.Client) {
 // 	// Execute the DROP query to delete the bucket
 // 	query := fmt.Sprintf("DROP mlai_data \"%s\"", c.HistoricalDBBucket)

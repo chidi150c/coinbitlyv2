@@ -15,6 +15,9 @@ type APIServices interface {
 	FetchCandles(symbol, interval string, startTime, endTime int64) ([]Candle, error)
 	// WriteCandleToDB(ClosePrice float64, Timestamp int64)error
 	FetchTicker(symbol string)(CurrentPrice float64, err error)
+	FetchMiniQuantity(symbol string)(CurrentPrice float64, err error)
+	PlaceLimitBuyOrder(symbol string, price, quantity float64) (entryOrderID int64, err error)
+	PlaceLimitSellOrder(symbol string, price, quantity float64) (exitOrderID int64, err error)
 	// WriteTickerToDB(ClosePrice float64, Timestamp int64)error
 	// CloseDB()error
 }

@@ -74,6 +74,57 @@ func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error)
 		// fmt.Printf("Symbol: %s\nPrice: %s\n", ticker.Symbol, ticker.Price)
 		return helper.ParseStringToFloat(ticker.Price), nil
 }
+
+func (e *APIServices)FetchMiniQuantity(symbol string)(CurrentPrice float64, err error){
+	exchangeInfo, err := fetchExchangeInfo(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
+	if err != nil {
+		fmt.Println("Error fetching exchange info:", err)
+		return
+	}
+
+	// Find the trading pair's minimum order quantity
+	var minQty string
+	k := 0
+	for i, pair := range exchangeInfo.Symbols {
+		if pair.Symbol == symbol {
+			for _, filter := range pair.Filters {
+				if filter.FilterType == "LOT_SIZE" {
+					minQty = filter.MinQty
+					k = i
+					break
+				}
+			}
+			break
+		}
+	}
+
+	if minQty != "" {
+		fmt.Printf("Symbol: %s\nMinimum Order Quantity: %s %s\n", symbol, minQty, exchangeInfo.Symbols[k].BaseAsset)
+		return helper.ParseStringToFloat(minQty), nil
+	} else {
+		fmt.Printf("Symbol: %s\nMinimum Order Quantity information not found\n", symbol)
+		return 0.0, fmt.Errorf("Symbol: %s\nMinimum Order Quantity information not found\n", symbol)
+	}
+}
+
+
+func (e *APIServices)PlaceLimitBuyOrder(symbol string, price, quantity float64) (entryOrderID int64, err error){
+	side := "BUY"
+	orderType := "LIMIT"
+	timeInForce := "GTC"
+	Price := fmt.Sprintf("%.8f", price)
+	Quantity := fmt.Sprintf("%.8f", quantity)
+	return placeOrder(symbol, side, orderType, timeInForce, Price, Quantity, e.BaseURL, e.ApiVersion, e.ApiKey, e.SecretKey)
+}
+func (e *APIServices)PlaceLimitSellOrder(symbol, price, quantity string) (exitOrderID int64, err error){
+	side := "SELL"
+	orderType := "LIMIT"
+	timeInForce := "GTC"
+	Price := fmt.Sprintf("%.8f", price)
+	Quantity := fmt.Sprintf("%.8f", quantity)
+	return placeOrder(symbol, side, orderType, timeInForce, Price, Quantity, e.BaseURL, e.ApiVersion, e.ApiKey, e.SecretKey)
+}
+
 // func (e *APIServices)WriteTickerToDB(ClosePrice float64, Timestamp int64)error{
 // 	return e.DataBase.WriteTickerToDB(ClosePrice, Timestamp)
 // }

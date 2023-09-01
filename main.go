@@ -22,7 +22,7 @@ func main() {
 	loadFrom := "Binance" 
 	
 	//You specify whether you're performing live trading 
-	liveTrading := true
+	liveTrading := false
 
 	config := config.NewExchangesConfig()[loadFrom]
     //You're initializing your trading system using the strategies.NewTradingSystem function. 
