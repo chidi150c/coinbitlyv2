@@ -3,8 +3,9 @@ package influxdb
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"strconv"
+	"time"
+
 	// "time"
 
 	"coinbitly.com/config"
@@ -22,14 +23,13 @@ type CandleServices struct{
 	LiveTimeRange string
 	LiveMeasurement string
 	LiveTag string	
-	// HistoricalQueryAPI api.QueryAPI
 	HistoricalWriteAPI api.WriteAPIBlocking
 	HistoricalTimeRange string
 	HistoricalMeasurement string
 	HistoricalTag string
 }
 
-func NewAPIServices(configParam *config.ExchConfig) (*CandleServices, error){	
+func NewAPIServices(configParam *config.DBConfig) (*CandleServices, error){	
 	// Create a new InfluxDB client 
 	client := influxdb2.NewClientWithOptions(configParam.BaseURL, configParam.SecretKey, influxdb2.DefaultOptions())
 	queryAPI := client.QueryAPI(configParam.DBOrgID)
@@ -44,7 +44,6 @@ func NewAPIServices(configParam *config.ExchConfig) (*CandleServices, error){
 		HistoricalTimeRange: configParam.HistoricalTimeRange,
 		HistoricalMeasurement: configParam.HistoricalMeasurement,
 		HistoricalTag: configParam.HistoricalTag,		
-		// LiveQueryAPI: queryAPI,
 		LiveWriteAPI: LivewriteAPI,
 		LiveTimeRange: configParam.LiveTimeRange,
 		LiveMeasurement: configParam.LiveMeasurement,
@@ -52,87 +51,69 @@ func NewAPIServices(configParam *config.ExchConfig) (*CandleServices, error){
 	}, nil
 }
 
-func (c *CandleServices)FetchCandles(symbol, interval string, startTime, endTime int64) ([]model.Candle, error){
+var _ model.DBServices = &CandleServices{}
+
+func (c *CandleServices)FetchCandlesFromDB(symbol, interval string, startTime, endTime int64) ([]model.Candle, error){
 	tags := map[string]string{
 		"Historical" : c.HistoricalTag,
 	}
 	return readHistoricalData(c.QueryAPI, c.HistoricalDBBucket, c.HistoricalTimeRange, c.HistoricalMeasurement, tags)
 }
-func (c *CandleServices)FetchMiniQuantity(symbol string)(CurrentPrice float64, err error){
-	//to be implemented
-	return 0.0, fmt.Errorf("FetchMiniQuantity Not Implemented yet in InfluxDB")
+func (c *CandleServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
+	tags := map[string]string{
+		"Historical" : c.HistoricalTag,
+	}
+	timestamp := Timestamp
+	exists, err := dataPointExists(c.QueryAPI, c.HistoricalDBBucket, c.HistoricalTimeRange, c.HistoricalMeasurement, tags, timestamp)
+	if err != nil {		
+		fmt.Println("Error checking data point:", err)
+		return fmt.Errorf("Error checking data point: %v", err)
+	}
+	if exists {
+		fmt.Println("Data point already exists. Skipping write.")
+		return fmt.Errorf("Data point already exists. Skipping write.")
+	}
+    point2 := influxdb2.NewPointWithMeasurement(c.HistoricalMeasurement).
+		AddTag("Historical", c.HistoricalTag).
+        AddField("Close", ClosePrice).
+        SetTime(time.Unix(Timestamp, 0))	
+
+	// Write the point to the database
+	err = c.HistoricalWriteAPI.WritePoint(context.Background(), point2)
+	if err != nil {
+		return err
+	}
+	// fmt.Println("Candle inserted successfully!")
+	return nil
 }
+func (c *CandleServices)WriteTickerToDB(ClosePrice float64, Timestamp int64) error {
+	tags := map[string]string{
+		"Live" : c.LiveTag,
+	}
+	timestamp := Timestamp
+	exists, err := dataPointExists(c.QueryAPI, c.LiveDBBucket, c.LiveTimeRange, c.LiveMeasurement, tags, timestamp)
+	if err != nil {		
+		fmt.Println("Error checking Livedata point:", err)
+		return fmt.Errorf("Error checking Livedata point: %v", err)
+	}
+	if exists {
+		fmt.Println("LiveData point already exists. Skipping write.")
+		return fmt.Errorf("LiveData point already exists. Skipping write.")
+	}
 
-func (c *CandleServices)PlaceLimitBuyOrder(symbol string, price, quantity float64) (entryOrderID int64, err error){
-	return 0, fmt.Errorf("PlaceLimitBuyOrder Not Implemented yet in InfluxDB")
+    point2 := influxdb2.NewPointWithMeasurement(c.LiveMeasurement).
+		AddTag("Live", c.LiveTag).
+        AddField("Close", ClosePrice).
+        SetTime(time.Unix(Timestamp, 0))	
+
+	// Write the point to the database
+	err = c.LiveWriteAPI.WritePoint(context.Background(), point2)
+	if err != nil {
+		return err
+	}
+	// fmt.Println("Candle inserted successfully!")
+	return nil
 }
-func (c *CandleServices)PlaceLimitSellOrder(symbol string, price, quantity float64) (exitOrderID int64, err error){
-	return 0, fmt.Errorf("PlaceLimitSellOrder Not Implemented yet in InfluxDB")
-}
-// func (c *CandleServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
-// 	tags := map[string]string{
-// 		"Historical" : c.HistoricalTag,
-// 	}
-// 	timestamp := Timestamp
-
-// 	exists, err := dataPointExists(c.QueryAPI, c.HistoricalDBBucket, c.HistoricalTimeRange, c.HistoricalMeasurement, tags, timestamp)
-// 	if err != nil {		
-// 		fmt.Println("Error checking data point:", err)
-// 		return fmt.Errorf("Error checking data point: %v", err)
-// 	}
-
-// 	if exists {
-// 		fmt.Println("Data point already exists. Skipping write.")
-// 		return fmt.Errorf("Data point already exists. Skipping write.")
-// 	}
-
-//     point2 := influxdb2.NewPointWithMeasurement(c.HistoricalMeasurement).
-// 		AddTag("Historical", c.HistoricalTag).
-//         AddField("Close", ClosePrice).
-//         SetTime(time.Unix(Timestamp, 0))	
-
-// 	// Write the point to the database
-// 	err = c.HistoricalWriteAPI.WritePoint(context.Background(), point2)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	// fmt.Println("Candle inserted successfully!")
-// 	return nil
-// }
-func (c *CandleServices)FetchTicker(symbol string)(CurrentPrice float64, err error){
-	CurrentPrice = rand.Float64()
-	return CurrentPrice, err
-}
-// func (c *CandleServices)WriteTickerToDB(ClosePrice float64, Timestamp int64) error {
-// 	tags := map[string]string{
-// 		"Live" : c.LiveTag,
-// 	}
-// 	timestamp := Timestamp
-
-// 	exists, err := dataPointExists(c.QueryAPI, c.LiveDBBucket, c.LiveTimeRange, c.LiveMeasurement, tags, timestamp)
-// 	if err != nil {		
-// 		fmt.Println("Error checking Livedata point:", err)
-// 		return fmt.Errorf("Error checking Livedata point: %v", err)
-// 	}
-
-// 	if exists {
-// 		fmt.Println("LiveData point already exists. Skipping write.")
-// 		return fmt.Errorf("LiveData point already exists. Skipping write.")
-// 	}
-
-//     point2 := influxdb2.NewPointWithMeasurement(c.LiveMeasurement).
-// 		AddTag("Live", c.LiveTag).
-//         AddField("Close", ClosePrice).
-//         SetTime(time.Unix(Timestamp, 0))	
-
-// 	// Write the point to the database
-// 	err = c.LiveWriteAPI.WritePoint(context.Background(), point2)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	// fmt.Println("Candle inserted successfully!")
-// 	return nil
-// }
 func (c *CandleServices)CloseDB()error{
 	c.Client.Close()
 	return nil
@@ -171,7 +152,6 @@ func readHistoricalData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, Influx
 	fmt.Println("Interval:", TimeRange, "CandleCount:", len(mdcdls))
 	return mdcdls, nil
 }
-
 func readAppData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, InfluxDBMeasurement string, tags map[string]string)([]interface{}, error){
 	// Construct the InfluxQL query
 	query := fmt.Sprintf(`from(bucket: "%v")
@@ -216,7 +196,6 @@ func readAppData(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, InfluxDBMeasu
 	}
 	return mdcdls, nil
 }
-
 func dataPointExists(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, measurement string, tags map[string]string, timestamp int64) (bool, error) {
 	query := fmt.Sprintf(`from(bucket: "%s")
 		|> range(start: %s)
@@ -236,16 +215,3 @@ func dataPointExists(queryAPI api.QueryAPI, InfluxDBBucket, TimeRange, measureme
 
 	return result.Next(), nil
 }
-// func (c *CandleServices)DeleteBucket(client influxdb2.Client) {
-// 	// Execute the DROP query to delete the bucket
-// 	query := fmt.Sprintf("DROP mlai_data \"%s\"", c.HistoricalDBBucket)
-// 	_, err := c.QueryAPI.Query(context.Background(), query)
-// 	if err != nil {
-// 		fmt.Println("Error executing query:", err)
-// 		return
-// 	}
-
-// 	// Bucket deleted successfully
-// 	fmt.Printf("Bucket %s deleted successfully!\n", c.HistoricalDBBucket)
-// }
-

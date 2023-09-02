@@ -28,56 +28,70 @@ import (
 type TradingSystem struct {
 	Mu sync.Mutex // Mutex for protecting concurrent writes
 	// HistoricalData  []model.Candle
-	Symbol                   string
-	ClosingPrices            []float64
-	Container1               []float64
-	Container2               []float64
-	Timestamps               []int64
-	Signals                  []string
-	APIServices              model.APIServices
-	TransactionCost          float64
-	Slippage                 float64
-	InitialCapital           float64
-	PositionSize             float64
-	EntryPrice               []float64
-	InTrade                  bool
-	QuoteBalance             float64
-	BaseBalance              float64
-	RiskCost                 float64
-	DataPoint                int
-	CurrentPrice             float64
-	EntryQuantity            []float64
-	Scalping                 string
-	StrategyCombLogic        string
-	EntryCostLoss            []float64
-	TradeCount               int
-	EnableStoploss           bool
-	StopLossTrigered         bool
-	StopLossRecover          []float64
-	RiskFactor               float64
-	MaxDataSize              int
-	Log                      *log.Logger
-	ShutDownCh               chan string
-	EpochTime                time.Duration
-	CSVWriter                *csv.Writer
-	RiskProfitLossPercentage float64
-	ChartChan                chan model.ChartData
-	BaseCurrency             string //in Binance is called BaseAsset
-	QuoteCurrency            string //in Binance is called QuoteAsset
-	MiniQty                  float64
+	Symbol                    string
+	ClosingPrices             []float64
+	Container1                []float64
+	Container2                []float64
+	Timestamps                []int64
+	Signals                   []string
+	APIServices               model.APIServices
+	TransactionCostPercentage float64
+	SlippageCostPercentage    float64
+	InitialCapital            float64
+	PositionSize              float64
+	EntryPrice                []float64
+	InTrade                   bool
+	QuoteBalance              float64
+	BaseBalance               float64
+	RiskCost                  float64
+	DataPoint                 int
+	CurrentPrice              float64
+	EntryQuantity             []float64
+	Scalping                  string
+	StrategyCombLogic         string
+	EntryCostLoss             []float64
+	TradeCount                int
+	EnableStoploss            bool
+	StopLossTrigered          bool
+	StopLossRecover           []float64
+	RiskFactor                float64
+	MaxDataSize               int
+	Log                       *log.Logger
+	ShutDownCh                chan string
+	EpochTime                 time.Duration
+	CSVWriter                 *csv.Writer
+	RiskProfitLossPercentage  float64
+	ChartChan                 chan model.ChartData
+	BaseCurrency              string //in Binance is called BaseAsset
+	QuoteCurrency             string //in Binance is called QuoteAsset
+	MiniQty                   float64
+	MaxQty                    float64
+	MinNotional               float64
+	StepSize                  float64
+	DBServices                model.DBServices
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
 // historical data from the exchange using the GetCandlesFromExch() function.
 // It sets various strategy parameters like short and long EMA periods, RSI period,
 // MACD signal period, Bollinger Bands period, and more.
-func NewTradingSystem(BaseCurrency string, liveTrading bool, loadFrom string) (*TradingSystem, error) {
+func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadDBFrom string) (*TradingSystem, error) {
 	// Initialize the trading system.
 	ts := &TradingSystem{}
-	ts.RiskFactor = 2.0         // Define 1% slippage
-	ts.TransactionCost = 0.0009 // Define 0.1% transaction cost
-	ts.Slippage = 0.0009
-	ts.InitialCapital = 100.0             //Initial Capital for simulation on backtesting
+	if liveTrading {
+		err := ts.LiveUpdate(loadExchFrom, loadDBFrom)
+		if err != nil {
+			return &TradingSystem{}, err
+		}
+	} else {
+		err := ts.UpdateHistoricalData(loadExchFrom, loadDBFrom)
+		if err != nil {
+			return &TradingSystem{}, err
+		}
+	}
+	ts.RiskFactor = 2.0                   // Define 1% slippage
+	ts.TransactionCostPercentage = 0.0009 // Define 0.1% transaction cost
+	ts.SlippageCostPercentage = 0.0005
 	ts.RiskProfitLossPercentage = 0.00025 //percentage of Initial Capital used to represent Target profit or stoplooss amount
 	ts.QuoteBalance = ts.InitialCapital   //continer to hold the balance
 	ts.Scalping = ""                      //"UseTA"
@@ -89,17 +103,6 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadFrom string) (*
 	ts.EpochTime = time.Second * 30
 	ts.ChartChan = make(chan model.ChartData, 1)
 	ts.BaseCurrency = BaseCurrency
-	if liveTrading {
-		err := ts.LiveUpdate(loadFrom)
-		if err != nil {
-			return &TradingSystem{}, err
-		}
-	} else {
-		err := ts.UpdateHistoricalData(loadFrom)
-		if err != nil {
-			return &TradingSystem{}, err
-		}
-	}
 	return ts, nil
 }
 func (ts *TradingSystem) NewAppData() *model.AppData {
@@ -112,7 +115,7 @@ func (ts *TradingSystem) NewAppData() *model.AppData {
 	md.LongEMA = 0.0
 	md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
 	md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
-	md.RiskPositionPercentage = 0.1 // Define risk management parameter 5% balance
+	md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
 	md.TotalProfitLoss = 0.0
 	return md
 }
@@ -129,7 +132,7 @@ func (ts *TradingSystem) TickerQueueAdjustment() {
 // data. It gets live ticker prices from exchange, checks for entry and exit
 // conditions, and executes trades accordingly. It also tracks trading performance
 // and updates the current balance after each trade.
-func (ts *TradingSystem) LiveTrade(loadFrom string) {
+func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl, syscall.SIGINT)
 	md := ts.NewAppData()
@@ -152,7 +155,7 @@ func (ts *TradingSystem) LiveTrade(loadFrom string) {
 
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
-		md.TotalProfitLoss = ts.Trading(md, loadFrom)
+		md.TotalProfitLoss = ts.Trading(md, loadExchFrom)
 
 		ts.TickerQueueAdjustment() //At this point you have all three(ts.ClosingPrices, ts.Timestamps and ts.Signals) assigned
 
@@ -174,7 +177,7 @@ func (ts *TradingSystem) LiveTrade(loadFrom string) {
 // price data. It iterates through the closing prices, checks for entry and exit
 // conditions, and executes trades accordingly. It also tracks trading performance
 // and updates the current balance after each trade.
-func (ts *TradingSystem) Backtest(loadFrom string) {
+func (ts *TradingSystem) Backtest(loadExchFrom string) {
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl)
 	//Count,Strategy,ShortPeriod,LongPeriod,ShortMACDPeriod,LongMACDPeriod,
@@ -194,7 +197,7 @@ func (ts *TradingSystem) Backtest(loadFrom string) {
 		ts.TradeCount = 0
 		// Simulate the backtesting process using historical price data.
 		for ts.DataPoint, ts.CurrentPrice = range ts.ClosingPrices {
-			_ = ts.Trading(md, loadFrom)
+			_ = ts.Trading(md, loadExchFrom)
 		}
 		err := ts.Reporting(md, "Backtesting")
 		if err != nil {
@@ -213,11 +216,9 @@ func (ts *TradingSystem) Backtest(loadFrom string) {
 	}
 }
 
-func (ts *TradingSystem) Trading(md *model.AppData, loadFrom string) (totalProfitLoss float64) {
+func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) (totalProfitLoss float64) {
 	// Execute the trade if entry conditions are met.
 	if (!ts.InTrade) && (ts.EntryRule(md)) && (ts.CurrentPrice <= ts.StopLossRecover[len(ts.StopLossRecover)-1]) {
-		// Record entry price for calculating profit/loss and stoploss later.
-		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
 		// Execute the buy order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(md, "Buy")
 		if err != nil {
@@ -227,8 +228,6 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadFrom string) (totalProfi
 			// Record Signal for plotting graph later
 			ts.Signals = append(ts.Signals, "Buy")
 			ts.Log.Println(resp)
-			// Mark that we are in a trade.
-			ts.InTrade = true
 			ts.TradeCount++
 		} else {
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Positio
@@ -245,25 +244,6 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadFrom string) (totalProfi
 				// Record Signal for plotting graph later.
 				ts.Signals = append(ts.Signals, "Sell")
 				ts.Log.Println(resp)
-				if len(ts.StopLossRecover) > 1 {
-					ts.EntryPrice = ts.EntryPrice[:len(ts.EntryPrice)-1]
-					ts.EntryCostLoss = ts.EntryCostLoss[:len(ts.EntryCostLoss)-1]
-					ts.EntryQuantity = ts.EntryQuantity[:len(ts.EntryQuantity)-1]
-					ts.StopLossRecover = ts.StopLossRecover[:len(ts.StopLossRecover)-1]
-					md.RiskPositionPercentage /= ts.RiskFactor //reduce riskPosition by a factor
-					ts.InTrade = true
-					ts.StopLossTrigered = true
-				} else if len(ts.StopLossRecover) == 1 {
-					// Mark that we are no longer in a trade.
-					ts.InTrade = false
-					ts.StopLossTrigered = false
-					ts.StopLossRecover[len(ts.StopLossRecover)-1] = math.MaxFloat64
-					ts.EntryPrice = []float64{}
-					ts.EntryCostLoss = []float64{}
-					ts.EntryQuantity = []float64{}
-				}
-				// ts.RiskStopLossPercentage /= ts.RiskFactor
-
 				ts.TradeCount++
 			} else {
 				ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
@@ -281,6 +261,10 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadFrom string) (totalProfi
 // ExecuteStrategy executes the trade based on the provided trade action and current price.
 // The tradeAction parameter should be either "Buy" or "Sell".
 func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) (string, error) {
+	var (
+		orderResp model.Response
+		err       error
+	)
 	// Calculate position size based on the fixed percentage of risk per trade.
 	resp := ts.RiskManagement(md) // make sure entry price is set before calling risk management
 	if strings.Contains(resp, "Marked!!!") {
@@ -291,43 +275,57 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		if ts.InTrade {
 			return "", fmt.Errorf("cannot execute a buy order while already in a trade")
 		}
-		localProfitLoss := 0.0
-		// Update the current balance after the trade (considering transaction fees and slippage).
-		transactionCost := ts.TransactionCost * ts.CurrentPrice * ts.PositionSize
-		slippageCost := ts.Slippage * ts.CurrentPrice * ts.PositionSize
-		localProfitLoss -= transactionCost + slippageCost
+		// adjustedPrice := math.Floor(price/lotSizeStep) * lotSizeStep
+		quantity := math.Floor(ts.PositionSize/ts.MiniQty) * ts.MiniQty
+		transactionCost := ts.TransactionCostPercentage * ts.CurrentPrice * quantity
+		slippageCost := ts.SlippageCostPercentage * ts.CurrentPrice * quantity
 		//check if there is enough Quote (USDT) for the buy transaction
-		tsPositionSize := ts.PositionSize
-		if ts.QuoteBalance < (ts.PositionSize*ts.CurrentPrice)+transactionCost+slippageCost {
+		if ts.QuoteBalance < (quantity*ts.CurrentPrice)+transactionCost+slippageCost {
 			ts.Log.Printf("Unable to buY!!!! Insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f + transactionCost %.8f+ slippageCost %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice, transactionCost, slippageCost)
-			tsPositionSize = (ts.QuoteBalance - (transactionCost + slippageCost)) / ts.CurrentPrice
-			if tsPositionSize < ts.MiniQty {
+			quantity = (ts.QuoteBalance - (transactionCost + slippageCost)) / ts.CurrentPrice
+			quantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
+			if quantity < ts.MiniQty {
 				return "", fmt.Errorf("cannot execute a buy order due to insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f + transactionCost %.8f+ slippageCost %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice, transactionCost, slippageCost)
 			}
 		}
-		// Record entry price for calculating profit/loss later.
-		ts.EntryQuantity = append(ts.EntryQuantity, tsPositionSize)
-
-		entryOrderID, err := ts.APIServices.PlaceLimitBuyOrder(ts.Symbol, ts.EntryPrice[len(ts.EntryPrice)-1], ts.EntryQuantity[len(ts.EntryQuantity)-1])
+		// Calculate the total cost of the trade
+		totalCost := quantity * ts.CurrentPrice
+		// Check if the total cost meets the minNotional requirement
+		if totalCost < ts.MinNotional {
+			ts.Log.Printf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, ts.CurrentPrice, totalCost, ts.MinNotional)
+			return "", fmt.Errorf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, ts.CurrentPrice, totalCost, ts.MinNotional)
+		}
+		orderResp, err = ts.APIServices.PlaceLimitOrder(ts.Symbol, "BUY", ts.CurrentPrice, quantity)
 		if err != nil {
 			fmt.Println("Error placing entry order:", err)
 			ts.Log.Println("Error placing entry order:", err)
 			return "", fmt.Errorf("Error placing entry order: %v", err)
 		}
-
-		fmt.Printf("Entry order placed with ID: %d\n", entryOrderID)
+		//The cummulativeQuoteQty represents the total quote asset quantity (e.g., USDT) transacted. So, in the calculation for the average price:
+		averagePrice := orderResp.CumulativeQuoteQty / orderResp.ExecutedQty
+		//For a buy order:
+		//You add the commission to the total cost because you are paying more due to the commission fee.
+		//So, the formula would be something like: totalCost = (executedQty * averagePrice) + totalCommission.
+		totalCost = (orderResp.ExecutedQty * averagePrice) + orderResp.Commission
+		ts.Log.Printf("Entry order placed with ID: %d Commission: %.8f CumulativeQuoteQty: %.8f ExecutedPrice: %.8f ExecutedQty: %.8f Status: %s\n", orderResp.OrderID, orderResp.Commission, orderResp.CumulativeQuoteQty,
+			orderResp.ExecutedPrice, orderResp.ExecutedQty, orderResp.Status)
 		// Update the profit, quote and base balances after the trade.
-		ts.QuoteBalance -= (ts.PositionSize * ts.CurrentPrice) + transactionCost + slippageCost
-		ts.BaseBalance += ts.PositionSize
-		md.TotalProfitLoss += localProfitLoss
-		ts.EntryCostLoss = append(ts.EntryCostLoss, localProfitLoss)
+		ts.QuoteBalance -= totalCost
+		ts.BaseBalance += orderResp.ExecutedQty
+		md.TotalProfitLoss -= orderResp.Commission
+
+		//Record entry entities for calculating profit/loss and stoploss later.
+		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
+		ts.EntryQuantity = append(ts.EntryQuantity, orderResp.ExecutedQty)
+		ts.EntryCostLoss = append(ts.EntryCostLoss, orderResp.Commission)
+
 		// Mark that we are in a trade.
 		ts.InTrade = true
 
-		nextsEllPt := (md.TargetProfit / ts.PositionSize) + ts.EntryPrice[len(ts.EntryPrice)-1]
-		nextLossPt := (-md.TargetStopLoss / ts.PositionSize) + ts.EntryPrice[len(ts.EntryPrice)-1]
-		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuant[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L %.2f LocalP&L: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d nextsEllPt %.8f nextLossPt %.8f TargProfit %.8f TargLoss %.8f\n",
-			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint, nextsEllPt, nextLossPt, md.TargetProfit, -md.TargetStopLoss)
+		nextsEllPt := (md.TargetProfit / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
+		nextLossPt := (-md.TargetStopLoss / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
+		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuant[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L %.2f BuyCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d nextsEllPt %.8f nextLossPt %.8f TargProfit %.8f TargLoss %.8f\n",
+			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, orderResp.Commission, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint, nextsEllPt, nextLossPt, md.TargetProfit, -md.TargetStopLoss)
 		return resp, nil
 	case "Sell":
 		if !ts.InTrade {
@@ -336,37 +334,80 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 
 		// Calculate profit/loss for the trade.
 		exitPrice := ts.CurrentPrice
-		tsEntryQuantity := ts.EntryQuantity[len(ts.EntryQuantity)-1]
-		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], exitPrice, tsEntryQuantity)
-		transactionCost := ts.TransactionCost * exitPrice * tsEntryQuantity
-		slippageCost := ts.Slippage * exitPrice * tsEntryQuantity
+		// adjustedPrice := math.Floor(price/lotSizeStep) * lotSizeStep
+		quantity := math.Floor(ts.EntryQuantity[len(ts.EntryQuantity)-1]/ts.MiniQty) * ts.MiniQty
+
+		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], exitPrice, quantity)
+		transactionCost := ts.TransactionCostPercentage * exitPrice * quantity
+		slippageCost := ts.SlippageCostPercentage * exitPrice * quantity
 		localProfitLoss -= transactionCost + slippageCost + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]
 
 		// (localProfitLoss < transactionCost+slippageCost+md.TargetProfit)
-		if (ts.BaseBalance < tsEntryQuantity) || (localProfitLoss < md.TargetProfit) {
-			if ts.BaseBalance < tsEntryQuantity {
-				return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, tsEntryQuantity)
+		if (ts.BaseBalance < quantity) || (localProfitLoss < md.TargetProfit) {
+			if ts.BaseBalance < quantity {
+				quantity = math.Floor(ts.BaseBalance/ts.MiniQty) * ts.MiniQty
+				if quantity < ts.MiniQty {
+					return "", fmt.Errorf("cannot execute a sell order due to insufficient BaseBalance: %.8f miniQuantity required: %.8f effect of transactionCost %.8f + slippageCost %.8f = %.8f", ts.QuoteBalance, ts.MiniQty, transactionCost, slippageCost, transactionCost+slippageCost)
+				} else {
+					return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, quantity)
+				}
+			} else {
+				ts.Log.Println("TA Signalled: SELL at currentPrice:", exitPrice, "localProfitLoss:", localProfitLoss, "expecting Profit:", md.TargetProfit)
+				return "", fmt.Errorf("cannot execute a sell order this trade localProfitLoss: %.8f, target profit: %.8f", localProfitLoss, md.TargetProfit)
 			}
-			ts.Log.Println("TA Signalled: SELL at currentPrice:", exitPrice, "localProfitLoss:", localProfitLoss, "expecting Profit:", md.TargetProfit)
-			return "", fmt.Errorf("cannot execute a sell order this trade localProfitLoss: %.8f, target profit: %.8f", localProfitLoss, md.TargetProfit)
 		}
-		exitOrderID, err := ts.APIServices.PlaceLimitSellOrder(ts.Symbol, exitPrice, tsEntryQuantity)
+		// Calculate the total cost of the trade
+		totalCost := quantity * exitPrice
+		// Check if the total cost meets the minNotional requirement
+		if totalCost < ts.MinNotional {
+			ts.Log.Printf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, exitPrice, totalCost, ts.MinNotional)
+			return "", fmt.Errorf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, exitPrice, totalCost, ts.MinNotional)
+		}
+
+		//Placing Order
+		orderResp, err := ts.APIServices.PlaceLimitOrder(ts.Symbol, "SELL", exitPrice, quantity)
 		if err != nil {
 			fmt.Println("Error placing exit order:", err)
 			ts.Log.Println("Error placing exit order:", err)
 			return "", fmt.Errorf("Error placing exit order: %v", err)
 		}
-		fmt.Printf("Exit order placed with ID: %d\n", exitOrderID)
+		averagePrice := orderResp.CumulativeQuoteQty / orderResp.ExecutedQty
+		//For a sell order:
+		//You subtract the commission from the total cost because you are receiving less due to the commission fee. So, the formula would
+		//be something like: totalCost = (executedQty * averagePrice) - totalCommission.
+		totalCost = (orderResp.ExecutedQty * averagePrice) - orderResp.Commission
+
+		ts.Log.Printf("Exit order placed with ID: %d Commission: %.8f CumulativeQuoteQty: %.8f ExecutedPrice: %.8f ExecutedQty: %.8f Status: %s\n", orderResp.OrderID, orderResp.Commission, orderResp.CumulativeQuoteQty,
+			orderResp.ExecutedPrice, orderResp.ExecutedQty, orderResp.Status)
+		// Update the totalP&L, quote and base balances after the trade.
+		ts.QuoteBalance += totalCost
+		ts.BaseBalance -= orderResp.ExecutedQty
+		localProfitLoss = CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], averagePrice, orderResp.ExecutedQty)
+		md.TotalProfitLoss += localProfitLoss
 		// Mark that we are no longer in a trade.
 		ts.InTrade = false
 
-		// Update the totalP&L, quote and base balances after the trade.
-		ts.QuoteBalance += (tsEntryQuantity * exitPrice) - transactionCost - slippageCost
-		ts.BaseBalance -= tsEntryQuantity
-		md.TotalProfitLoss += localProfitLoss
+		resp := fmt.Sprintf("- SELL at ExitPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuant[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L: %.2f SellCommission: %.8f LocalP&L: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
+			exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, orderResp.Commission, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 
-		resp := fmt.Sprintf("- SELL at ExitPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuant[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L %.2f LocalP&L: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
-			exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
+		if len(ts.StopLossRecover) > 1 {
+			ts.EntryPrice = ts.EntryPrice[:len(ts.EntryPrice)-1]
+			ts.EntryCostLoss = ts.EntryCostLoss[:len(ts.EntryCostLoss)-1]
+			ts.EntryQuantity = ts.EntryQuantity[:len(ts.EntryQuantity)-1]
+			ts.StopLossRecover = ts.StopLossRecover[:len(ts.StopLossRecover)-1]
+			md.RiskPositionPercentage /= ts.RiskFactor //reduce riskPosition by a factor
+			ts.InTrade = true
+			ts.StopLossTrigered = true
+		} else if len(ts.StopLossRecover) == 1 {
+			// Mark that we are no longer in a trade.
+			ts.InTrade = false
+			ts.StopLossTrigered = false
+			ts.StopLossRecover[len(ts.StopLossRecover)-1] = math.MaxFloat64
+			ts.EntryPrice = []float64{}
+			ts.EntryCostLoss = []float64{}
+			ts.EntryQuantity = []float64{}
+		}
+
 		return resp, nil
 	default:
 		return "", fmt.Errorf("invalid trade action: %s", tradeAction)
@@ -385,14 +426,14 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	if !ts.InTrade {
 		return "false"
 	}
-	//if you got here then this function was call for sell
+	//if you got here then this function was call for sell in which there is an entryPrice to be exited
 
 	// Calculate profit/loss for the trade.
 	exitPrice := ts.CurrentPrice
 	tsEntryQuantity := ts.EntryQuantity[len(ts.EntryQuantity)-1]
 	localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], exitPrice, tsEntryQuantity)
-	transactionCost := ts.TransactionCost * exitPrice * tsEntryQuantity
-	slippageCost := ts.Slippage * exitPrice * tsEntryQuantity
+	transactionCost := ts.TransactionCostPercentage * exitPrice * tsEntryQuantity
+	slippageCost := ts.SlippageCostPercentage * exitPrice * tsEntryQuantity
 	localProfitLoss -= transactionCost + slippageCost + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]
 
 	// Check if the current price breaches the stop-loss level to trigger a buy signal.
@@ -497,60 +538,63 @@ func (ts *TradingSystem) ExitRule(md *model.AppData) bool {
 }
 
 // UpdateClosingPrices fetches historical data from the exchange and updates the ClosingPrices field in TradingSystem.
-func (ts *TradingSystem) UpdateHistoricalData(loadFrom string) error {
+func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom, loadDBFrom string) error {
 	var (
-		err         error
-		exch        model.APIServices
-		configParam *config.ExchConfig
-		ok          bool
-		infDB       *influxdb.CandleServices
+		err             error
+		exch            model.APIServices
+		exchConfigParam *config.ExchConfig
+		dBConfigParam   *config.DBConfig
+		ok              bool
+		DB              model.DBServices
 	)
 
-	if configParam, ok = config.NewExchangesConfig()[loadFrom]; ok {
-		// Check if REQUIRED "InfluxDB" exists in the map
-		if influxDBParam, ok := config.NewExchangesConfig()["InfluxDB"]; ok {
-			//Initiallize InfluDB config Parameters and instanciate its struct
-			infDB, err = influxdb.NewAPIServices(influxDBParam)
-			if err != nil {
-				log.Fatalf("Error getting Required services from InfluxDB: %v", err)
-			}
-		} else {
-			fmt.Println("Error Internal: Exch Required InfluxDB")
-			return errors.New("Required InfluxDB services not contracted")
+	if exchConfigParam, ok = config.NewExchangeConfigs()[loadExchFrom]; !ok {
+		fmt.Println("Error Internal: Exch name not", loadExchFrom)
+		return errors.New("Exch name not " + loadExchFrom)
+	}
+	// Check if REQUIRED "InfluxDB" exists in the map
+	if dBConfigParam, ok = config.NewDataBaseConfigs()[loadDBFrom]; !ok {
+		fmt.Println("Error Internal: DB Manager Required")
+		return errors.New("Required DB services not contracted")
+	}
+	switch loadDBFrom {
+	case "InfluxDB":
+		//Initiallize InfluDB config Parameters and instanciate its struct
+		DB, err = influxdb.NewAPIServices(dBConfigParam)
+		if err != nil {
+			log.Fatalf("Error getting Required services from InfluxDB: %v", err)
 		}
-	} else {
-		fmt.Println("Error Internal: Exch name not", loadFrom)
-		return errors.New("Exch name not " + loadFrom)
+	default:
+		return errors.Errorf("Error updating historical data from %s and %s: invalid loadExchFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
 	}
 
-	switch loadFrom {
+	switch loadExchFrom {
 	case "HitBTC":
-		exch, err = hitbtcapi.NewAPIServices(infDB, configParam)
+		exch, err = hitbtcapi.NewAPIServices(exchConfigParam)
 		if err != nil {
 			log.Fatalf("Error getting new exchange services from HitBTC: %v", err)
 		}
 	case "Binance":
-		exch, err = binanceapi.NewAPIServices(infDB, configParam)
+		exch, err = binanceapi.NewAPIServices(exchConfigParam)
 		if err != nil {
 			log.Fatalf("Error getting new exchange services from Binance: %v", err)
 		}
 	case "BinanceTestnet":
-		exch, err = binanceapi.NewAPIServices(infDB, configParam)
+		exch, err = binanceapi.NewAPIServices(exchConfigParam)
 		if err != nil {
 			log.Fatalf("Error getting new exchange services from Binance: %v", err)
 		}
-	case "InfluxDB":
-		exch = infDB
 	default:
-		return errors.Errorf("Error updating historical data from %s invalid loadFrom tag \"%s\" ", loadFrom, loadFrom)
+		return errors.Errorf("Error updating historical data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
 	}
-
-	HistoricalData, err := exch.FetchCandles(configParam.Symbol, configParam.CandleInterval, configParam.CandleStartTime, configParam.CandleEndTime)
+	ts.InitialCapital = exchConfigParam.InitialCapital
+	ts.DBServices = DB
 	ts.APIServices = exch
-	ts.BaseCurrency = configParam.BaseCurrency
-	ts.QuoteCurrency = configParam.QuoteCurrency
-	ts.Symbol = configParam.Symbol
-	ts.MiniQty, err = exch.FetchMiniQuantity(ts.Symbol)
+	HistoricalData, err := ts.APIServices.FetchCandles(exchConfigParam.Symbol, exchConfigParam.CandleInterval, exchConfigParam.CandleStartTime, exchConfigParam.CandleEndTime)
+	ts.BaseCurrency = exchConfigParam.BaseCurrency
+	ts.QuoteCurrency = exchConfigParam.QuoteCurrency
+	ts.Symbol = exchConfigParam.Symbol
+	ts.MiniQty, ts.MaxQty, ts.StepSize, ts.MinNotional, err = exch.FetchExchangeEntities(ts.Symbol)
 	if err != nil {
 		return err
 	}
@@ -561,73 +605,75 @@ func (ts *TradingSystem) UpdateHistoricalData(loadFrom string) error {
 	for _, candle := range HistoricalData {
 		ts.ClosingPrices = append(ts.ClosingPrices, candle.Close)
 		ts.Timestamps = append(ts.Timestamps, candle.Timestamp)
-		if loadFrom != "InfluxDB" {
-			// err := ts.APIServices.WriteCandleToDB(candle.Close, candle.Timestamp)
-			// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
-			// 	log.Fatalf("Error: writing to influxDB: %v", err)
-			// }
-		}
+		// err := ts.DBServices.WriteCandleToDB(candle.Close, candle.Timestamp)
+		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
+		// 	log.Fatalf("Error: writing to influxDB: %v", err)
+		// }
 	}
 	return nil
 }
 
 // UpdateClosingPrices fetches historical data from the exchange and updates the ClosingPrices field in TradingSystem.
-func (ts *TradingSystem) LiveUpdate(loadFrom string) error {
+func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom string) error {
 	var (
-		err         error
-		exch        model.APIServices
-		configParam *config.ExchConfig
-		ok          bool
-		infDB       *influxdb.CandleServices
+		err             error
+		exch            model.APIServices
+		exchConfigParam *config.ExchConfig
+		dBConfigParam   *config.DBConfig
+		ok              bool
+		DB              model.DBServices
 	)
-	
-	if configParam, ok = config.NewExchangesConfig()[loadFrom]; ok {
-		// Check if REQUIRED "InfluxDB" exists in the map
-		if influxDBParam, ok := config.NewExchangesConfig()["InfluxDB"]; ok {
-			//Initiallize InfluDB config Parameters and instanciate its struct
-			infDB, err = influxdb.NewAPIServices(influxDBParam)
-			if err != nil {
-				log.Fatalf("Error getting Required services from InfluxDB: %v", err)
-			}
-		} else {
-			fmt.Println("Error Internal: Exch Required InfluxDB")
-			return errors.New("Required InfluxDB services not contracted")
+
+	if exchConfigParam, ok = config.NewExchangeConfigs()[loadExchFrom]; !ok {
+		fmt.Println("Error Internal: Exch name not", loadExchFrom)
+		return errors.New("Exch name not " + loadExchFrom)
+	}
+	// Check if REQUIRED "InfluxDB" exists in the map
+	if dBConfigParam, ok = config.NewDataBaseConfigs()["InfluxDB"]; !ok {
+		fmt.Println("Error Internal: Exch Required InfluxDB")
+		return errors.New("Required InfluxDB services not contracted")
+	}
+	switch loadDBFrom {
+	case "InfluxDB":
+		//Initiallize InfluDB config Parameters and instanciate its struct
+		DB, err = influxdb.NewAPIServices(dBConfigParam)
+		if err != nil {
+			log.Fatalf("Error getting Required services from InfluxDB: %v", err)
 		}
-	} else {
-		fmt.Println("Error Internal: Exch name not", loadFrom)
-		return errors.New("Exch name not " + loadFrom)
+	default:
+		return errors.Errorf("Error updating Live data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
 	}
 
-	switch loadFrom {
+	switch loadExchFrom {
 	case "HitBTC":
-		exch, err = hitbtcapi.NewAPIServices(infDB, configParam)
+		exch, err = hitbtcapi.NewAPIServices(exchConfigParam)
 		if err != nil {
 			log.Fatalf("Error getting new exchange services from HitBTC: %v", err)
 		}
 	case "Binance":
-		exch, err = binanceapi.NewAPIServices(infDB, configParam)
+		exch, err = binanceapi.NewAPIServices(exchConfigParam)
 		if err != nil {
 			log.Fatalf("Error getting new exchange services from Binance: %v", err)
 		}
 	case "BinanceTestnet":
-		exch, err = binanceapi.NewAPIServices(infDB, configParam)
+		exch, err = binanceapi.NewAPIServices(exchConfigParam)
 		if err != nil {
 			log.Fatalf("Error getting new exchange services from Binance: %v", err)
 		}
-	case "InfluxDB":
-		exch = infDB
 	default:
-		return errors.Errorf("Error updating historical data from %s invalid loadFrom tag \"%s\" ", loadFrom, loadFrom)
+		return errors.Errorf("Error updating Live data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
 	}
+	ts.InitialCapital = exchConfigParam.InitialCapital //Initial Capital for simulation on backtesting
+	ts.DBServices = DB
 	ts.APIServices = exch
-	ts.BaseCurrency = configParam.BaseCurrency
-	ts.QuoteCurrency = configParam.QuoteCurrency
-	ts.Symbol = configParam.Symbol
+	ts.BaseCurrency = exchConfigParam.BaseCurrency
+	ts.QuoteCurrency = exchConfigParam.QuoteCurrency
+	ts.Symbol = exchConfigParam.Symbol
 	ts.CurrentPrice, err = exch.FetchTicker(ts.Symbol)
 	if err != nil {
 		return err
 	}
-	ts.MiniQty, err = exch.FetchMiniQuantity(ts.Symbol)
+	ts.MiniQty, ts.MaxQty, ts.StepSize, ts.MinNotional, err = exch.FetchExchangeEntities(ts.Symbol)
 	if err != nil {
 		return err
 	}
@@ -636,7 +682,7 @@ func (ts *TradingSystem) LiveUpdate(loadFrom string) error {
 	ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 	ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 	ts.Signals = append(ts.Signals, "Hold")
-	// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
+	// err = ts.DBServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
 	// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
 	// 	log.Fatalf("Error: writing to influxDB: %v", err)
 	// }
@@ -660,10 +706,10 @@ func (ts *TradingSystem) Reporting(md *model.AppData, from string) error {
 		return fmt.Errorf("Error creating Line Chart with signals: %v", err)
 	}
 	if from == "Live Trading" {
-		err = ts.AppDatatoCSV(md)
-		if err != nil {
-			return fmt.Errorf("Error creating Writing to CSV File %v", err)
-		}
+		// err = ts.AppDatatoCSV(md)
+		// if err != nil {
+		// 	return fmt.Errorf("Error creating Writing to CSV File %v", err)
+		// }
 	}
 	return nil
 }
@@ -681,8 +727,8 @@ func (ts *TradingSystem) ShutDown(md *model.AppData, sigchnl chan os.Signal) {
 					// Calculate profit/loss for the trade.
 					exitPrice := ts.CurrentPrice
 					localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], exitPrice, ts.BaseBalance)
-					transactionCost := ts.TransactionCost * exitPrice * ts.BaseBalance
-					slippageCost := ts.Slippage * exitPrice * ts.BaseBalance
+					transactionCost := ts.TransactionCostPercentage * exitPrice * ts.BaseBalance
+					slippageCost := ts.SlippageCostPercentage * exitPrice * ts.BaseBalance
 
 					// Store profit/loss for the trade.
 

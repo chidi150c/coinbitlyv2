@@ -18,15 +18,16 @@ import (
 func main() {
 	
 
-	//You specify the source of data (e.g., "HitBTC", "Binance", "BinanceTestnet" or "InfluxDB")
-	loadFrom := "BinanceTestnet" 
-	
-	//You specify whether you're performing live trading 
-	liveTrading := false
+	//You specify the source of Exch API (e.g., "HitBTC", "Binance", "BinanceTestnet")
+	loadExchFrom := "Binance" 
+	//You specify the source of DataBase (e.g., "InfluxDB")
+	loadDBFrom :=  "InfluxDB"	
+	//You specify whether you're performing live trading or not 
+	liveTrading := true
 
-	config := config.NewExchangesConfig()[loadFrom]
+	config := config.NewExchangeConfigs()[loadExchFrom]
     //You're initializing your trading system using the strategies.NewTradingSystem function. 
-	ts, err := strategies.NewTradingSystem(config.BaseCurrency, liveTrading, loadFrom)
+	ts, err := strategies.NewTradingSystem(config.BaseCurrency, liveTrading, loadExchFrom, loadDBFrom)
 	if err != nil {
 		log.Fatal("Error initializing trading system:", err)
 		return
@@ -64,9 +65,9 @@ func main() {
 	//Depending on whether you're performing live trading or not, you're either calling the LiveTrade or Backtesting
 	switch liveTrading{
 	case true:
-		go ts.LiveTrade(loadFrom)
+		go ts.LiveTrade(loadExchFrom)  //, loadDBFrom)
 	default:
-		go ts.Backtest(loadFrom)
+		go ts.Backtest(loadExchFrom)  //, loadDBFrom)
 	}
 	
 	//Setup and Start Web Server:

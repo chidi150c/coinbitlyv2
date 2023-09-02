@@ -22,7 +22,7 @@ func (ts *TradingSystem)CreateLineChartWithSignals(md *model.AppData, timeSeries
 	// }
 	// Create a new plot with a title and axis labels.
 	p := plot.New()
-	p.Title.Text = "BTC Price and Buy/Sell Signal Trading Chart"
+	p.Title.Text = ts.BaseCurrency+ " Price and Buy/Sell Signal Trading Chart"
 	p.X.Label.Text = "Time"
 	p.Y.Label.Text = ts.BaseCurrency+" Price in USDT"
 
@@ -112,7 +112,7 @@ func (ts *TradingSystem)CreateLineChartWithSignalsV3(md *model.AppData, timeSeri
 	// }
 	// Create a new plot with a title and axis labels.
 	p := plot.New()
-	p.Title.Text = "BTC Price, EMA and Buy/Sell Signal Trading Chart"
+	p.Title.Text = ts.BaseCurrency+ " Price, EMA and Buy/Sell Signal Trading Chart"
 	p.X.Label.Text = "Time"
 	p.Y.Label.Text = ts.BaseCurrency+" Price in USDT"
 
@@ -244,7 +244,7 @@ func (ts *TradingSystem)CreateLineChartWithSignalsV3(md *model.AppData, timeSeri
 
 	return nil
 }
-// PlotEMA compares the calculated EMAs with data obtained from HitBTC.
+// PlotEMA compares the calculated EMAs with data obtained from Exch.
 func PlotEMA(timestamps []int64, m55 []float64, closingPrices []float64) error {
 	// Create a new plot.
 	p := plot.New()

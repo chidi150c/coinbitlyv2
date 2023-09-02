@@ -15,17 +15,18 @@ const (
 )
 type APIServices struct{
 	*config.ExchConfig	
-	DataBase model.APIServices
 }
 
-func NewAPIServices(infDB model.APIServices, exchConfig *config.ExchConfig)(*APIServices, error){
+func NewAPIServices(exchConfig *config.ExchConfig)(*APIServices, error){
 	// Check if the environment variables are set
 	if exchConfig.ApiKey == "" || exchConfig.SecretKey == "" {
 		fmt.Println("Error: API credentials not set.")
 		return nil, errors.New("Error: API credentials not set.")
 	}	
-	return &APIServices{exchConfig, infDB}, nil
+	return &APIServices{exchConfig}, nil
 }
+
+var _ model.APIServices = &APIServices{}
 
 // FetchHistoricalCandlesticks fetches historical candlestick data for the given symbol and time interval
 func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime int64) ([]model.Candle, error) {
@@ -55,31 +56,17 @@ func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime in
 	}
 	return mcandles, nil
 }
-// func (e *APIServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
-// 	return e.DataBase.WriteCandleToDB(ClosePrice, Timestamp)
-// }
 func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error){
 	CurrentPrice = rand.Float64()
 	return CurrentPrice, err
 }
-func (e *APIServices)FetchMiniQuantity(symbol string)(CurrentPrice float64, err error){
+func (e *APIServices)FetchExchangeEntities(symbol string)(minQty, maxQty, stepSize, minNotional float64, err error){
 	//to be implemented
-	return 0.0, fmt.Errorf("FetchMiniQuantity Not Implemented yet in HiTBTC")
+	return 0.0,0.0,0.0, 0.0, fmt.Errorf("FetchMiniQuantity Not Implemented yet in HiTBTC")
 }
-
-func (e *APIServices)PlaceLimitBuyOrder(symbol string, price, quantity float64) (entryOrderID int64, err error){
-	return 0, fmt.Errorf("PlaceLimitBuyOrder Not Implemented yet in HiTBTC")
+func (e *APIServices)PlaceLimitOrder(symbol, side string, price, quantity float64) (resp model.Response, err error){
+	return model.Response{}, fmt.Errorf("PlaceLimitBuyOrder Not Implemented yet in HiTBTC")
 }
-func (e *APIServices)PlaceLimitSellOrder(symbol string, price, quantity float64) (exitOrderID int64, err error){
-	return 0, fmt.Errorf("PlaceLimitSellOrder Not Implemented yet in HiTBTC")
-}
-// func (e *APIServices)WriteTickerToDB(ClosePrice float64, Timestamp int64)error{
-// 	return e.DataBase.WriteTickerToDB(ClosePrice, Timestamp)
-// }
-
-// func (e *APIServices)CloseDB()error{
-// 	return e.DataBase.CloseDB()
-// }
 
 // // FetchTickerData fetches and displays real-time of a given symbol
 // func (e *APIServices)FetchTickerData(symbol string) (*model.TickerData, error) {

@@ -1,16 +1,14 @@
 package binanceapi
 
 import (
-	"crypto/ed25519"
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -240,7 +238,7 @@ type ExchangeInfo struct {
 	} `json:"symbols"`
 }
 // fetchExchangeInfo fetches exchange information including minimum order quantity
-func fetchExchangeInfo(symbol, baseURL, apiVersion, apiKey string) (*ExchangeInfo, error) {
+func fetchExchangeInfo(symbol, baseURL, apiVersion, apiKey string) (map[string]interface{}, error) {
 	// Initialize HTTP client with a custom transport to handle rate limiting
 	client := &http.Client{
 		Transport: helper.RateLimitedTransport{Base: http.DefaultTransport},
@@ -270,23 +268,53 @@ func fetchExchangeInfo(symbol, baseURL, apiVersion, apiKey string) (*ExchangeInf
 		return nil, err
 	}
 
-	var exchangeInfo ExchangeInfo
+	// Unmarshal the JSON response
+	var exchangeInfo map[string]interface{}
 	err = json.Unmarshal(body, &exchangeInfo)
 	if err != nil {
+		fmt.Println("Error parsing JSON:", err)
 		return nil, err
 	}
 
-	return &exchangeInfo, nil
+	return exchangeInfo, nil
+
 }
 
+type Fill struct {
+    Price            string `json:"price"`
+    Qty              string `json:"qty"`
+    Commission       string `json:"commission"`
+    CommissionAsset  string `json:"commissionAsset"`
+    TradeID          int    `json:"tradeId"`
+}
+
+type Response struct {
+    Symbol                   string  `json:"symbol"`
+    OrderID                  int     `json:"orderId"`
+    OrderListID              int     `json:"orderListId"`
+    ClientOrderID            string  `json:"clientOrderId"`
+    TransactTime             int64   `json:"transactTime"`
+    Price                    string  `json:"price"`
+    OrigQty                  string  `json:"origQty"`
+    ExecutedQty              string  `json:"executedQty"`
+    CumulativeQuoteQty       string  `json:"cummulativeQuoteQty"` // Note: "cummulative" is a typo, it should be "cumulative"
+    Status                   string  `json:"status"`
+    TimeInForce              string  `json:"timeInForce"`
+    Type                     string  `json:"type"`
+    Side                     string  `json:"side"`
+    WorkingTime              int64   `json:"workingTime"`
+    Fills                    []Fill  `json:"fills"`
+    SelfTradePreventionMode  string  `json:"selfTradePreventionMode"`
+}
+
+
 // placeOrder places an order
-func placeOrder(symbol, side, orderType, timeInForce, price, quantity,  baseURL, apiVersion, apiKey, secretKey string) (int64, error) {
+func placeOrder(symbol, side, orderType, timeInForce, price, quantity,  baseURL, apiVersion, apiKey, secretKey string) (Response, error) {
 	// Initialize HTTP client with a custom transport to handle rate limiting
 	client := &http.Client{
 		Transport: helper.RateLimitedTransport{Base: http.DefaultTransport},
 	}
 	url := fmt.Sprintf("%s/%s/order", baseURL, apiVersion)
-
 	params := map[string]string{
 		"symbol":      symbol,
 		"side":        side,
@@ -295,60 +323,86 @@ func placeOrder(symbol, side, orderType, timeInForce, price, quantity,  baseURL,
 		"price":       price,
 		"quantity":    quantity,
 	}
-
 	req, err := http.NewRequest("POST", url, nil)
 	if err != nil {
-		return 0, err
-	}
-
+		return Response{}, err
+	}	
 	query := req.URL.Query()
 	for key, value := range params {
 		query.Add(key, value)
 	}
 	req.URL.RawQuery = query.Encode()
-
 	sign(req, apiKey, secretKey) // Sign the request with API key and secret
-
+	// logRequestDetails(req)
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, err
+		return Response{}, err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf("API request failed with status: %s", resp.Status)
+		return Response{}, fmt.Errorf("API request failed with status: %s", resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return 0, err
+		return Response{}, err
 	}
 
-	var response map[string]interface{}
+	var response Response
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		return 0, err
+		logResponseDetails(resp)
+		return Response{}, err
 	}
-
-	orderID, ok := response["orderId"].(float64)
-	if !ok {
-		return 0, fmt.Errorf("Failed to extract order ID")
-	}
-
-	return int64(orderID), nil
+	return response, nil
 }
 
-// sign signs the HTTP request with API key and secret
+// sign signs the HTTP request with HMAC-SHA256 authentication
 func sign(req *http.Request, apiKey, secretKey string) {
 	query := req.URL.Query()
-	query.Add("timestamp", strconv.FormatInt(time.Now().Unix()*1000, 10))
 
-	mac := hmac.New(sha256.New, []byte(secretKey))
-	mac.Write([]byte(query.Encode()))
-	signature := hex.EncodeToString(mac.Sum(nil))
+	// Add a timestamp parameter
+	timestamp := strconv.FormatInt(time.Now().Unix()*1000, 10)
+	query.Add("timestamp", timestamp)
 
-	query.Add("signature", signature)
+	// Sort and encode the query parameters
+	params := query.Encode()
+	query.Set("signature", generateSignature(params, secretKey))
+
 	req.URL.RawQuery = query.Encode()
-
 	req.Header.Add("X-MBX-APIKEY", apiKey)
+}
+
+// generateSignature generates the HMAC-SHA256 signature
+func generateSignature(data, secret string) string {
+	hmacSha256 := hmac.New(sha256.New, []byte(secret))
+	hmacSha256.Write([]byte(data))
+	return hex.EncodeToString(hmacSha256.Sum(nil))
+}
+
+// Function to log request details
+func logRequestDetails(req *http.Request) {
+    fmt.Println("Request URL:", req.URL.String())
+    fmt.Println("Request Method:", req.Method)
+    fmt.Println("Request Headers:")
+    for key, values := range req.Header {
+        fmt.Printf("%s: %s\n", key, values)
+    }
+    fmt.Println("Request Body:")
+    if req.Body != nil {
+        buf := new(bytes.Buffer)
+        buf.ReadFrom(req.Body)
+        fmt.Println(buf.String())
+    }
+}
+func logResponseDetails(resp *http.Response) {
+    fmt.Println("Response Status:", resp.Status)
+    fmt.Println("Response Headers:")
+    for key, values := range resp.Header {
+        fmt.Printf("%s: %s\n", key, values)
+    }
+    fmt.Println("Response Body:")
+    buf := new(bytes.Buffer)
+    buf.ReadFrom(resp.Body)
+    fmt.Println(buf.String())
 }

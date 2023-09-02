@@ -3,6 +3,7 @@ package binanceapi
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"coinbitly.com/config"
 	"coinbitly.com/helper"
@@ -11,16 +12,15 @@ import (
 
 type APIServices struct{
 	*config.ExchConfig
-	DataBase model.APIServices
 }
 
-func NewAPIServices(infDB model.APIServices, exchConfig *config.ExchConfig)(*APIServices, error){
+func NewAPIServices(exchConfig *config.ExchConfig)(*APIServices, error){
 	// Check if the environment variables are set
 	if exchConfig.ApiKey == "" || exchConfig.SecretKey == "" {
 		fmt.Println("Error: Binance API credentials not set.")
 		return nil, errors.New("Error: Binance API credentials not set.")
 	}
-	return &APIServices{exchConfig, infDB}, nil
+	return &APIServices{exchConfig}, nil
 }
 // FetchHistoricalCandlesticks fetches historical candlestick data for the given symbol and time interval
 func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime int64) ([]model.Candle, error) {
@@ -50,13 +50,6 @@ func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime in
 	fmt.Println()
 	return mcandles, nil
 }
-// func (e *APIServices)WriteCandleToDB(ClosePrice float64, Timestamp int64) error {
-// 	return e.DataBase.WriteCandleToDB(ClosePrice, Timestamp)
-// }
-// func (e *APIServices)CloseDB()error{
-// 	return e.DataBase.CloseDB()
-// }
-// FetchTicker fetches and displays real-time of a given symbol
 func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error){
 		ticker, err := fetchTickerData(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
 		if err != nil {
@@ -68,59 +61,67 @@ func (e *APIServices)FetchTicker(symbol string)(CurrentPrice float64, err error)
 		return helper.ParseStringToFloat(ticker.Price), nil
 }
 
-func (e *APIServices)FetchMiniQuantity(symbol string)(CurrentPrice float64, err error){
-	exchangeInfo, err := fetchExchangeInfo(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
-	if err != nil {
-		fmt.Println("Error fetching exchange info:", err)
-		return
-	}
+func (e *APIServices) FetchExchangeEntities(symbol string) (minQty, maxQty, stepSize, minNotional float64, err error) {
+    exchangeInfo, err := fetchExchangeInfo(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
+    if err != nil {
+        return 0, 0, 0, 0, err
+    }
 
-	// Find the trading pair's minimum order quantity
-	var minQty string
-	k := 0
-	for i, pair := range exchangeInfo.Symbols {
-		if pair.Symbol == symbol {
-			for _, filter := range pair.Filters {
-				if filter.FilterType == "LOT_SIZE" {
-					minQty = filter.MinQty
-					k = i
-					break
-				}
-			}
-			break
-		}
-	}
+    // Find the trading pair in the response
+    found := false
+    for _, symbolInfo := range exchangeInfo["symbols"].([]interface{}) {
+        symbolMap := symbolInfo.(map[string]interface{})
+        if symbolMap["symbol"] == symbol {
+            filters := symbolMap["filters"].([]interface{})
+            for _, filter := range filters {
+                filterMap := filter.(map[string]interface{})
+                filterType := filterMap["filterType"].(string)
 
-	if minQty != "" {
-		fmt.Printf("Symbol: %s\nMinimum Order Quantity: %s %s\n", symbol, minQty, exchangeInfo.Symbols[k].BaseAsset)
-		return helper.ParseStringToFloat(minQty), nil
-	} else {
-		fmt.Printf("Symbol: %s\nMinimum Order Quantity information not found\n", symbol)
-		return 0.0, fmt.Errorf("Symbol: %s\nMinimum Order Quantity information not found\n", symbol)
-	}
+                switch filterType {
+                case "NOTIONAL":
+                    minNotional = helper.ParseStringToFloat(filterMap["minNotional"].(string))
+					fmt.Printf("MinNotional: %.8f\n", minNotional)
+                case "LOT_SIZE":
+                    minQty = helper.ParseStringToFloat(filterMap["minQty"].(string))
+                    maxQty = helper.ParseStringToFloat(filterMap["maxQty"].(string))
+                    stepSize = helper.ParseStringToFloat(filterMap["stepSize"].(string))
+					fmt.Printf("Symbol: %s\nMin Quantity: %.8f\nMax Quantity: %.8f\nStep Size: %.8f\n", symbol, minQty, maxQty, stepSize)
+                }
+            }
+            found = true
+            break
+        }
+    }
+	if !found {
+        return 0, 0, 0, 0, fmt.Errorf("Symbol not found: %s", symbol)
+    }
+    return minQty, maxQty, stepSize, minNotional, nil
 }
 
-
-func (e *APIServices)PlaceLimitBuyOrder(symbol string, price, quantity float64) (entryOrderID int64, err error){
-	side := "BUY"
+func (e *APIServices)PlaceLimitOrder(symbol, side string, price, quantity float64) (orderResp model.Response, err error){
 	orderType := "LIMIT"
 	timeInForce := "GTC"
 	Price := fmt.Sprintf("%.8f", price)
 	Quantity := fmt.Sprintf("%.8f", quantity)
-	return placeOrder(symbol, side, orderType, timeInForce, Price, Quantity, e.BaseURL, e.ApiVersion, e.ApiKey, e.SecretKey)
-}
-func (e *APIServices)PlaceLimitSellOrder(symbol string, price, quantity float64) (exitOrderID int64, err error){
-	side := "SELL"
-	orderType := "LIMIT"
-	timeInForce := "GTC"
-	Price := fmt.Sprintf("%.8f", price)
-	Quantity := fmt.Sprintf("%.8f", quantity)
-	return placeOrder(symbol, side, orderType, timeInForce, Price, Quantity, e.BaseURL, e.ApiVersion, e.ApiKey, e.SecretKey)
+	response, err := placeOrder(symbol, side, orderType, timeInForce, Price, Quantity, e.BaseURL, e.ApiVersion, e.ApiKey, e.SecretKey)
+	if err != nil{
+		log.Fatal(err)
+	}
+	// Convert relevant fields to appropriate numeric types	
+	orderResp.ExecutedQty = helper.ParseStringToFloat(response.ExecutedQty)
+	orderResp.ExecutedPrice = helper.ParseStringToFloat(response.Price)
+	if len(response.Fills) > 0 {
+		// Access the first fill
+		orderResp.Commission = helper.ParseStringToFloat(response.Fills[0].Commission)
+	} 
+	// else {
+	// 	orderResp.Commission = (orderResp.ExecutedQty * orderResp.ExecutedPrice) * 0.0009
+	// }
+	orderResp.OrderID = int64(response.OrderID)
+	orderResp.CumulativeQuoteQty = helper.ParseStringToFloat(response.CumulativeQuoteQty)
+	return orderResp, nil
 }
 
-// func (e *APIServices)WriteTickerToDB(ClosePrice float64, Timestamp int64)error{
-// 	return e.DataBase.WriteTickerToDB(ClosePrice, Timestamp)
-// }
 
 // fetchAndDisplay24hrTickerData fetches and displays 24-hour price change statistics for the given symbol
 // func (e *APIServices)Fetch24hrChange(symbol string) (*model.Ticker24hrChange, error){
