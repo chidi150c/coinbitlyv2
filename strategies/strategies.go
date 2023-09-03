@@ -28,47 +28,48 @@ import (
 type TradingSystem struct {
 	Mu sync.Mutex // Mutex for protecting concurrent writes
 	// HistoricalData  []model.Candle
-	Symbol                    string
-	ClosingPrices             []float64
-	Container1                []float64
-	Container2                []float64
-	Timestamps                []int64
-	Signals                   []string
-	APIServices               model.APIServices
-	TransactionCostPercentage float64
-	SlippageCostPercentage    float64
-	InitialCapital            float64
-	PositionSize              float64
-	EntryPrice                []float64
-	InTrade                   bool
-	QuoteBalance              float64
-	BaseBalance               float64
-	RiskCost                  float64
-	DataPoint                 int
-	CurrentPrice              float64
-	EntryQuantity             []float64
-	Scalping                  string
-	StrategyCombLogic         string
-	EntryCostLoss             []float64
-	TradeCount                int
-	EnableStoploss            bool
-	StopLossTrigered          bool
-	StopLossRecover           []float64
-	RiskFactor                float64
-	MaxDataSize               int
-	Log                       *log.Logger
-	ShutDownCh                chan string
-	EpochTime                 time.Duration
-	CSVWriter                 *csv.Writer
-	RiskProfitLossPercentage  float64
-	ChartChan                 chan model.ChartData
-	BaseCurrency              string //in Binance is called BaseAsset
-	QuoteCurrency             string //in Binance is called QuoteAsset
-	MiniQty                   float64
-	MaxQty                    float64
-	MinNotional               float64
-	StepSize                  float64
-	DBServices                model.DBServices
+	Symbol                   string
+	ClosingPrices            []float64
+	Container1               []float64
+	Container2               []float64
+	Timestamps               []int64
+	Signals                  []string
+	APIServices              model.APIServices
+	NextInvestBuYPrice       []float64
+	NextProfitSeLLPrice      []float64
+	CommissionPercentage     float64
+	InitialCapital           float64
+	PositionSize             float64
+	EntryPrice               []float64
+	InTrade                  bool
+	QuoteBalance             float64
+	BaseBalance              float64
+	RiskCost                 float64
+	DataPoint                int
+	CurrentPrice             float64
+	EntryQuantity            []float64
+	Scalping                 string
+	StrategyCombLogic        string
+	EntryCostLoss            []float64
+	TradeCount               int
+	EnableStoploss           bool
+	StopLossTrigered         bool
+	StopLossRecover          []float64
+	RiskFactor               float64
+	MaxDataSize              int
+	Log                      *log.Logger
+	ShutDownCh               chan string
+	EpochTime                time.Duration
+	CSVWriter                *csv.Writer
+	RiskProfitLossPercentage float64
+	ChartChan                chan model.ChartData
+	BaseCurrency             string //in Binance is called BaseAsset
+	QuoteCurrency            string //in Binance is called QuoteAsset
+	MiniQty                  float64
+	MaxQty                   float64
+	MinNotional              float64
+	StepSize                 float64
+	DBServices               model.DBServices
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -90,8 +91,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		}
 	}
 	ts.RiskFactor = 2.0                   // Define 1% slippage
-	ts.TransactionCostPercentage = 0.0009 // Define 0.1% transaction cost
-	ts.SlippageCostPercentage = 0.0005
+	ts.CommissionPercentage = 0.00075     // Define 0.1% transaction cost
 	ts.RiskProfitLossPercentage = 0.00025 //percentage of Initial Capital used to represent Target profit or stoplooss amount
 	ts.QuoteBalance = ts.InitialCapital   //continer to hold the balance
 	ts.Scalping = ""                      //"UseTA"
@@ -277,24 +277,23 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		}
 		// adjustedPrice := math.Floor(price/lotSizeStep) * lotSizeStep
 		quantity := math.Floor(ts.PositionSize/ts.MiniQty) * ts.MiniQty
-		transactionCost := ts.TransactionCostPercentage * ts.CurrentPrice * quantity
-		slippageCost := ts.SlippageCostPercentage * ts.CurrentPrice * quantity
-		//check if there is enough Quote (USDT) for the buy transaction
-		if ts.QuoteBalance < (quantity*ts.CurrentPrice)+transactionCost+slippageCost {
-			ts.Log.Printf("Unable to buY!!!! Insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f + transactionCost %.8f+ slippageCost %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice, transactionCost, slippageCost)
-			quantity = (ts.QuoteBalance - (transactionCost + slippageCost)) / ts.CurrentPrice
-			quantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
-			if quantity < ts.MiniQty {
-				return "", fmt.Errorf("cannot execute a buy order due to insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f + transactionCost %.8f+ slippageCost %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice, transactionCost, slippageCost)
-			}
-		}
 		// Calculate the total cost of the trade
 		totalCost := quantity * ts.CurrentPrice
+		//check if there is enough Quote (USDT) for the buy transaction
+		if ts.QuoteBalance < totalCost {
+			ts.Log.Printf("Unable to buY!!!! Insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice)
+			quantity = ts.QuoteBalance / ts.CurrentPrice
+			quantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
+			if quantity < ts.MiniQty {
+				return "", fmt.Errorf("cannot execute a buy order due to insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice)
+			}
+		}
 		// Check if the total cost meets the minNotional requirement
 		if totalCost < ts.MinNotional {
 			ts.Log.Printf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, ts.CurrentPrice, totalCost, ts.MinNotional)
 			return "", fmt.Errorf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, ts.CurrentPrice, totalCost, ts.MinNotional)
 		}
+		//Placing a Buy order
 		orderResp, err = ts.APIServices.PlaceLimitOrder(ts.Symbol, "BUY", ts.CurrentPrice, quantity)
 		if err != nil {
 			fmt.Println("Error placing entry order:", err)
@@ -304,28 +303,31 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		//The cummulativeQuoteQty represents the total quote asset quantity (e.g., USDT) transacted. So, in the calculation for the average price:
 		averagePrice := orderResp.CumulativeQuoteQty / orderResp.ExecutedQty
 		//For a buy order:
-		//You add the commission to the total cost because you are paying more due to the commission fee.
-		//So, the formula would be something like: totalCost = (executedQty * averagePrice) + totalCommission.
-		totalCost = (orderResp.ExecutedQty * averagePrice) + orderResp.Commission
+		//the commission from Binance being in BaseCurrency was deducted from the executedQty
+		totalCost = (orderResp.ExecutedQty * averagePrice)
 		ts.Log.Printf("Entry order placed with ID: %d Commission: %.8f CumulativeQuoteQty: %.8f ExecutedPrice: %.8f ExecutedQty: %.8f Status: %s\n", orderResp.OrderID, orderResp.Commission, orderResp.CumulativeQuoteQty,
 			orderResp.ExecutedPrice, orderResp.ExecutedQty, orderResp.Status)
 		// Update the profit, quote and base balances after the trade.
 		ts.QuoteBalance -= totalCost
-		ts.BaseBalance += orderResp.ExecutedQty
-		md.TotalProfitLoss -= orderResp.Commission
+		ts.BaseBalance += orderResp.ExecutedQty - orderResp.Commission
+		md.TotalProfitLoss -= (orderResp.Commission * averagePrice)
 
 		//Record entry entities for calculating profit/loss and stoploss later.
 		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
 		ts.EntryQuantity = append(ts.EntryQuantity, orderResp.ExecutedQty)
-		ts.EntryCostLoss = append(ts.EntryCostLoss, orderResp.Commission)
+		ts.EntryCostLoss = append(ts.EntryCostLoss, (orderResp.Commission * averagePrice))
+		nextProfitSeLLPrice := ((md.TargetProfit + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / orderResp.ExecutedQty) + ts.EntryPrice[len(ts.EntryPrice)-1]
+		nextInvBuYPrice := (-(md.TargetStopLoss + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / orderResp.ExecutedQty) + ts.EntryPrice[len(ts.EntryPrice)-1]
+		commissionAtProfitSeLLPrice := nextProfitSeLLPrice * orderResp.ExecutedQty * ts.CommissionPercentage
+		commissionAtInvBuYPrice := nextInvBuYPrice * orderResp.ExecutedQty * ts.CommissionPercentage
+		ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, nextProfitSeLLPrice+commissionAtProfitSeLLPrice)
+		ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, nextInvBuYPrice-commissionAtInvBuYPrice)
 
 		// Mark that we are in a trade.
 		ts.InTrade = true
 
-		nextsEllPt := (md.TargetProfit / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
-		nextLossPt := (-md.TargetStopLoss / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
-		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuant[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L %.2f BuyCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d nextsEllPt %.8f nextLossPt %.8f TargProfit %.8f TargLoss %.8f\n",
-			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, orderResp.Commission, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint, nextsEllPt, nextLossPt, md.TargetProfit, -md.TargetStopLoss)
+		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuant[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L %.2f BuyCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d nextProfitSeLLPrice %.8f nextInvBuYPrice %.8f TargProfit %.8f TargLoss %.8f\n",
+			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, orderResp.ExecutedQty, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, orderResp.Commission, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint, nextProfitSeLLPrice, nextInvBuYPrice, md.TargetProfit, -md.TargetStopLoss)
 		return resp, nil
 	case "Sell":
 		if !ts.InTrade {
@@ -337,23 +339,19 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		// adjustedPrice := math.Floor(price/lotSizeStep) * lotSizeStep
 		quantity := math.Floor(ts.EntryQuantity[len(ts.EntryQuantity)-1]/ts.MiniQty) * ts.MiniQty
 
-		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], exitPrice, quantity)
-		transactionCost := ts.TransactionCostPercentage * exitPrice * quantity
-		slippageCost := ts.SlippageCostPercentage * exitPrice * quantity
-		localProfitLoss -= transactionCost + slippageCost + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]
-
 		// (localProfitLoss < transactionCost+slippageCost+md.TargetProfit)
-		if (ts.BaseBalance < quantity) || (localProfitLoss < md.TargetProfit) {
+		if (ts.BaseBalance < quantity) || (exitPrice < ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1]) {
 			if ts.BaseBalance < quantity {
 				quantity = math.Floor(ts.BaseBalance/ts.MiniQty) * ts.MiniQty
 				if quantity < ts.MiniQty {
-					return "", fmt.Errorf("cannot execute a sell order due to insufficient BaseBalance: %.8f miniQuantity required: %.8f effect of transactionCost %.8f + slippageCost %.8f = %.8f", ts.QuoteBalance, ts.MiniQty, transactionCost, slippageCost, transactionCost+slippageCost)
+					return "", fmt.Errorf("cannot execute a sell order due to insufficient BaseBalance: %.8f miniQuantity required: %.8f", ts.QuoteBalance, ts.MiniQty)
 				} else {
 					return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, quantity)
 				}
 			} else {
-				ts.Log.Println("TA Signalled: SELL at currentPrice:", exitPrice, "localProfitLoss:", localProfitLoss, "expecting Profit:", md.TargetProfit)
-				return "", fmt.Errorf("cannot execute a sell order this trade localProfitLoss: %.8f, target profit: %.8f", localProfitLoss, md.TargetProfit)
+				i := len(ts.NextProfitSeLLPrice) - 1
+				ts.Log.Println("TA Signalled: SELL at currentPrice:", exitPrice, "expecting NextProfitSeLLPrice[", i, "]:", ts.NextProfitSeLLPrice[i], "expecting Profit:", md.TargetProfit)
+				return "", fmt.Errorf("cannot execute a sell order at: %.8f, expecting NextProfitSeLLPrice[%d]: %.8f, target profit: %.8f", exitPrice, i, ts.NextProfitSeLLPrice[i], md.TargetProfit)
 			}
 		}
 		// Calculate the total cost of the trade
@@ -375,6 +373,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		//For a sell order:
 		//You subtract the commission from the total cost because you are receiving less due to the commission fee. So, the formula would
 		//be something like: totalCost = (executedQty * averagePrice) - totalCommission.
+		//Confirm Binance or the Exch is deliverying commission for Sell in USDT
 		totalCost = (orderResp.ExecutedQty * averagePrice) - orderResp.Commission
 
 		ts.Log.Printf("Exit order placed with ID: %d Commission: %.8f CumulativeQuoteQty: %.8f ExecutedPrice: %.8f ExecutedQty: %.8f Status: %s\n", orderResp.OrderID, orderResp.Commission, orderResp.CumulativeQuoteQty,
@@ -382,19 +381,20 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		// Update the totalP&L, quote and base balances after the trade.
 		ts.QuoteBalance += totalCost
 		ts.BaseBalance -= orderResp.ExecutedQty
-		localProfitLoss = CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], averagePrice, orderResp.ExecutedQty)
-		md.TotalProfitLoss += localProfitLoss
+		md.TotalProfitLoss += CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], averagePrice, orderResp.ExecutedQty)
 		// Mark that we are no longer in a trade.
 		ts.InTrade = false
 
-		resp := fmt.Sprintf("- SELL at ExitPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuant[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L: %.2f SellCommission: %.8f LocalP&L: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
-			exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, orderResp.Commission, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
+		resp := fmt.Sprintf("- SELL at ExitPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuant[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
+			exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, orderResp.Commission, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 
 		if len(ts.StopLossRecover) > 1 {
 			ts.EntryPrice = ts.EntryPrice[:len(ts.EntryPrice)-1]
 			ts.EntryCostLoss = ts.EntryCostLoss[:len(ts.EntryCostLoss)-1]
 			ts.EntryQuantity = ts.EntryQuantity[:len(ts.EntryQuantity)-1]
 			ts.StopLossRecover = ts.StopLossRecover[:len(ts.StopLossRecover)-1]
+			ts.NextProfitSeLLPrice = ts.NextProfitSeLLPrice[:len(ts.NextProfitSeLLPrice)-1]
+			ts.NextInvestBuYPrice = ts.NextInvestBuYPrice[:len(ts.NextInvestBuYPrice)-1]
 			md.RiskPositionPercentage /= ts.RiskFactor //reduce riskPosition by a factor
 			ts.InTrade = true
 			ts.StopLossTrigered = true
@@ -406,6 +406,8 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.EntryPrice = []float64{}
 			ts.EntryCostLoss = []float64{}
 			ts.EntryQuantity = []float64{}
+			ts.NextProfitSeLLPrice = []float64{}
+			ts.NextInvestBuYPrice = []float64{}
 		}
 
 		return resp, nil
@@ -430,19 +432,13 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 
 	// Calculate profit/loss for the trade.
 	exitPrice := ts.CurrentPrice
-	tsEntryQuantity := ts.EntryQuantity[len(ts.EntryQuantity)-1]
-	localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], exitPrice, tsEntryQuantity)
-	transactionCost := ts.TransactionCostPercentage * exitPrice * tsEntryQuantity
-	slippageCost := ts.SlippageCostPercentage * exitPrice * tsEntryQuantity
-	localProfitLoss -= transactionCost + slippageCost + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]
-
 	// Check if the current price breaches the stop-loss level to trigger a buy signal.
-	if (localProfitLoss <= -md.TargetStopLoss) && ts.EnableStoploss { //&& (ts.BaseBalance >= tsEntryQuantity)
-
+	i := len(ts.NextInvestBuYPrice)-1
+	if (exitPrice < ts.NextInvestBuYPrice[i]) && ts.EnableStoploss { //&& (ts.BaseBalance >= quantity)
 		// I commented it out to make stoploss just a marker
 		// // Update the quote and base balances after the trade.
-		// ts.QuoteBalance -= (tsEntryQuantity * exitPrice) + transactionCost + slippageCost
-		// ts.BaseBalance += tsEntryQuantity
+		// ts.QuoteBalance -= (quantity * exitPrice) + transactionCost + slippageCost
+		// ts.BaseBalance += quantity
 		// md.TotalProfitLoss += localProfitLoss
 
 		// Mark that stoploss is triggered.
@@ -450,14 +446,15 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		ts.StopLossTrigered = true
 		md.RiskPositionPercentage *= ts.RiskFactor                       //increase riskPosition by a factor
 		ts.StopLossRecover = append(ts.StopLossRecover, ts.CurrentPrice) //* (1.0 - ts.RiskStopLossPercentage)
+		
 		ts.Log.Println("Stoploss Marked!!! at this Price:", exitPrice, "based on EntryPrice[", len(ts.EntryPrice)-1,
-			"] = ", ts.EntryPrice[len(ts.EntryPrice)-1], "currentLoss:", localProfitLoss, "expecting Loss:", -md.TargetStopLoss)
+			"] = ", ts.EntryPrice[len(ts.EntryPrice)-1], " NextInvestBuYPrice[",i,"]:", ts.NextInvestBuYPrice[i], "expecting Loss:", -md.TargetStopLoss)
 		// I commented it out to make stoploss just a marker
-		resp := fmt.Sprintf("Stoploss Marked!!! at this Price: %.8f currentLoss: %.8f expecting Loss: %.8f", exitPrice, localProfitLoss, -md.TargetStopLoss)
-		// 	ts.CurrentPrice, tsEntryQuantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
+		resp := fmt.Sprintf("Stoploss Marked!!! at this Price: %.8f NextInvestBuYPrice[%d]: %.8f expecting Loss: %.8f", exitPrice, i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
+		// 	ts.CurrentPrice, quantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 		return resp
 	} else {
-		ts.Log.Println("Stoploss not Marked yet at this Price:", exitPrice, "currentLoss:", localProfitLoss, "expecting Loss:", -md.TargetStopLoss)
+		ts.Log.Println("Stoploss not Marked yet at this Price:", exitPrice, "NextInvestBuYPrice[",i,"]: %.8f", ts.NextInvestBuYPrice[i], "expecting Loss:", -md.TargetStopLoss)
 	}
 	return "false"
 }
@@ -501,10 +498,14 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 				(shortEMA[ts.DataPoint-1]-longEMA[ts.DataPoint-1] >= shortEMA[ts.DataPoint-2]-longEMA[ts.DataPoint-2]) &&
 				(shortEMA[ts.DataPoint]-longEMA[ts.DataPoint] < shortEMA[ts.DataPoint-1]-longEMA[ts.DataPoint-1])
 
-			if buySignal && (Action == "Entry") {
-				ts.Log.Println("TA Signalled: Buy:", buySignal, "at currentPrice:", ts.CurrentPrice)
+			if buySignal && (Action == "Entry") && (len(ts.NextInvestBuYPrice)>=1){
+				ts.Log.Println("TA Signalled: BuY:", buySignal, "NextInvestBuYPrice[",len(ts.NextInvestBuYPrice)-1,"]",ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], "at currentPrice:", ts.CurrentPrice)
+			} else if sellSignal && (Action == "Exit") && (len(ts.NextProfitSeLLPrice) >= 1) {
+				ts.Log.Println("TA Signalled: SeLL:", sellSignal, "NextProfitSeLLPrice[",len(ts.NextProfitSeLLPrice)-1,"]",ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1],"at currentPrice:", ts.CurrentPrice)
+			}else if buySignal && (Action == "Entry") {
+				ts.Log.Println("TA Signalled: BuY:", buySignal, "at currentPrice:", ts.CurrentPrice)
 			} else if sellSignal && (Action == "Exit") {
-				ts.Log.Println("TA Signalled: Sell:", sellSignal, "at currentPrice:", ts.CurrentPrice)
+				ts.Log.Println("TA Signalled: SeLL:", sellSignal, "at currentPrice:", ts.CurrentPrice)
 			}
 
 		}
@@ -727,16 +728,15 @@ func (ts *TradingSystem) ShutDown(md *model.AppData, sigchnl chan os.Signal) {
 					// Calculate profit/loss for the trade.
 					exitPrice := ts.CurrentPrice
 					localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], exitPrice, ts.BaseBalance)
-					transactionCost := ts.TransactionCostPercentage * exitPrice * ts.BaseBalance
-					slippageCost := ts.SlippageCostPercentage * exitPrice * ts.BaseBalance
+					transactionCost := ts.CommissionPercentage * exitPrice * ts.BaseBalance
 
 					// Store profit/loss for the trade.
 
-					localProfitLoss -= transactionCost + slippageCost
+					localProfitLoss -= transactionCost 
 					// md.TotalProfitLoss += localProfitLoss
 
 					ts.Mu.Lock()
-					ts.QuoteBalance += (ts.BaseBalance * exitPrice) - transactionCost - slippageCost
+					ts.QuoteBalance += (ts.BaseBalance * exitPrice) - transactionCost
 					ts.BaseBalance -= ts.BaseBalance
 					ts.Signals = append(ts.Signals, "Sell")
 					ts.InTrade = false

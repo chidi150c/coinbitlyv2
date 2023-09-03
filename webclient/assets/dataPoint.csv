@@ -55,3 +55,6 @@ Count,Strategy,ShortPeriod,LongPeriod,ShortEMA,LongEMA,TargetProfit,TargetStopLo
 54,EMA,10,30,0.013516,0.013516,0.100000,0.000000
 Count,Strategy,ShortPeriod,LongPeriod,ShortEMA,LongEMA,TargetProfit,TargetStopLoss,RiskPositionPercentage,TotalProfitLoss
 Count,Strategy,ShortPeriod,LongPeriod,ShortEMA,LongEMA,TargetProfit,TargetStopLoss,RiskPositionPercentage,TotalProfitLoss
+Count,Strategy,ShortPeriod,LongPeriod,ShortEMA,LongEMA,TargetProfit,TargetStopLoss,RiskPositionPercentage,TotalProfitLoss
+Count,Strategy,ShortPeriod,LongPeriod,ShortEMA,LongEMA,TargetProfit,TargetStopLoss,RiskPositionPercentage,TotalProfitLoss
+Count,Strategy,ShortPeriod,LongPeriod,ShortEMA,LongEMA,TargetProfit,TargetStopLoss,RiskPositionPercentage,TotalProfitLoss

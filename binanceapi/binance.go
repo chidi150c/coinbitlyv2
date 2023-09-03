@@ -347,6 +347,7 @@ func placeOrder(symbol, side, orderType, timeInForce, price, quantity,  baseURL,
 	if err != nil {
 		return Response{}, err
 	}
+	logResponseDetails(resp)
 
 	var response Response
 	err = json.Unmarshal(body, &response)
