@@ -88,7 +88,7 @@ func NewExchangeConfigs() map[string]*ExchConfig {
 			Symbol:          "BNBUSDT",
 			BaseCurrency:    "BNB",
 			QuoteCurrency:   "USDT",
-			InitialCapital:  54.1,
+			InitialCapital:  54.038193,
 			CandleInterval:  "1m",
 			CandleStartTime: time.Now().Add(time.Duration(-1) * 20 * time.Hour).Unix(), // 3 days ago
 			CandleEndTime:   time.Now().Add(time.Duration(-1) * 0 * time.Hour).Unix(),  // 3 days ago
