@@ -19,11 +19,11 @@ func main() {
 	
 
 	//You specify the source of Exch API (e.g., "HitBTC", "Binance", "BinanceTestnet")
-	loadExchFrom := "BinanceTestnet" 
+	loadExchFrom := "Binance" 
 	//You specify the source of DataBase (e.g., "InfluxDB")
 	loadDBFrom :=  "InfluxDB"	
 	//You specify whether you're performing live trading or not 
-	liveTrading := false
+	liveTrading := true
 
 	config := config.NewExchangeConfigs()[loadExchFrom]
     //You're initializing your trading system using the strategies.NewTradingSystem function. 
@@ -69,7 +69,6 @@ func main() {
 	default:
 		go ts.Backtest(loadExchFrom)  //, loadDBFrom)
 	}
-	
 	//Setup and Start Web Server:
 	//You're setting up the web server by creating a server.NewTradeHandler() and server.NewServer(addrp, th) instance. 
 	//Then, you open the server using the server.Open() method.

@@ -88,7 +88,7 @@ func NewExchangeConfigs() map[string]*ExchConfig {
 			Symbol:          "BNBUSDT",
 			BaseCurrency:    "BNB",
 			QuoteCurrency:   "USDT",
-			InitialCapital:  54.06239372,
+			InitialCapital:  54.1,
 			CandleInterval:  "1m",
 			CandleStartTime: time.Now().Add(time.Duration(-1) * 20 * time.Hour).Unix(), // 3 days ago
 			CandleEndTime:   time.Now().Add(time.Duration(-1) * 0 * time.Hour).Unix(),  // 3 days ago
@@ -98,14 +98,14 @@ func NewExchangeConfigs() map[string]*ExchConfig {
 			Symbols:         []string{"BNBUSDT"},
 			BaseURL:         "https://testnet.binance.vision",
 			ApiVersion:      "api/v3",
-			ApiKey:          "OHgORL3TN42JHFIwUQWzYDCWTaXJbHYHJA0YlAWvP84LusLLTFT80dX7kuWTpmGI", // os.Getenv("BINANCE_API_KEY"),    // Replace with your Binance API key
-			SecretKey:       "ZX3J0nA5XOdMdP60ZieQlcnFuUbipMhTLmP2kufERZcZ8rawSVpDW1b5goWLYkb5", //os.Getenv("BINANCE_API_SECRET"), // Replace with your Binance API secret key
+			ApiKey:          "Ob1mJrsNFb7Msfpb6eFwjc1IpQc3ivmGZdMaabxbttXwFipTlgASE6Zqjw2xqETZ", // os.Getenv("BINANCE_API_KEY"),    // Replace with your Binance API key
+			SecretKey:       "tef6clCsc4zxTVqhGsD1neE7Od5CXEhEe8l8xScnyciA79OxcHpmIqcswLWOapfk", //os.Getenv("BINANCE_API_SECRET"), // Replace with your Binance API secret key
 			Symbol:          "BNBUSDT",
 			BaseCurrency:    "BNB",
 			QuoteCurrency:   "USDT",
-			InitialCapital:  54.06239372,
+			InitialCapital:  54.1,
 			CandleInterval:  "1m",
-			CandleStartTime: time.Now().Add(time.Duration(-2) * 24 * time.Hour).Unix(), // 3 days ago
+			CandleStartTime: time.Now().Add(time.Duration(-3) * 24 * time.Hour).Unix(), // 3 days ago
 			CandleEndTime:   time.Now().Add(time.Duration(-1) * 0 * time.Hour).Unix(),  // 3 days ago
 		},
 		"HitBTC": {
@@ -117,7 +117,7 @@ func NewExchangeConfigs() map[string]*ExchConfig {
 			Symbol:          "BNBUSDT",
 			BaseCurrency:    "BNB",
 			QuoteCurrency:   "USDT",
-			InitialCapital:  54.06239372,
+			InitialCapital:  54.1,
 			CandleInterval:  "m30",
 			CandleStartTime: time.Now().Add(time.Duration(timeRange) * 24 * time.Hour).Unix(), // 3 days ago
 			CandleEndTime:   time.Now().Unix(),

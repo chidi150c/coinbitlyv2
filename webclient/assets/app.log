@@ -1,46 +1,374 @@
-2023/09/03 15:42:29 started.................................
-2023/09/03 15:42:29 TA Signalled: Buy: true at currentPrice: 213.2
-2023/09/03 15:42:31 Entry order placed with ID: 2318548 Commission: 0.00000000 CumulativeQuoteQty: 0.00000000 ExecutedPrice: 213.20000000 ExecutedQty: 0.00000000 Status: 
-2023/09/03 15:42:31 - BUY at EntryPrice[0]: 213.20000000, EntryQuant[0]: 0.00000000, QBal: NaN, BBal: 0.00000000, GlobalP&L NaN BuyCommission: 0.00000000 PosPcent: 0.25000000 tsDataPt: 82 mdDataPt: 0 nextProfitSeLLPrice NaN nextInvBuYPrice NaN TargProfit 0.01351560 TargLoss -0.01351560
+2023/09/08 13:56:56 started.................................
+2023/09/08 13:56:56 TA Signalled: BuY, at currentPrice: 215.00000000
+2023/09/08 13:56:56 Entry order placed with ID: 23211 Commission: 0.00004650 CumulativeQuoteQty: 13.33000000 ExecutedPrice: 215.00000000 ExecutedQty: 0.06200000 Status: 
+2023/09/08 13:56:56 - BUY at EntryPrice[0]: 215.00000000, EntryQuantity[0]: 0.06200000, QBal: 40.73239372, BBal: 0.06195350, BuyCommission: 0.00004650 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 215.37924352 nextInvBuYPrice 214.62075648 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 83, mdDataPt: 0 
 
-2023/09/03 15:42:31 TA Signalled: SeLL: true NextProfitSeLLPrice[ 0 ] NaN at currentPrice: 213.82
-2023/09/03 15:42:31 Stoploss not Marked yet at this Price: 213.82 NextInvestBuYPrice[ 0 ]: %.8f NaN expecting Loss: -0.013515598430000001
-2023/09/03 15:42:31 Not placing trade for BNBUSDT: Quantity=0.0000, Price=213.82, Total=0.00 does not meet MinNotional=10.00
-2023/09/03 15:42:31 TA Signalled: SeLL: true NextProfitSeLLPrice[ 0 ] NaN at currentPrice: 213.1
-2023/09/03 15:42:31 Stoploss not Marked yet at this Price: 213.1 NextInvestBuYPrice[ 0 ]: %.8f NaN expecting Loss: -0.013515598430000001
-2023/09/03 15:42:31 Not placing trade for BNBUSDT: Quantity=0.0000, Price=213.10, Total=0.00 does not meet MinNotional=10.00
-2023/09/03 15:42:31 TA Signalled: SeLL: true NextProfitSeLLPrice[ 0 ] NaN at currentPrice: 213.1
-2023/09/03 15:42:31 Stoploss not Marked yet at this Price: 213.1 NextInvestBuYPrice[ 0  %.8f NaN expecting Loss: -0.013515598430000001
-2023/09/03 15:42:31 Not placing trade for BNBUSDT: Quantity=0.0000, Price=213.10, Total=0.00 does not meet MinNotional=10.00
-2023/09/03 15:42:31 TA Signalled: SeLL: true NextProfitSeLLPrice[ 0 ] NaN at currentPrice: 213.1
-2023/09/03 15:42:31 Stoploss not Marked yet at this Price: 213.1 NextInvestBuYPrice[ 0 ]: %.8f NaN expecting Loss: -0.013515598430000001
-2023/09/03 15:42:31 Not placing trade for BNBUSDT: Quantity=0.0000, Price=213.10, Total=0.00 does not meet MinNotional=10.00
-2023/09/03 15:42:31 TA Signalled: SeLL: true NextProfitSeLLPrice[ 0 ] NaN at currentPrice: 213.9
-2023/09/03 15:42:31 Stoploss not Marked yet at this Price: 213.9 NextInvestBuYPrice[ 0 ]: %.8f NaN expecting Loss: -0.013515598430000001
-2023/09/03 15:42:31 Not placing trade for BNBUSDT: Quantity=0.0000, Price=213.90, Total=0.00 does not meet MinNotional=10.00
-2023/09/03 15:42:31 TA Signalled: SeLL: true NextProfitSeLLPrice[ 0 ] NaN at currentPrice: 213.4
-2023/09/03 15:42:31 Stoploss not Marked yet at this Price: 213.4 NextInvestBuYPrice[ 0 ]: %.8f NaN expecting Loss: -0.013515598430000001
-2023/09/03 15:42:31 Not placing trade for BNBUSDT: Quantity=0.0000, Price=213.40, Total=0.00 does not meet MinNotional=10.00
-2023/09/03 15:51:44 started.................................
-2023/09/03 15:51:44 TA Signalled: BuY: true at currentPrice: 213.2
-2023/09/03 15:51:45 Entry order placed with ID: 2319016 Commission: 0.00000000 CumulativeQuoteQty: 0.00000000 ExecutedPrice: 213.20000000 ExecutedQty: 0.00000000 Status: 
-2023/09/03 15:51:45 - BUY at EntryPrice[0]: 213.20000000, EntryQuant[0]: 0.00000000, QBal: NaN, BBal: 0.00000000, GlobalP&L NaN BuyCommission: 0.00000000 PosPcent: 0.25000000 tsDataPt: 73 mdDataPt: 0 nextProfitSeLLPrice NaN nextInvBuYPrice NaN TargProfit 0.01351560 TargLoss -0.01351560
+2023/09/08 13:56:56 TA Signalled: SeLL, currentPrice: 214.70000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 13:56:56 Stoploss NOT Marked at CurrentPrice: 214.70000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 13:56:56 TA Signalled: SeLL, currentPrice: 214.90000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 13:56:56 Stoploss NOT Marked at CurrentPrice: 214.90000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 13:56:56 TA Signalled: SeLL, currentPrice: 217.20000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 13:56:56 Stoploss NOT Marked at CurrentPrice: 217.20000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 13:56:56 TA Signalled: SeLL, currentPrice: 216.90000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 13:56:56 Stoploss NOT Marked at CurrentPrice: 216.90000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 13:56:56 TA Signalled: SeLL, currentPrice: 217.40000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 13:56:56 Stoploss NOT Marked at CurrentPrice: 217.40000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 13:56:56 TA Signalled: SeLL, currentPrice: 217.30000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 13:56:56 Stoploss NOT Marked at CurrentPrice: 217.30000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 13:56:56 TA Signalled: SeLL, currentPrice: 217.00000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 13:56:56 Stoploss NOT Marked at CurrentPrice: 217.00000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 13:56:56 TA Signalled: SeLL, currentPrice: 217.70000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 13:56:56 Stoploss NOT Marked at CurrentPrice: 217.70000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 13:56:56 TA Signalled: SeLL, currentPrice: 218.20000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 13:56:56 Stoploss NOT Marked at CurrentPrice: 218.20000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:04:42 started.................................
+2023/09/08 14:04:42 TA Signalled: BuY, at currentPrice: 215.00000000
+2023/09/08 14:04:42 Entry order placed with ID: 23211 Commission: 0.00004650 CumulativeQuoteQty: 13.33000000 ExecutedPrice: 215.00000000 ExecutedQty: 0.06200000 Status: 
+2023/09/08 14:04:42 - BUY at EntryPrice[0]: 215.00000000, EntryQuantity[0]: 0.06200000, QBal: 40.73239372, BBal: 0.06195350, BuyCommission: 0.00004650 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 215.37924352 nextInvBuYPrice 214.62075648 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 75, mdDataPt: 0 
 
-2023/09/03 15:51:45 TA Signalled: SeLL: true NextProfitSeLLPrice[ 0 ] NaN at currentPrice: 213.82
-2023/09/03 15:51:45 Stoploss not Marked yet at this Price: 213.82 NextInvestBuYPrice[ 0 ]: %.8f NaN expecting Loss: -0.013515598430000001
-2023/09/03 15:51:45 Not placing trade for BNBUSDT: Quantity=0.0000, Price=213.82, Total=0.00 does not meet MinNotional=10.00
-2023/09/03 15:51:45 TA Signalled: SeLL: true NextProfitSeLLPrice[ 0 ] NaN at currentPrice: 213.1
-2023/09/03 15:51:45 Stoploss not Marked yet at this Price: 213.1 NextInvestBuYPrice[ 0 ]: %.8f NaN expecting Loss: -0.013515598430000001
-2023/09/03 15:51:45 Not placing trade for BNBUSDT: Quantity=0.0000, Price=213.10, Total=0.00 does not meet MinNotional=10.00
-2023/09/03 15:51:45 TA Signalled: SeLL: true NextProfitSeLLPrice[ 0 ] NaN at currentPrice: 213.1
-2023/09/03 15:51:45 Stoploss not Marked yet at this Price: 213.1 NextInvestBuYPrice[ 0 ]: %.8f NaN expecting Loss: -0.013515598430000001
-2023/09/03 15:51:45 Not placing trade for BNBUSDT: Quantity=0.0000, Price=213.10, Total=0.00 does not meet MinNotional=10.00
-2023/09/03 15:51:45 TA Signalled: SeLL: true NextProfitSeLLPrice[ 0 ] NaN at currentPrice: 213.1
-2023/09/03 15:51:45 Stoploss not Marked yet at this Price: 213.1 NextInvestBuYPrice[ 0 ]: %.8f NaN expecting Loss: -0.013515598430000001
-2023/09/03 15:51:45 Not placing trade for BNBUSDT: Quantity=0.0000, Price=213.10, Total=0.00 does not meet MinNotional=10.00
-2023/09/03 15:51:45 TA Signalled: SeLL: true NextProfitSeLLPrice[ 0 ] NaN at currentPrice: 213.9
-2023/09/03 15:51:45 Stoploss not Marked yet at this Price: 213.9 NextInvestBuYPrice[ 0 ]: %.8f NaN expecting Loss: -0.013515598430000001
-2023/09/03 15:51:45 Not placing trade for BNBUSDT: Quantity=0.0000, Price=213.90, Total=0.00 does not meet MinNotional=10.00
-2023/09/03 15:51:45 TA Signalled: SeLL: true NextProfitSeLLPrice[ 0 ] NaN at currentPrice: 213.4
-2023/09/03 15:51:45 Stoploss not Marked yet at this Price: 213.4 NextInvestBuYPrice[ 0 ]: %.8f NaN expecting Loss: -0.013515598430000001
-2023/09/03 15:51:45 Not placing trade for BNBUSDT: Quantity=0.0000, Price=213.40, Total=0.00 does not meet MinNotional=10.00
+2023/09/08 14:04:42 TA Signalled: SeLL, currentPrice: 214.70000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:04:42 Stoploss NOT Marked at CurrentPrice: 214.70000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:04:42 TA Signalled: SeLL, currentPrice: 214.90000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:04:42 Stoploss NOT Marked at CurrentPrice: 214.90000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:04:42 TA Signalled: SeLL, currentPrice: 217.20000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:04:42 Stoploss NOT Marked at CurrentPrice: 217.20000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:04:42 TA Signalled: SeLL, currentPrice: 216.90000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:04:42 Stoploss NOT Marked at CurrentPrice: 216.90000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:04:42 TA Signalled: SeLL, currentPrice: 217.40000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:04:42 Stoploss NOT Marked at CurrentPrice: 217.40000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:04:42 TA Signalled: SeLL, currentPrice: 217.30000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:04:42 Stoploss NOT Marked at CurrentPrice: 217.30000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:04:42 TA Signalled: SeLL, currentPrice: 217.00000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:04:42 Stoploss NOT Marked at CurrentPrice: 217.00000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:04:42 TA Signalled: SeLL, currentPrice: 217.70000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:04:42 Stoploss NOT Marked at CurrentPrice: 217.70000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:04:42 TA Signalled: SeLL, currentPrice: 218.20000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:04:42 Stoploss NOT Marked at CurrentPrice: 218.20000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:06:17 started.................................
+2023/09/08 14:06:17 TA Signalled: BuY, at currentPrice: 215.00000000
+2023/09/08 14:06:17 Entry order placed with ID: 23211 Commission: 0.00004650 CumulativeQuoteQty: 13.33000000 ExecutedPrice: 215.00000000 ExecutedQty: 0.06200000 Status: 
+2023/09/08 14:06:17 - BUY at EntryPrice[0]: 215.00000000, EntryQuantity[0]: 0.06200000, QBal: 40.73239372, BBal: 0.06195350, BuyCommission: 0.00004650 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 215.37924352 nextInvBuYPrice 214.62075648 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 73, mdDataPt: 0 
+
+2023/09/08 14:06:17 TA Signalled: SeLL, currentPrice: 214.70000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:06:17 Stoploss NOT Marked at CurrentPrice: 214.70000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:06:17 TA Signalled: SeLL, currentPrice: 214.90000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:06:17 Stoploss NOT Marked at CurrentPrice: 214.90000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:06:17 TA Signalled: SeLL, currentPrice: 217.20000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:06:17 Stoploss NOT Marked at CurrentPrice: 217.20000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:06:17 TA Signalled: SeLL, currentPrice: 216.90000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:06:17 Stoploss NOT Marked at CurrentPrice: 216.90000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:06:17 TA Signalled: SeLL, currentPrice: 217.40000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:06:17 Stoploss NOT Marked at CurrentPrice: 217.40000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:06:17 TA Signalled: SeLL, currentPrice: 217.30000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:06:17 Stoploss NOT Marked at CurrentPrice: 217.30000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:06:17 TA Signalled: SeLL, currentPrice: 217.00000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:06:17 Stoploss NOT Marked at CurrentPrice: 217.00000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:06:17 TA Signalled: SeLL, currentPrice: 217.70000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:06:17 Stoploss NOT Marked at CurrentPrice: 217.70000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:06:17 TA Signalled: SeLL, currentPrice: 218.20000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:06:17 Stoploss NOT Marked at CurrentPrice: 218.20000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:07:16 started.................................
+2023/09/08 14:07:16 TA Signalled: BuY, at currentPrice: 215.00000000
+2023/09/08 14:07:16 Entry order placed with ID: 23211 Commission: 0.00004650 CumulativeQuoteQty: 13.33000000 ExecutedPrice: 215.00000000 ExecutedQty: 0.06200000 Status: 
+2023/09/08 14:07:16 - BUY at EntryPrice[0]: 215.00000000, EntryQuantity[0]: 0.06200000, QBal: 40.73239372, BBal: 0.06195350, BuyCommission: 0.00004650 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 215.37924352 nextInvBuYPrice 214.62075648 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 72, mdDataPt: 0 
+
+2023/09/08 14:07:16 TA Signalled: SeLL, currentPrice: 214.70000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:07:16 Stoploss NOT Marked at CurrentPrice: 214.70000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:07:16 TA Signalled: SeLL, currentPrice: 214.90000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:07:16 Stoploss NOT Marked at CurrentPrice: 214.90000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:07:16 TA Signalled: SeLL, currentPrice: 217.20000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:07:16 Stoploss NOT Marked at CurrentPrice: 217.20000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:07:16 TA Signalled: SeLL, currentPrice: 216.90000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:07:16 Stoploss NOT Marked at CurrentPrice: 216.90000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:07:16 TA Signalled: SeLL, currentPrice: 217.40000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:07:16 Stoploss NOT Marked at CurrentPrice: 217.40000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:07:16 TA Signalled: SeLL, currentPrice: 217.30000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:07:16 Stoploss NOT Marked at CurrentPrice: 217.30000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:07:16 TA Signalled: SeLL, currentPrice: 217.00000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:07:16 Stoploss NOT Marked at CurrentPrice: 217.00000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:07:16 TA Signalled: SeLL, currentPrice: 217.70000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:07:16 Stoploss NOT Marked at CurrentPrice: 217.70000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:07:16 TA Signalled: SeLL, currentPrice: 218.20000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:07:16 Stoploss NOT Marked at CurrentPrice: 218.20000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:08:25 started.................................
+2023/09/08 14:09:00 started.................................
+2023/09/08 14:10:16 started.................................
+2023/09/08 14:10:16 TA Signalled: BuY, at currentPrice: 214.60000000
+2023/09/08 14:10:16 Entry order placed with ID: 23211 Commission: 0.00004650 CumulativeQuoteQty: 13.30520000 ExecutedPrice: 214.60000000 ExecutedQty: 0.06200000 Status: 
+2023/09/08 14:10:16 - BUY at EntryPrice[0]: 214.60000000, EntryQuantity[0]: 0.06200000, QBal: 40.75719372, BBal: 0.06195350, BuyCommission: 0.00004650 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 214.97894352 nextInvBuYPrice 214.22105648 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 8, mdDataPt: 0 
+
+2023/09/08 14:10:16 TA Signalled: SeLL, currentPrice: 215.00000000, NextProfitSeLLPrice[0]: 214.98894004, Target Profit: 0.01351560
+2023/09/08 14:10:16 Stoploss NOT Marked at CurrentPrice: 215.00000000, of EntryPrice[0]: 214.60000000, NextInvestBuYPrice[0]: 214.21109520 Target StopLoss: -0.01351560
+2023/09/08 14:10:16 TA Signalled: SeLL, currentPrice: 214.70000000, NextProfitSeLLPrice[0]: 214.98894004, Target Profit: 0.01351560
+2023/09/08 14:10:16 Stoploss NOT Marked at CurrentPrice: 214.70000000, of EntryPrice[0]: 214.60000000, NextInvestBuYPrice[0]: 214.21109520 Target StopLoss: -0.01351560
+2023/09/08 14:10:16 TA Signalled: SeLL, currentPrice: 214.90000000, NextProfitSeLLPrice[0]: 214.98894004, Target Profit: 0.01351560
+2023/09/08 14:10:16 Stoploss NOT Marked at CurrentPrice: 214.90000000, of EntryPrice[0]: 214.60000000, NextInvestBuYPrice[0]: 214.21109520 Target StopLoss: -0.01351560
+2023/09/08 14:10:16 TA Signalled: SeLL, currentPrice: 217.20000000, NextProfitSeLLPrice[0]: 214.98894004, Target Profit: 0.01351560
+2023/09/08 14:10:16 Stoploss NOT Marked at CurrentPrice: 217.20000000, of EntryPrice[0]: 214.60000000, NextInvestBuYPrice[0]: 214.21109520 Target StopLoss: -0.01351560
+2023/09/08 14:10:16 TA Signalled: SeLL, currentPrice: 216.90000000, NextProfitSeLLPrice[0]: 214.98894004, Target Profit: 0.01351560
+2023/09/08 14:10:16 Stoploss NOT Marked at CurrentPrice: 216.90000000, of EntryPrice[0]: 214.60000000, NextInvestBuYPrice[0]: 214.21109520 Target StopLoss: -0.01351560
+2023/09/08 14:10:16 TA Signalled: SeLL, currentPrice: 217.40000000, NextProfitSeLLPrice[0]: 214.98894004, Target Profit: 0.01351560
+2023/09/08 14:10:16 Stoploss NOT Marked at CurrentPrice: 217.40000000, of EntryPrice[0]: 214.60000000, NextInvestBuYPrice[0]: 214.21109520 Target StopLoss: -0.01351560
+2023/09/08 14:10:16 TA Signalled: SeLL, currentPrice: 217.30000000, NextProfitSeLLPrice[0]: 214.98894004, Target Profit: 0.01351560
+2023/09/08 14:10:16 Stoploss NOT Marked at CurrentPrice: 217.30000000, of EntryPrice[0]: 214.60000000, NextInvestBuYPrice[0]: 214.21109520 Target StopLoss: -0.01351560
+2023/09/08 14:10:16 TA Signalled: SeLL, currentPrice: 217.00000000, NextProfitSeLLPrice[0]: 214.98894004, Target Profit: 0.01351560
+2023/09/08 14:10:16 Stoploss NOT Marked at CurrentPrice: 217.00000000, of EntryPrice[0]: 214.60000000, NextInvestBuYPrice[0]: 214.21109520 Target StopLoss: -0.01351560
+2023/09/08 14:10:16 TA Signalled: SeLL, currentPrice: 217.70000000, NextProfitSeLLPrice[0]: 214.98894004, Target Profit: 0.01351560
+2023/09/08 14:10:16 Stoploss NOT Marked at CurrentPrice: 217.70000000, of EntryPrice[0]: 214.60000000, NextInvestBuYPrice[0]: 214.21109520 Target StopLoss: -0.01351560
+2023/09/08 14:10:16 TA Signalled: SeLL, currentPrice: 218.20000000, NextProfitSeLLPrice[0]: 214.98894004, Target Profit: 0.01351560
+2023/09/08 14:10:16 Stoploss NOT Marked at CurrentPrice: 218.20000000, of EntryPrice[0]: 214.60000000, NextInvestBuYPrice[0]: 214.21109520 Target StopLoss: -0.01351560
+2023/09/08 14:12:09 started.................................
+2023/09/08 14:12:09 TA Signalled: BuY, at currentPrice: 215.00000000
+2023/09/08 14:12:09 Entry order placed with ID: 23211 Commission: 0.00004650 CumulativeQuoteQty: 13.33000000 ExecutedPrice: 215.00000000 ExecutedQty: 0.06200000 Status: 
+2023/09/08 14:12:09 - BUY at EntryPrice[0]: 215.00000000, EntryQuantity[0]: 0.06200000, QBal: 40.73239372, BBal: 0.06195350, BuyCommission: 0.00004650 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 215.37924352 nextInvBuYPrice 214.62075648 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 67, mdDataPt: 0 
+
+2023/09/08 14:12:09 TA Signalled: SeLL, currentPrice: 214.70000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:12:09 Stoploss NOT Marked at CurrentPrice: 214.70000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:12:09 TA Signalled: SeLL, currentPrice: 214.90000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:12:09 Stoploss NOT Marked at CurrentPrice: 214.90000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:12:09 TA Signalled: SeLL, currentPrice: 217.20000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:12:09 Stoploss NOT Marked at CurrentPrice: 217.20000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:12:09 TA Signalled: SeLL, currentPrice: 216.90000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:12:09 Stoploss NOT Marked at CurrentPrice: 216.90000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:12:09 TA Signalled: SeLL, currentPrice: 217.40000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:12:09 Stoploss NOT Marked at CurrentPrice: 217.40000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:12:09 TA Signalled: SeLL, currentPrice: 217.30000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:12:09 Stoploss NOT Marked at CurrentPrice: 217.30000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:12:09 TA Signalled: SeLL, currentPrice: 217.00000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:12:09 Stoploss NOT Marked at CurrentPrice: 217.00000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:12:09 TA Signalled: SeLL, currentPrice: 217.70000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:12:09 Stoploss NOT Marked at CurrentPrice: 217.70000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 14:12:09 TA Signalled: SeLL, currentPrice: 218.20000000, NextProfitSeLLPrice[0]: 215.38925866, Target Profit: 0.01351560
+2023/09/08 14:12:09 Stoploss NOT Marked at CurrentPrice: 218.20000000, of EntryPrice[0]: 215.00000000, NextInvestBuYPrice[0]: 214.61077661 Target StopLoss: -0.01351560
+2023/09/08 15:47:37 started.................................
+2023/09/08 15:47:37 TA Signalled: BuY, at currentPrice: 216.90000000
+2023/09/08 15:47:37 Entry order placed with ID: 23211 Commission: 0.00004650 CumulativeQuoteQty: 13.44780000 ExecutedPrice: 216.90000000 ExecutedQty: 0.06200000 Status: 
+2023/09/08 15:47:37 - BUY at EntryPrice[0]: 216.90000000, EntryQuantity[0]: 0.06200000, QBal: 40.61459372, BBal: 0.06195350, BuyCommission: 0.00004650 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 217.28066852 nextInvBuYPrice 216.51933148 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 272, mdDataPt: 0 
+
+2023/09/08 15:47:37 TA Signalled: SeLL, currentPrice: 217.00000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 15:47:37 Stoploss NOT Marked at CurrentPrice: 217.00000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 15:47:37 TA Signalled: SeLL, currentPrice: 217.70000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 15:47:37 Stoploss NOT Marked at CurrentPrice: 217.70000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 15:47:37 TA Signalled: SeLL, currentPrice: 218.20000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 15:47:37 Stoploss NOT Marked at CurrentPrice: 218.20000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 18:50:44 started.................................
+2023/09/08 18:50:44 TA Signalled: BuY, at currentPrice: 216.90000000
+2023/09/08 18:50:44 Entry order placed with ID: 23211 Commission: 0.00004650 CumulativeQuoteQty: 13.44780000 ExecutedPrice: 216.90000000 ExecutedQty: 0.06200000 Status: 
+2023/09/08 18:50:44 - BUY at EntryPrice[0]: 216.90000000, EntryQuantity[0]: 0.06200000, QBal: 40.61459372, BBal: 0.06195350, BuyCommission: 0.00004650 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 217.28066852 nextInvBuYPrice 216.51933148 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 89, mdDataPt: 0 
+
+2023/09/08 18:50:44 TA Signalled: SeLL, currentPrice: 217.00000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 18:50:44 Stoploss NOT Marked at CurrentPrice: 217.00000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 18:50:44 TA Signalled: SeLL, currentPrice: 217.70000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 18:50:44 Stoploss NOT Marked at CurrentPrice: 217.70000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 18:50:44 TA Signalled: SeLL, currentPrice: 218.20000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 18:50:44 Stoploss NOT Marked at CurrentPrice: 218.20000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 18:50:44 TA Signalled: SeLL, currentPrice: 217.20000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 18:50:44 Stoploss NOT Marked at CurrentPrice: 217.20000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 18:50:44 TA Signalled: SeLL, currentPrice: 217.50000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 18:50:44 Stoploss NOT Marked at CurrentPrice: 217.50000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 18:50:44 TA Signalled: SeLL, currentPrice: 217.60000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 18:50:44 Stoploss NOT Marked at CurrentPrice: 217.60000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 18:50:44 TA Signalled: SeLL, currentPrice: 217.80000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 18:50:44 Stoploss NOT Marked at CurrentPrice: 217.80000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:01:31 started.................................
+2023/09/08 19:01:31 TA Signalled: BuY, at currentPrice: 216.90000000
+2023/09/08 19:01:31 Entry order placed with ID: 23211 Commission: 0.00004650 CumulativeQuoteQty: 13.44780000 ExecutedPrice: 216.90000000 ExecutedQty: 0.06200000 Status: 
+2023/09/08 19:01:31 - BUY at EntryPrice[0]: 216.90000000, EntryQuantity[0]: 0.06200000, QBal: 40.61459372, BBal: 0.06195350, BuyCommission: 0.00004650 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 217.28066852 nextInvBuYPrice 216.51933148 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 78, mdDataPt: 0 
+
+2023/09/08 19:01:31 TA Signalled: SeLL, currentPrice: 217.00000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:01:31 Stoploss NOT Marked at CurrentPrice: 217.00000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:01:31 TA Signalled: SeLL, currentPrice: 217.70000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:01:31 Stoploss NOT Marked at CurrentPrice: 217.70000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:01:31 TA Signalled: SeLL, currentPrice: 218.20000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:01:31 Stoploss NOT Marked at CurrentPrice: 218.20000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:01:31 TA Signalled: SeLL, currentPrice: 217.20000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:01:31 Stoploss NOT Marked at CurrentPrice: 217.20000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:01:31 TA Signalled: SeLL, currentPrice: 217.50000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:01:31 Stoploss NOT Marked at CurrentPrice: 217.50000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:01:31 TA Signalled: SeLL, currentPrice: 217.60000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:01:31 Stoploss NOT Marked at CurrentPrice: 217.60000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:01:31 TA Signalled: SeLL, currentPrice: 217.80000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:01:31 Stoploss NOT Marked at CurrentPrice: 217.80000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:04:06 started.................................
+2023/09/08 19:04:06 TA Signalled: BuY, at currentPrice: 216.90000000
+2023/09/08 19:04:06 Entry order placed with ID: 23211 Commission: 0.00004650 CumulativeQuoteQty: 13.44780000 ExecutedPrice: 216.90000000 ExecutedQty: 0.06200000 Status: 
+2023/09/08 19:04:06 - BUY at EntryPrice[0]: 216.90000000, EntryQuantity[0]: 0.06200000, QBal: 40.61459372, BBal: 0.06195350, BuyCommission: 0.00004650 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 217.28066852 nextInvBuYPrice 216.51933148 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 75, mdDataPt: 0 
+
+2023/09/08 19:04:06 TA Signalled: SeLL, currentPrice: 217.00000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:04:06 Stoploss NOT Marked at CurrentPrice: 217.00000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:04:06 TA Signalled: SeLL, currentPrice: 217.70000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:04:06 Stoploss NOT Marked at CurrentPrice: 217.70000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:04:06 TA Signalled: SeLL, currentPrice: 218.20000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:04:06 Stoploss NOT Marked at CurrentPrice: 218.20000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:04:06 TA Signalled: SeLL, currentPrice: 217.20000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:04:06 Stoploss NOT Marked at CurrentPrice: 217.20000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:04:06 TA Signalled: SeLL, currentPrice: 217.50000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:04:06 Stoploss NOT Marked at CurrentPrice: 217.50000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:04:06 TA Signalled: SeLL, currentPrice: 217.60000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:04:06 Stoploss NOT Marked at CurrentPrice: 217.60000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 19:04:06 TA Signalled: SeLL, currentPrice: 217.80000000, NextProfitSeLLPrice[0]: 217.29077207, Target Profit: 0.01351560
+2023/09/08 19:04:06 Stoploss NOT Marked at CurrentPrice: 217.80000000, of EntryPrice[0]: 216.90000000, NextInvestBuYPrice[0]: 216.50926333 Target StopLoss: -0.01351560
+2023/09/08 21:11:24 started.................................
+2023/09/08 21:11:24 TA Signalled: BuY, at currentPrice: 217.40000000
+2023/09/08 21:11:24 Entry order placed with ID: 23211 Commission: 0.00004650 CumulativeQuoteQty: 13.47880000 ExecutedPrice: 217.40000000 ExecutedQty: 0.06200000 Status: 
+2023/09/08 21:11:24 - BUY at EntryPrice[0]: 217.40000000, EntryQuantity[0]: 0.06200000, QBal: 40.58359372, BBal: 0.06195350, BuyCommission: 0.00004650 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 217.78104352 nextInvBuYPrice 217.01895648 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 99, mdDataPt: 0 
+
+2023/09/08 21:11:24 TA Signalled: SeLL, currentPrice: 217.20000000, NextProfitSeLLPrice[0]: 217.79117034, Target Profit: 0.01351560
+2023/09/08 21:11:24 Stoploss NOT Marked at CurrentPrice: 217.20000000, of EntryPrice[0]: 217.40000000, NextInvestBuYPrice[0]: 217.00886510 Target StopLoss: -0.01351560
+2023/09/08 21:11:24 TA Signalled: SeLL, currentPrice: 217.50000000, NextProfitSeLLPrice[0]: 217.79117034, Target Profit: 0.01351560
+2023/09/08 21:11:24 Stoploss NOT Marked at CurrentPrice: 217.50000000, of EntryPrice[0]: 217.40000000, NextInvestBuYPrice[0]: 217.00886510 Target StopLoss: -0.01351560
+2023/09/08 21:11:24 TA Signalled: SeLL, currentPrice: 217.60000000, NextProfitSeLLPrice[0]: 217.79117034, Target Profit: 0.01351560
+2023/09/08 21:11:24 Stoploss NOT Marked at CurrentPrice: 217.60000000, of EntryPrice[0]: 217.40000000, NextInvestBuYPrice[0]: 217.00886510 Target StopLoss: -0.01351560
+2023/09/08 21:11:24 TA Signalled: SeLL, currentPrice: 217.80000000, NextProfitSeLLPrice[0]: 217.79117034, Target Profit: 0.01351560
+2023/09/08 21:11:24 Stoploss NOT Marked at CurrentPrice: 217.80000000, of EntryPrice[0]: 217.40000000, NextInvestBuYPrice[0]: 217.00886510 Target StopLoss: -0.01351560
+2023/09/08 21:11:24 TA Signalled: SeLL, currentPrice: 216.90000000, NextProfitSeLLPrice[0]: 217.79117034, Target Profit: 0.01351560
+2023/09/08 21:11:24 Stoploss Marked!!! at CurrentPrice: 216.90000000, of EntryPrice[0]: 217.40000000, NextInvestBuYPrice[0]: 217.00886510 Target StopLoss: -0.01351560
+2023/09/08 21:11:24 TA Signalled: SeLL, currentPrice: 217.00000000, NextProfitSeLLPrice[0]: 217.79117034, Target Profit: 0.01351560
+2023/09/08 21:21:42 started.................................
+2023/09/08 21:21:42 TA Signalled: BuY, at currentPrice: 217.40000000
+2023/09/08 21:21:42 Entry order placed with ID: 23211 Commission: 0.00004650 CumulativeQuoteQty: 13.47880000 ExecutedPrice: 217.40000000 ExecutedQty: 0.06200000 Status: 
+2023/09/08 21:21:42 - BUY at EntryPrice[0]: 217.40000000, EntryQuantity[0]: 0.06200000, QBal: 40.58359372, BBal: 0.06195350, BuyCommission: 0.00004650 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 217.78104352 nextInvBuYPrice 217.01895648 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 89, mdDataPt: 0 
+
+2023/09/08 21:21:42 TA Signalled: SeLL, currentPrice: 217.20000000, NextProfitSeLLPrice[0]: 217.79117034, Target Profit: 0.01351560
+2023/09/08 21:21:42 Stoploss NOT Marked at CurrentPrice: 217.20000000, of EntryPrice[0]: 217.40000000, NextInvestBuYPrice[0]: 217.00886510 Target StopLoss: -0.01351560
+2023/09/08 21:21:42 TA Signalled: SeLL, currentPrice: 217.50000000, NextProfitSeLLPrice[0]: 217.79117034, Target Profit: 0.01351560
+2023/09/08 21:21:42 Stoploss NOT Marked at CurrentPrice: 217.50000000, of EntryPrice[0]: 217.40000000, NextInvestBuYPrice[0]: 217.00886510 Target StopLoss: -0.01351560
+2023/09/08 21:21:42 TA Signalled: SeLL, currentPrice: 217.60000000, NextProfitSeLLPrice[0]: 217.79117034, Target Profit: 0.01351560
+2023/09/08 21:21:42 Stoploss NOT Marked at CurrentPrice: 217.60000000, of EntryPrice[0]: 217.40000000, NextInvestBuYPrice[0]: 217.00886510 Target StopLoss: -0.01351560
+2023/09/08 21:21:42 TA Signalled: SeLL, currentPrice: 217.80000000, NextProfitSeLLPrice[0]: 217.79117034, Target Profit: 0.01351560
+2023/09/08 21:21:42 Stoploss NOT Marked at CurrentPrice: 217.80000000, of EntryPrice[0]: 217.40000000, NextInvestBuYPrice[0]: 217.00886510 Target StopLoss: -0.01351560
+2023/09/08 21:21:42 TA Signalled: SeLL, currentPrice: 216.90000000, NextProfitSeLLPrice[0]: 217.79117034, Target Profit: 0.01351560
+2023/09/08 21:21:42 Stoploss Marked!!! at CurrentPrice: 216.90000000, of EntryPrice[0]: 217.40000000, NextInvestBuYPrice[0]: 217.00886510 Target StopLoss: -0.01351560
+2023/09/08 21:21:42 TA Signalled: SeLL, currentPrice: 217.00000000, NextProfitSeLLPrice[0]: 217.79117034, Target Profit: 0.01351560
+2023/09/08 21:21:42 TA Signalled: SeLL, currentPrice: 217.00000000, NextProfitSeLLPrice[0]: 217.79117034, Target Profit: 0.01351560
+2023/09/09 08:55:45 started.................................
+2023/09/09 08:55:45 TA Signalled: BuY, at currentPrice: 214.00000000
+2023/09/09 08:55:45 Entry order placed with ID: 23211 Commission: 0.00004725 CumulativeQuoteQty: 13.48200000 ExecutedPrice: 214.00000000 ExecutedQty: 0.06300000 Status: 
+2023/09/09 08:55:45 - BUY at EntryPrice[0]: 214.00000000, EntryQuantity[0]: 0.06300000, QBal: 40.58039372, BBal: 0.06295275, BuyCommission: 0.00004725 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 214.37503331 nextInvBuYPrice 213.62496669 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 384, mdDataPt: 0 
+
+2023/09/09 08:55:45 TA Signalled: SeLL, currentPrice: 214.20000000, NextProfitSeLLPrice[0]: 214.38516253, Target Profit: 0.01351560
+2023/09/09 08:55:45 Stoploss NOT Marked at CurrentPrice: 214.20000000, of EntryPrice[0]: 214.00000000, NextInvestBuYPrice[0]: 213.61487291 Target StopLoss: -0.01351560
+2023/09/09 09:07:00 started.................................
+2023/09/09 09:07:00 TA Signalled: BuY, at currentPrice: 214.00000000
+2023/09/09 09:07:00 Entry order placed with ID: 23211 Commission: 0.00004725 CumulativeQuoteQty: 13.48200000 ExecutedPrice: 214.00000000 ExecutedQty: 0.06300000 Status: 
+2023/09/09 09:07:00 - BUY at EntryPrice[0]: 214.00000000, EntryQuantity[0]: 0.06300000, QBal: 40.58039372, BBal: 0.06295275, BuyCommission: 0.00004725 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 214.37503331 nextInvBuYPrice 213.62496669 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 373, mdDataPt: 0 
+
+2023/09/09 09:07:00 TA Signalled: SeLL, currentPrice: 214.20000000, NextProfitSeLLPrice[0]: 214.38516253, Target Profit: 0.01351560
+2023/09/09 09:07:00 Stoploss NOT Marked at CurrentPrice: 214.20000000, of EntryPrice[0]: 214.00000000, NextInvestBuYPrice[0]: 213.61487291 Target StopLoss: -0.01351560
+2023/09/09 09:10:58 started.................................
+2023/09/09 09:10:58 TA Signalled: BuY, at currentPrice: 214.00000000
+2023/09/09 09:10:58 Entry order placed with ID: 23211 Commission: 0.00004725 CumulativeQuoteQty: 13.48200000 ExecutedPrice: 214.00000000 ExecutedQty: 0.06300000 Status: 
+2023/09/09 09:10:58 - BUY at EntryPrice[0]: 214.00000000, EntryQuantity[0]: 0.06300000, QBal: 40.58039372, BBal: 0.06295275, BuyCommission: 0.00004725 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 214.37503331 nextInvBuYPrice 213.62496669 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 369, mdDataPt: 0 
+
+2023/09/09 09:10:58 TA Signalled: SeLL, currentPrice: 214.20000000, NextProfitSeLLPrice[0]: 214.38516253, Target Profit: 0.01351560
+2023/09/09 09:10:58 Stoploss NOT Marked at CurrentPrice: 214.20000000, of EntryPrice[0]: 214.00000000, NextInvestBuYPrice[0]: 213.61487291 Target StopLoss: -0.01351560
+2023/09/09 09:37:13 started.................................
+2023/09/09 09:38:52 started.................................
+2023/09/09 09:52:21 started.................................
+2023/09/09 10:32:06 started.................................
+2023/09/09 11:11:32 started.................................
+2023/09/09 11:35:39 TA Signalled: BuY, at currentPrice: 214.00000000
+2023/09/09 11:35:39 Entry order placed with ID: 23211 Commission: 0.00004725 CumulativeQuoteQty: 13.48200000 ExecutedPrice: 214.00000000 ExecutedQty: 0.06300000 Status: 
+2023/09/09 11:35:39 - BUY at EntryPrice[0]: 214.00000000, EntryQuantity[0]: 0.06300000, QBal: 40.58039372, BBal: 0.06295275, BuyCommission: 0.00004725 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 214.37503331 nextInvBuYPrice 213.62496669 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 248, mdDataPt: 0 
+
+2023/09/09 11:43:04 TA Signalled: SeLL, currentPrice: 214.20000000, NextProfitSeLLPrice[0]: 214.38516253, Target Profit: 0.01351560
+2023/09/09 11:43:04 Stoploss NOT Marked at CurrentPrice: 214.20000000, of EntryPrice[0]: 214.00000000, NextInvestBuYPrice[0]: 213.61487291 Target StopLoss: -0.01351560
+2023/09/09 11:50:22 TA Signalled: SeLL, currentPrice: 214.30000000, NextProfitSeLLPrice[0]: 214.38516253, Target Profit: 0.01351560
+2023/09/09 11:50:22 Stoploss NOT Marked at CurrentPrice: 214.30000000, of EntryPrice[0]: 214.00000000, NextInvestBuYPrice[0]: 213.61487291 Target StopLoss: -0.01351560
+2023/09/09 11:56:23 TA Signalled: SeLL, currentPrice: 214.40000000, NextProfitSeLLPrice[0]: 214.38516253, Target Profit: 0.01351560
+2023/09/09 11:56:23 Stoploss NOT Marked at CurrentPrice: 214.40000000, of EntryPrice[0]: 214.00000000, NextInvestBuYPrice[0]: 213.61487291 Target StopLoss: -0.01351560
+2023/09/09 11:59:29 TA Signalled: SeLL, currentPrice: 214.40000000, NextProfitSeLLPrice[0]: 214.38516253, Target Profit: 0.01351560
+2023/09/09 11:59:29 Stoploss NOT Marked at CurrentPrice: 214.40000000, of EntryPrice[0]: 214.00000000, NextInvestBuYPrice[0]: 213.61487291 Target StopLoss: -0.01351560
+2023/09/09 12:20:02 started.................................
+2023/09/09 13:12:26 started.................................
+2023/09/09 13:19:44 started.................................
+2023/09/09 13:20:06 started.................................
+2023/09/09 13:21:25 started.................................
+2023/09/09 13:31:25 started.................................
+2023/09/09 13:35:36 started.................................
+2023/09/09 13:45:42 TA Signalled: BuY, at currentPrice: 214.00000000
+2023/09/09 13:45:42 Entry order placed with ID: 23211 Commission: 0.00004725 CumulativeQuoteQty: 13.48200000 ExecutedPrice: 214.00000000 ExecutedQty: 0.06300000 Status: 
+2023/09/09 13:45:42 - BUY at EntryPrice[0]: 214.00000000, EntryQuantity[0]: 0.06300000, QBal: 40.58039372, BBal: 0.06295275, BuyCommission: 0.00004725 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 214.37503331 nextInvBuYPrice 213.62496669 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 104, mdDataPt: 0 
+
+2023/09/09 13:53:04 TA Signalled: SeLL, currentPrice: 214.20000000, NextProfitSeLLPrice[0]: 214.38516253, Target Profit: 0.01351560
+2023/09/09 13:53:04 Stoploss NOT Marked at CurrentPrice: 214.20000000, of EntryPrice[0]: 214.00000000, NextInvestBuYPrice[0]: 213.61487291 Target StopLoss: -0.01351560
+2023/09/09 13:57:40 started.................................
+2023/09/09 14:04:03 started.................................
+2023/09/09 14:11:19 TA Signalled: BuY, at currentPrice: 214.00000000
+2023/09/09 14:11:19 Entry order placed with ID: 23211 Commission: 0.00004725 CumulativeQuoteQty: 13.48200000 ExecutedPrice: 214.00000000 ExecutedQty: 0.06300000 Status: 
+2023/09/09 14:11:19 - BUY at EntryPrice[0]: 214.00000000, EntryQuantity[0]: 0.06300000, QBal: 40.58039372, BBal: 0.06295275, BuyCommission: 0.00004725 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 214.37503331 nextInvBuYPrice 213.62496669 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 75, mdDataPt: 0 
+
+2023/09/09 14:12:22 started.................................
+2023/09/09 14:15:44 started.................................
+2023/09/09 14:17:51 started.................................
+2023/09/09 14:18:44 TA Signalled: BuY, at currentPrice: 213.90000000
+2023/09/09 14:18:44 Entry order placed with ID: 23211 Commission: 0.00004725 CumulativeQuoteQty: 13.47570000 ExecutedPrice: 213.90000000 ExecutedQty: 0.06300000 Status: 
+2023/09/09 14:18:44 - BUY at EntryPrice[0]: 213.90000000, EntryQuantity[0]: 0.06300000, QBal: 40.58669372, BBal: 0.06295275, BuyCommission: 0.00004725 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 214.27495831 nextInvBuYPrice 213.52504169 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 9, mdDataPt: 0 
+
+2023/09/09 14:19:18 started.................................
+2023/09/09 14:25:07 TA Signalled: BuY, at currentPrice: 214.00000000
+2023/09/09 14:25:07 Entry order placed with ID: 23211 Commission: 0.00004725 CumulativeQuoteQty: 13.48200000 ExecutedPrice: 214.00000000 ExecutedQty: 0.06300000 Status: 
+2023/09/09 14:25:07 - BUY at EntryPrice[0]: 214.00000000, EntryQuantity[0]: 0.06300000, QBal: 40.58039372, BBal: 0.06295275, BuyCommission: 0.00004725 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 214.37503331 nextInvBuYPrice 213.62496669 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 60, mdDataPt: 0 
+
+2023/09/09 14:28:34 started.................................
+2023/09/09 14:33:31 TA Signalled: BuY, at currentPrice: 214.00000000
+2023/09/09 14:33:31 Entry order placed with ID: 23211 Commission: 0.00004725 CumulativeQuoteQty: 13.48200000 ExecutedPrice: 214.00000000 ExecutedQty: 0.06300000 Status: 
+2023/09/09 14:33:31 - BUY at EntryPrice[0]: 214.00000000, EntryQuantity[0]: 0.06300000, QBal: 40.58039372, BBal: 0.06295275, BuyCommission: 0.00004725 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 214.37503331 nextInvBuYPrice 213.62496669 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 51, mdDataPt: 0 
+
+2023/09/09 14:38:50 started.................................
+2023/09/09 14:41:19 started.................................
+2023/09/09 14:43:58 started.................................
+2023/09/09 14:44:54 started.................................
+2023/09/09 14:46:46 started.................................
+2023/09/09 14:49:59 TA Signalled: BuY, at currentPrice: 214.00000000
+2023/09/09 14:49:59 Entry order placed with ID: 23211 Commission: 0.00004725 CumulativeQuoteQty: 13.48200000 ExecutedPrice: 214.00000000 ExecutedQty: 0.06300000 Status: 
+2023/09/09 14:49:59 - BUY at EntryPrice[0]: 214.00000000, EntryQuantity[0]: 0.06300000, QBal: 40.58039372, BBal: 0.06295275, BuyCommission: 0.00004725 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 214.37503331 nextInvBuYPrice 213.62496669 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 33, mdDataPt: 0 
+
+2023/09/09 14:50:14 started.................................
+2023/09/09 14:52:45 TA Signalled: BuY, at currentPrice: 214.00000000
+2023/09/09 14:52:45 Entry order placed with ID: 23211 Commission: 0.00004725 CumulativeQuoteQty: 13.48200000 ExecutedPrice: 214.00000000 ExecutedQty: 0.06300000 Status: 
+2023/09/09 14:52:45 - BUY at EntryPrice[0]: 214.00000000, EntryQuantity[0]: 0.06300000, QBal: 40.58039372, BBal: 0.06295275, BuyCommission: 0.00004725 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 214.37503331 nextInvBuYPrice 213.62496669 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 26, mdDataPt: 0 
+
+2023/09/09 15:00:26 TA Signalled: SeLL, currentPrice: 214.20000000, NextProfitSeLLPrice[0]: 214.38516253, Target Profit: 0.01351560
+2023/09/09 15:00:26 Stoploss NOT Marked at CurrentPrice: 214.20000000, of EntryPrice[0]: 214.00000000, NextInvestBuYPrice[0]: 213.61487291 Target StopLoss: -0.01351560
+2023/09/09 15:07:43 TA Signalled: SeLL, currentPrice: 214.30000000, NextProfitSeLLPrice[0]: 214.38516253, Target Profit: 0.01351560
+2023/09/09 15:07:43 Stoploss NOT Marked at CurrentPrice: 214.30000000, of EntryPrice[0]: 214.00000000, NextInvestBuYPrice[0]: 213.61487291 Target StopLoss: -0.01351560
+2023/09/09 15:08:54 started.................................
+2023/09/09 15:14:33 TA Signalled: BuY, at currentPrice: 214.00000000
+2023/09/09 15:14:33 Entry order placed with ID: 23211 Commission: 0.00004725 CumulativeQuoteQty: 13.48200000 ExecutedPrice: 214.00000000 ExecutedQty: 0.06300000 Status: 
+2023/09/09 15:14:33 - BUY at EntryPrice[0]: 214.00000000, EntryQuantity[0]: 0.06300000, QBal: 40.58039372, BBal: 0.06295275, BuyCommission: 0.00004725 PosPcent: 0.25000000, 
+GlobalP&L -0.01, nextProfitSeLLPrice 214.37503331 nextInvBuYPrice 213.62496669 TargProfit 0.01351560 TargLoss -0.01351560, tsDataPt: 11, mdDataPt: 0 
+
+2023/09/09 15:25:45 started.................................
+2023/09/09 15:31:23 started.................................
+2023/09/09 16:05:11 started.................................
+2023/09/09 16:20:51 started.................................
+2023/09/09 16:25:08 started.................................
+2023/09/09 16:38:13 started.................................
+2023/09/09 16:47:41 started.................................
+2023/09/09 17:50:35 started.................................
+2023/09/09 18:25:24 started.................................
+2023/09/09 18:48:23 started.................................

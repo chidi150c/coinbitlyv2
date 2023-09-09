@@ -27,7 +27,7 @@ type SocketService struct {
 }
 
 // parseTemplate applies a given file to the body of the base template.
-func NewSocketService(HostSite string) *SocketService {
+func NewSocketService(HostSite string) SocketService {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -38,7 +38,7 @@ func NewSocketService(HostSite string) *SocketService {
 			return true 
 		},
 	}
-	return &SocketService{
+	return SocketService{
 		Upgrader: upgrader,
 	}
 }
@@ -48,7 +48,7 @@ func NewSocketService(HostSite string) *SocketService {
 type TradeHandler struct {
 	mux              *chi.Mux
 	RESTAPI *webclient.WebService
-	WebSocket *SocketService
+	WebSocket SocketService
 	HostSite string
 	ts *strategies.TradingSystem
 }
@@ -62,8 +62,9 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string) TradeHandler
 		HostSite:  os.Getenv("HOSTSITE"),
 		ts: ts,
 	}
-	h.mux.Get("/", h.indexHandler)
 	h.mux.Get("/ImageReceiver/ws", h.ImageReceiverHandler)
+	h.mux.Get("/FeedsTradingSystem/ws", h.realTimeTradingSystemFeed)
+	h.mux.Get("/FeedsAppData/ws", h.realTimeAppDataFeed)
 	h.mux.Get("/margins/ws", h.realTimeChartHandler)//this.socket = new WebSocket.w3cwebsocket("ws://localhost:35260/ImageReceiver/ws");
 	return h
 }
@@ -82,32 +83,64 @@ func (h TradeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h TradeHandler) indexHandler(w http.ResponseWriter, r *http.Request) {
-	// Replace the following with your actual logic
-	// You might need to fetch data, populate the template, and execute it using your webclient
-	// Here, we're using dummy data for illustration purposes
-	data := struct {
-		Message string
-	}{
-		Message: "Welcome to the index page",
-	}
-
-	usr := struct{}{} // Placeholder for user data
-	msg := struct{}{} // Placeholder for messages
-	code := model.ErrInternal // Placeholder for error code
-
-	err := h.RESTAPI.Execute(w, r, data, usr, msg, code)
+func (h TradeHandler)realTimeAppDataFeed(w http.ResponseWriter, r *http.Request){
+	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		// Handle error if needed
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, "Failed to upgrade connection to WebSocket", http.StatusInternalServerError)
+		log.Println("realTimeAppDataFeed: WebSocket upgrade error:", err)
+		return
 	}
+	// log.Println("realTimeAppDataFeed: WebSocket Connected!!!")
+	defer conn.Close()
+	var AppDataJSON []byte
+	Loop:
+	for {
+		select{
+		case AppDataJSON = <-h.ts.ADataChan:
+			// Send the JSON data to the WebSocket client			
+			if err = conn.WriteMessage(websocket.TextMessage, AppDataJSON); err != nil {
+				log.Println("realTimeAppDataFeed1: WebSocket write error:", err)
+				break Loop
+			}
+		}
+	}
+	log.Println("realTimeAppDataFeed: going away!!!")
+	return
 }
-
+func (h TradeHandler)realTimeTradingSystemFeed(w http.ResponseWriter, r *http.Request){
+	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		http.Error(w, "Failed to upgrade connection to WebSocket", http.StatusInternalServerError)
+		log.Println("realTimeTradingSystemFeed: WebSocket upgrade error:", err)
+		return
+	}
+	// log.Println("realTimeTradingSystemFeed: WebSocket Connected!!!")
+	defer conn.Close()
+	var tradingSystemJSON []byte
+	Loop:
+	for {
+        // _, _, err := conn.ReadMessage()
+        // if err != nil {
+        //     log.Println( "WebSocket read error:", err)
+        //     break Loop
+        // }
+		select{
+		case tradingSystemJSON = <-h.ts.TSDataChan:
+			// Send the JSON data to the WebSocket client			
+			if err = conn.WriteMessage(websocket.TextMessage, tradingSystemJSON); err != nil {
+				log.Println("realTimeTradingSystemFeed1: WebSocket write error:", err)
+				break Loop
+			}
+		}
+	}
+	log.Println("realTimeTradingSystemFeed: going away!!!")
+	return
+}
 func (h TradeHandler) realTimeChartHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, "Failed to upgrade connection to WebSocket", http.StatusInternalServerError)
-		log.Println("WebSocket upgrade error:", err)
+		log.Println("realTimeChartHandler: WebSocket upgrade error:", err)
 		return
 	}
 	defer conn.Close()
@@ -133,10 +166,10 @@ func (h TradeHandler) realTimeChartHandler(w http.ResponseWriter, r *http.Reques
 		}
 		if data.ClosingPrices > 110.0 {
 			data.Signals = "Sell"
-		}
-		err := conn.WriteJSON(data)
-		if err != nil {
-			log.Println("WebSocket write error:", err)
+		}		
+
+		if err := conn.WriteJSON(data); err != nil {
+			log.Println("realTimeChartHandler: WebSocket write error:", err)
 			break
 		}
 
@@ -149,7 +182,7 @@ func (h TradeHandler) ImageReceiverHandler(w http.ResponseWriter, r *http.Reques
 	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, "Failed to upgrade connection to WebSocket", http.StatusInternalServerError)
-		log.Println("WebSocket upgrade error:", err)
+		log.Println("ImageReceiverHandler: WebSocket upgrade error:", err)
 		return
 	}
 	defer conn.Close()
@@ -166,9 +199,8 @@ func (h TradeHandler) ImageReceiverHandler(w http.ResponseWriter, r *http.Reques
 		// Encode image data to base64
 		base64ImageData := base64.StdEncoding.EncodeToString(imageData)
 
-		// Send the encoded image data over WebSocket
-		err = conn.WriteMessage(websocket.TextMessage, []byte(base64ImageData))
-		if err != nil {
+		// Send the encoded image data over WebSocket		
+		if err = conn.WriteMessage(websocket.TextMessage, []byte(base64ImageData)); err != nil {
 			fmt.Printf("Unable to write to socket: %v", err)
 			return
 		}

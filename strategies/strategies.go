@@ -26,6 +26,7 @@ import (
 // system and holds various parameters and fields related to the strategy,
 // trading state, and performance.
 type TradingSystem struct {
+	ID uint
 	Mu sync.Mutex // Mutex for protecting concurrent writes
 	// HistoricalData  []model.Candle
 	Symbol                   string
@@ -70,6 +71,11 @@ type TradingSystem struct {
 	MinNotional              float64
 	StepSize                 float64
 	DBServices               model.DBServices
+	RDBServices              *RDBServices
+	DBStoreTicker            *time.Ticker
+	TSDataChan               chan []byte
+	ADataChan               chan []byte
+	MDChan                   chan *model.AppData
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -90,6 +96,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			return &TradingSystem{}, err
 		}
 	}
+	ts.RDBServices = NewRDBServices()
 	ts.RiskFactor = 2.0                   // Define 1% slippage
 	ts.CommissionPercentage = 0.00075     // Define 0.1% transaction cost
 	ts.RiskProfitLossPercentage = 0.00025 //percentage of Initial Capital used to represent Target profit or stoplooss amount
@@ -103,6 +110,10 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	ts.EpochTime = time.Second * 30
 	ts.ChartChan = make(chan model.ChartData, 1)
 	ts.BaseCurrency = BaseCurrency
+	ts.DBStoreTicker = time.NewTicker(ts.EpochTime) // Adjust the interval as needed
+	ts.TSDataChan = make(chan []byte, 5)
+	ts.ADataChan = make(chan []byte, 5)
+	ts.MDChan = make(chan *model.AppData)
 	return ts, nil
 }
 func (ts *TradingSystem) NewAppData() *model.AppData {
@@ -117,6 +128,13 @@ func (ts *TradingSystem) NewAppData() *model.AppData {
 	md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
 	md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
 	md.TotalProfitLoss = 0.0
+	go func() {
+		for {
+			select {
+			case ts.MDChan <- md:
+			}
+		}
+	}()
 	return md
 }
 func (ts *TradingSystem) TickerQueueAdjustment() {
@@ -164,6 +182,14 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			fmt.Println("Error Reporting Live Trade: ", err)
 			return
 		}
+		md.ID, err = ts.RDBServices.CreateDBAppData(md, ts.ADataChan)
+		if err != nil {
+			fmt.Println(err)
+		}
+		md.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		time.Sleep(ts.EpochTime)
 		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
@@ -185,10 +211,11 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 	//StRSIOverbought,StRSIOversold,BollingerPeriod,BollingerNumStdDev,TargetProfit,
 	//TargetStopLoss,RiskPositionPercentage
 	backT := []*model.AppData{ //StochRSI
-		{0, "EMA", 20, 55, 0.0, 0.0, 0.5, 3.0, 0.25, 0.0},
+		{0, 0, "EMA", 20, 55, 0.0, 0.0, 0.5, 3.0, 0.25, 0.0},
 	}
 
 	fmt.Println("App started. Press Ctrl+C to exit.")
+	var err error
 	for i, md := range backT {
 		md = ts.NewAppData()
 		ts.BaseBalance = 0.0
@@ -197,21 +224,43 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 		ts.TradeCount = 0
 		// Simulate the backtesting process using historical price data.
 		for ts.DataPoint, ts.CurrentPrice = range ts.ClosingPrices {
+			select{
+			case <-sigchnl:
+				fmt.Println("ShutDown Requested: Press Ctrl+C again to shutdown...")
+				sigchnl := make(chan os.Signal, 1)
+				signal.Notify(sigchnl)
+				ts.ShutDown(md, sigchnl)
+			default:
+			}
 			_ = ts.Trading(md, loadExchFrom)
+
+			md.ID, err = ts.RDBServices.CreateDBAppData(md, ts.ADataChan)
+			if err != nil {
+				fmt.Println(err)
+			}
+			md.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
+			if err != nil {
+				fmt.Println(err)
+			}
+			time.Sleep(time.Second * 30)
 		}
-		err := ts.Reporting(md, "Backtesting")
+		err = ts.Reporting(md, "Backtesting")
 		if err != nil {
 			fmt.Println("Error Reporting BackTest Trading: ", err)
 			return
 		}
-		fmt.Println()
-		fmt.Println("Press Ctrl+C to continue...")
+
+		fmt.Println("Press Ctrl+C to continue...", md.ID)
 		<-sigchnl
 		if i == len(backT)-1 {
 			fmt.Println("End of Backtesting: Press Ctrl+C again to shutdown...")
 			sigchnl = make(chan os.Signal, 1)
 			signal.Notify(sigchnl)
 			ts.ShutDown(md, sigchnl)
+		}
+
+		if err != nil {
+			fmt.Println(err)
 		}
 	}
 }
@@ -326,8 +375,8 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		// Mark that we are in a trade.
 		ts.InTrade = true
 
-		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuant[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L %.2f BuyCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d nextProfitSeLLPrice %.8f nextInvBuYPrice %.8f TargProfit %.8f TargLoss %.8f\n",
-			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, orderResp.ExecutedQty, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, orderResp.Commission, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint, nextProfitSeLLPrice, nextInvBuYPrice, md.TargetProfit, -md.TargetStopLoss)
+		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, BuyCommission: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice %.8f nextInvBuYPrice %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d, mdDataPt: %d \n",
+			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, orderResp.ExecutedQty, ts.QuoteBalance, ts.BaseBalance, orderResp.Commission, md.RiskPositionPercentage, md.TotalProfitLoss, nextProfitSeLLPrice, nextInvBuYPrice, md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
 		return resp, nil
 	case "Sell":
 		if !ts.InTrade {
@@ -350,7 +399,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 				}
 			} else {
 				i := len(ts.NextProfitSeLLPrice) - 1
-				ts.Log.Println("TA Signalled: SELL at currentPrice:", exitPrice, "expecting NextProfitSeLLPrice[", i, "]:", ts.NextProfitSeLLPrice[i], "expecting Profit:", md.TargetProfit)
+				ts.Log.Printf("TA Signalled: SeLL, currentPrice: %.8f, NextProfitSeLLPrice[%d]: %.8f, Target Profit: %.8f", exitPrice, i, ts.NextProfitSeLLPrice[i], md.TargetProfit)
 				return "", fmt.Errorf("cannot execute a sell order at: %.8f, expecting NextProfitSeLLPrice[%d]: %.8f, target profit: %.8f", exitPrice, i, ts.NextProfitSeLLPrice[i], md.TargetProfit)
 			}
 		}
@@ -385,7 +434,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		// Mark that we are no longer in a trade.
 		ts.InTrade = false
 
-		resp := fmt.Sprintf("- SELL at ExitPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuant[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
+		resp := fmt.Sprintf("- SELL at ExitPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, \nGlobalP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
 			exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, orderResp.Commission, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 
 		if len(ts.StopLossRecover) > 1 {
@@ -433,7 +482,7 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	// Calculate profit/loss for the trade.
 	exitPrice := ts.CurrentPrice
 	// Check if the current price breaches the stop-loss level to trigger a buy signal.
-	i := len(ts.NextInvestBuYPrice)-1
+	i := len(ts.NextInvestBuYPrice) - 1
 	if (exitPrice < ts.NextInvestBuYPrice[i]) && ts.EnableStoploss { //&& (ts.BaseBalance >= quantity)
 		// I commented it out to make stoploss just a marker
 		// // Update the quote and base balances after the trade.
@@ -446,15 +495,16 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		ts.StopLossTrigered = true
 		md.RiskPositionPercentage *= ts.RiskFactor                       //increase riskPosition by a factor
 		ts.StopLossRecover = append(ts.StopLossRecover, ts.CurrentPrice) //* (1.0 - ts.RiskStopLossPercentage)
-		
-		ts.Log.Println("Stoploss Marked!!! at this Price:", exitPrice, "based on EntryPrice[", len(ts.EntryPrice)-1,
-			"] = ", ts.EntryPrice[len(ts.EntryPrice)-1], " NextInvestBuYPrice[",i,"]:", ts.NextInvestBuYPrice[i], "expecting Loss:", -md.TargetStopLoss)
+
+		ts.Log.Printf("Stoploss Marked!!! at CurrentPrice: %.8f, of EntryPrice[%d]: %.8f, NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f",
+			exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
 		// I commented it out to make stoploss just a marker
-		resp := fmt.Sprintf("Stoploss Marked!!! at this Price: %.8f NextInvestBuYPrice[%d]: %.8f expecting Loss: %.8f", exitPrice, i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
+		resp := fmt.Sprintf("Stoploss Marked!!! at this Price: %.8f NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f", exitPrice, i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
 		// 	ts.CurrentPrice, quantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 		return resp
 	} else {
-		ts.Log.Println("Stoploss not Marked yet at this Price:", exitPrice, "NextInvestBuYPrice[",i,"]: %.8f", ts.NextInvestBuYPrice[i], "expecting Loss:", -md.TargetStopLoss)
+		ts.Log.Printf("Stoploss NOT Marked at CurrentPrice: %.8f, of EntryPrice[%d]: %.8f, NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f",
+			exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
 	}
 	return "false"
 }
@@ -498,16 +548,17 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 				(shortEMA[ts.DataPoint-1]-longEMA[ts.DataPoint-1] >= shortEMA[ts.DataPoint-2]-longEMA[ts.DataPoint-2]) &&
 				(shortEMA[ts.DataPoint]-longEMA[ts.DataPoint] < shortEMA[ts.DataPoint-1]-longEMA[ts.DataPoint-1])
 
-			if buySignal && (Action == "Entry") && (len(ts.NextInvestBuYPrice)>=1){
-				ts.Log.Println("TA Signalled: BuY:", buySignal, "NextInvestBuYPrice[",len(ts.NextInvestBuYPrice)-1,"]",ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], "at currentPrice:", ts.CurrentPrice)
+			if buySignal && (Action == "Entry") && (len(ts.NextInvestBuYPrice) >= 1) {
+				i := len(ts.NextInvestBuYPrice) - 1
+				ts.Log.Printf("TA Signalled: BuY: %v at currentPrice: %.8f, not yet below NextInvestBuYPrice[%d]: %.8f, Target Stoploss: %.8f", buySignal, ts.CurrentPrice, i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
 			} else if sellSignal && (Action == "Exit") && (len(ts.NextProfitSeLLPrice) >= 1) {
-				ts.Log.Println("TA Signalled: SeLL:", sellSignal, "NextProfitSeLLPrice[",len(ts.NextProfitSeLLPrice)-1,"]",ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1],"at currentPrice:", ts.CurrentPrice)
-			}else if buySignal && (Action == "Entry") {
-				ts.Log.Println("TA Signalled: BuY:", buySignal, "at currentPrice:", ts.CurrentPrice)
+				i := len(ts.NextProfitSeLLPrice) - 1
+				ts.Log.Printf("TA Signalled: SeLL, currentPrice: %.8f, NextProfitSeLLPrice[%d]: %.8f, Target Profit: %.8f", ts.CurrentPrice, i, ts.NextProfitSeLLPrice[i], md.TargetProfit)
+			} else if buySignal && (Action == "Entry") {
+				ts.Log.Printf("TA Signalled: BuY, at currentPrice: %.8f", ts.CurrentPrice)
 			} else if sellSignal && (Action == "Exit") {
-				ts.Log.Println("TA Signalled: SeLL:", sellSignal, "at currentPrice:", ts.CurrentPrice)
+				ts.Log.Printf("TA Signalled: SeLL, currentPrice: %.8f", ts.CurrentPrice)
 			}
-
 		}
 	}
 	return buySignal, sellSignal
@@ -732,7 +783,7 @@ func (ts *TradingSystem) ShutDown(md *model.AppData, sigchnl chan os.Signal) {
 
 					// Store profit/loss for the trade.
 
-					localProfitLoss -= transactionCost 
+					localProfitLoss -= transactionCost
 					// md.TotalProfitLoss += localProfitLoss
 
 					ts.Mu.Lock()
@@ -742,7 +793,7 @@ func (ts *TradingSystem) ShutDown(md *model.AppData, sigchnl chan os.Signal) {
 					ts.InTrade = false
 					ts.TradeCount++
 					ts.Mu.Unlock()
-					fmt.Printf("- SELL-OFF at EntryPrice[%d]: %.8f, EntryQuant[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L %.2f LocalP&L: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
+					fmt.Printf("- SELL-OFF at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L %.2f LocalP&L: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
 						len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 				}
 				// Print the overall trading performance after backtesting.
@@ -751,7 +802,7 @@ func (ts *TradingSystem) ShutDown(md *model.AppData, sigchnl chan os.Signal) {
 				fmt.Printf("Total Profit/Loss: %.2f, ", md.TotalProfitLoss)
 				fmt.Printf("Final Capital: %.2f, ", ts.QuoteBalance)
 				fmt.Printf("Final Asset: %.8f tsDataPoint: %d, mdDataPoint: %d\n\n", ts.BaseBalance, ts.DataPoint, md.DataPoint)
-
+				ts.DBStoreTicker.Stop()
 				// if err := ts.APIServices.CloseDB(); err != nil{
 				// 	fmt.Printf("Error while closing the DataBase: %v", err)
 				// 	os.Exit(1)
