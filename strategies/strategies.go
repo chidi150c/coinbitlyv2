@@ -103,7 +103,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	ts.RiskFactor = 2.0                   // Define 1% slippage
 	ts.CommissionPercentage = 0.00075     // Define 0.1% transaction cost
 	ts.RiskProfitLossPercentage = 0.00025 //percentage of Initial Capital used to represent Target profit or stoplooss amount
-	ts.QuoteBalance = ts.InitialCapital   //continer to hold the balance
+	// ts.QuoteBalance = ts.InitialCapital   //continer to hold the balance
 	ts.Scalping = ""                      //"UseTA"
 	ts.StrategyCombLogic = "OR"
 	ts.EnableStoploss = true
@@ -814,6 +814,10 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom string) error {
 	ts.QuoteCurrency = exchConfigParam.QuoteCurrency
 	ts.Symbol = exchConfigParam.Symbol
 	ts.CurrentPrice, err = exch.FetchTicker(ts.Symbol)
+	if err != nil {
+		return err
+	}
+	ts.QuoteBalance, ts.BaseBalance, err = ts.APIServices.GetQuoteAndBaseBalances(ts.Symbol)
 	if err != nil {
 		return err
 	}

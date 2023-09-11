@@ -28,6 +28,9 @@ func NewAPIServices(exchConfig *config.ExchConfig)(*APIServices, error){
 
 var _ model.APIServices = &APIServices{}
 
+func (e *APIServices) GetQuoteAndBaseBalances(symbol string) (quoteBalance float64, baseBalance float64, err error) {
+	return quoteBalance, baseBalance, err
+}
 // FetchHistoricalCandlesticks fetches historical candlestick data for the given symbol and time interval
 func (e *APIServices)FetchCandles(symbol, interval string, startTime, endTime int64) ([]model.Candle, error) {
 	if e.Name != exchname{

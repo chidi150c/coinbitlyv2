@@ -29,44 +29,44 @@ type Candlestick struct {
 
 // GetQuoteAndBaseBalances retrieves the quote and base balances for a given trading pair.
 func getQuoteAndBaseBalances(symbol, baseURL, apiVersion, apiKey string) (float64, float64, error) {
-	// Fetch exchange information to determine quote and base assets
-	exchangeInfo, err := fetchExchangeInfo(symbol, baseURL, apiVersion, apiKey)
-	if err != nil {
-		return 0, 0, err
-	}
+    // Fetch exchange information to determine quote and base assets
+    exchangeInfo, err := fetchExchangeInfo(symbol, baseURL, apiVersion, apiKey)
+    if err != nil {
+        return 0, 0, err
+    }
 
-	// Find the trading pair in the exchange information
-	var quoteAsset, baseAsset string
-	for _, symbolInfo := range exchangeInfo["symbols"].([]interface{}) {
-		symbolMap := symbolInfo.(map[string]interface{})
-		if symbolMap["symbol"] == symbol {
-			quoteAsset = symbolMap["quoteAsset"].(string)
-			baseAsset = symbolMap["baseAsset"].(string)
-			break
-		}
-	}
+    // Find the trading pair in the exchange information
+    var quoteAsset, baseAsset string
+    for _, symbolInfo := range exchangeInfo["symbols"].([]interface{}) {
+        symbolMap := symbolInfo.(map[string]interface{})
+        if symbolMap["symbol"] == symbol {
+            quoteAsset = symbolMap["quoteAsset"].(string)
+            baseAsset = symbolMap["baseAsset"].(string)
+            break
+        }
+    }
 
-	if quoteAsset == "" || baseAsset == "" {
-		return 0, 0, errors.New("Symbol not found in exchange information")
-	}
+    if quoteAsset == "" || baseAsset == "" {
+        return 0, 0, errors.New("Symbol not found in exchange information")
+    }
 
-	// Fetch account information to get the balances
-	account, err := getAccountInfo(apiKey)
-	if err != nil {
-		return 0, 0, err
-	}
+    // Fetch account information to get the balances
+    account, err := getAccountInfo(apiKey)
+    if err != nil {
+        return 0, 0, err
+    }
 
-	// Find the balances for quote and base assets
-	var quoteBalance, baseBalance float64
-	for _, balance := range account.Balances {
-		if balance.Asset == quoteAsset {
-			quoteBalance = balance.Free
-		} else if balance.Asset == baseAsset {
-			baseBalance = balance.Free
-		}
-	}
+    // Find the balances for quote and base assets
+    var quoteBalance, baseBalance float64
+    for _, balance := range account.Balances {
+        if balance.Asset == quoteAsset {
+            quoteBalance = helper.ParseStringToFloat(balance.Free)
+        } else if balance.Asset == baseAsset {
+            baseBalance = helper.ParseStringToFloat(balance.Free)
+        }
+    }
 
-	return quoteBalance, baseBalance, nil
+    return quoteBalance, baseBalance, nil
 }
 
 // FetchHistoricalCandlesticks fetches historical candlestick data for the given symbol and time interval
@@ -416,6 +416,16 @@ func sign(req *http.Request, apiKey, secretKey string) {
 
 	req.URL.RawQuery = query.Encode()
 	req.Header.Add("X-MBX-APIKEY", apiKey)
+}
+
+type AccountInfo struct {
+    Balances []Balance `json:"balances"`
+}
+
+type Balance struct {
+    Asset  string `json:"asset"`
+    Free   string `json:"free"`
+    Locked string `json:"locked"`
 }
 
 // generateSignature generates the HMAC-SHA256 signature
