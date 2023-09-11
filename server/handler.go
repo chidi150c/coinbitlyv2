@@ -93,9 +93,12 @@ func (h TradeHandler)realTimeAppDataFeed(w http.ResponseWriter, r *http.Request)
 	// log.Println("realTimeAppDataFeed: WebSocket Connected!!!")
 	defer conn.Close()
 	var AppDataJSON []byte
+	// h.ts.ADataChan = make(chan []byte)
 	Loop:
 	for {
 		select{
+		case <- time.After(time.Second * 10):
+			break Loop
 		case AppDataJSON = <-h.ts.ADataChan:
 			// Send the JSON data to the WebSocket client			
 			if err = conn.WriteMessage(websocket.TextMessage, AppDataJSON); err != nil {
@@ -117,14 +120,12 @@ func (h TradeHandler)realTimeTradingSystemFeed(w http.ResponseWriter, r *http.Re
 	// log.Println("realTimeTradingSystemFeed: WebSocket Connected!!!")
 	defer conn.Close()
 	var tradingSystemJSON []byte
+	// h.ts.TSDataChan = make(chan []byte)
 	Loop:
 	for {
-        // _, _, err := conn.ReadMessage()
-        // if err != nil {
-        //     log.Println( "WebSocket read error:", err)
-        //     break Loop
-        // }
 		select{
+		case <- time.After(time.Second * 10):
+			break Loop
 		case tradingSystemJSON = <-h.ts.TSDataChan:
 			// Send the JSON data to the WebSocket client			
 			if err = conn.WriteMessage(websocket.TextMessage, tradingSystemJSON); err != nil {

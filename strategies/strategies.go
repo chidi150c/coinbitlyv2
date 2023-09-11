@@ -2,6 +2,7 @@ package strategies
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math"
@@ -53,6 +54,8 @@ type TradingSystem struct {
 	StrategyCombLogic        string
 	EntryCostLoss            []float64
 	TradeCount               int
+	TradingLevel             int
+	ClosedWinTrades                int
 	EnableStoploss           bool
 	StopLossTrigered         bool
 	StopLossRecover          []float64
@@ -74,7 +77,7 @@ type TradingSystem struct {
 	RDBServices              *RDBServices
 	DBStoreTicker            *time.Ticker
 	TSDataChan               chan []byte
-	ADataChan               chan []byte
+	ADataChan                chan []byte
 	MDChan                   chan *model.AppData
 }
 
@@ -111,9 +114,63 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	ts.ChartChan = make(chan model.ChartData, 1)
 	ts.BaseCurrency = BaseCurrency
 	ts.DBStoreTicker = time.NewTicker(ts.EpochTime) // Adjust the interval as needed
-	ts.TSDataChan = make(chan []byte, 5)
-	ts.ADataChan = make(chan []byte, 5)
+	ts.TSDataChan = make(chan []byte)
+	ts.ADataChan = make(chan []byte)
 	ts.MDChan = make(chan *model.AppData)
+	go func() {
+		for {
+			trade := model.TradingSystemData{
+				Symbol:                   ts.Symbol,
+				ClosingPrices:            ts.ClosingPrices[len(ts.ClosingPrices)-1],
+				Timestamps:               ts.Timestamps[len(ts.Timestamps)-1],
+				Signals:                  ts.Signals[len(ts.Signals)-1],
+				CommissionPercentage:     ts.CommissionPercentage,
+				InitialCapital:           ts.InitialCapital,
+				PositionSize:             ts.PositionSize,
+				InTrade:                  ts.InTrade,
+				QuoteBalance:             ts.QuoteBalance,
+				BaseBalance:              ts.BaseBalance,
+				RiskCost:                 ts.RiskCost,
+				DataPoint:                ts.DataPoint,
+				CurrentPrice:             ts.CurrentPrice,
+				Scalping:                 ts.Scalping,
+				StrategyCombLogic:        ts.StrategyCombLogic,
+				TradeCount:               ts.TradeCount,
+				TradingLevel:             ts.TradingLevel,
+				ClosedWinTrades:          ts.ClosedWinTrades,
+				EnableStoploss:           ts.EnableStoploss,
+				StopLossTrigered:         ts.StopLossTrigered,
+				StopLossRecover:          ts.StopLossRecover[len(ts.StopLossRecover)-1],
+				RiskFactor:               ts.RiskFactor,
+				MaxDataSize:              ts.MaxDataSize,
+				RiskProfitLossPercentage: ts.RiskProfitLossPercentage,
+				BaseCurrency:             ts.BaseCurrency,
+				QuoteCurrency:            ts.QuoteCurrency,
+				MiniQty:                  ts.MiniQty,
+				MaxQty:                   ts.MaxQty,
+				MinNotional:              ts.MinNotional,
+				StepSize:                 ts.StepSize,
+			}
+			if len(ts.EntryPrice) >= 1 {
+				trade.EntryCostLoss = ts.EntryCostLoss[len(ts.EntryCostLoss)-1]
+				trade.EntryQuantity = ts.EntryQuantity[len(ts.EntryQuantity)-1]
+				trade.EntryPrice = ts.EntryPrice[len(ts.EntryPrice)-1]
+				trade.NextInvestBuYPrice = ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
+				trade.NextProfitSeLLPrice = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1]
+			}
+
+			// Serialize the DBAppData object to JSON
+			appDataJSON, err := json.Marshal(trade)
+			if err != nil {
+				fmt.Printf("Error marshaling DBAppData to JSON: %v", err)
+			} else {
+				select {
+				case ts.TSDataChan <- appDataJSON:
+				}
+			}
+			time.Sleep(time.Second * 1)
+		}
+	}()
 	return ts, nil
 }
 func (ts *TradingSystem) NewAppData() *model.AppData {
@@ -133,6 +190,19 @@ func (ts *TradingSystem) NewAppData() *model.AppData {
 			select {
 			case ts.MDChan <- md:
 			}
+		}
+	}()
+	go func() {
+		for { // Serialize the DBAppData object to JSON
+			appDataJSON, err := json.Marshal(md)
+			if err != nil {
+				fmt.Printf("Error marshaling DBAppData to JSON: %v", err)
+			} else {
+				select {
+				case ts.ADataChan <- appDataJSON:
+				}
+			}
+			time.Sleep(time.Second * 1)
 		}
 	}()
 	return md
@@ -160,11 +230,15 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 	ts.QuoteBalance = ts.InitialCapital
 	// Initialize variables for tracking trading performance.
 	ts.TradeCount = 0
+	ts.TradingLevel = 0
+	ts.ClosedWinTrades = 0
 	var err error
 	for {
 		ts.CurrentPrice, err = ts.APIServices.FetchTicker(ts.Symbol)
 		if err != nil {
-			log.Fatal("Error Reporting Live Trade: ", err)
+			log.Printf("Error Reporting Live Trade: %v", err)
+			time.Sleep(ts.EpochTime)
+			continue
 		}
 		ts.DataPoint++
 		md.DataPoint++
@@ -182,13 +256,17 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			fmt.Println("Error Reporting Live Trade: ", err)
 			return
 		}
-		md.ID, err = ts.RDBServices.CreateDBAppData(md, ts.ADataChan)
-		if err != nil {
-			fmt.Println(err)
-		}
-		md.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
-		if err != nil {
-			fmt.Println(err)
+		if loadExchFrom != "BinanceTestnet" {
+			md.ID, err = ts.RDBServices.CreateDBAppData(md)
+			if err != nil {
+				fmt.Println(err)
+			}
+			md.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
+			if err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			fmt.Println(ts.DataPoint, "Epoc done!!!")
 		}
 
 		time.Sleep(ts.EpochTime)
@@ -222,9 +300,11 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 		ts.QuoteBalance = ts.InitialCapital
 		// Initialize variables for tracking trading performance.
 		ts.TradeCount = 0
+		ts.TradingLevel = 0
+		ts.ClosedWinTrades = 0
 		// Simulate the backtesting process using historical price data.
 		for ts.DataPoint, ts.CurrentPrice = range ts.ClosingPrices {
-			select{
+			select {
 			case <-sigchnl:
 				fmt.Println("ShutDown Requested: Press Ctrl+C again to shutdown...")
 				sigchnl := make(chan os.Signal, 1)
@@ -234,15 +314,19 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 			}
 			_ = ts.Trading(md, loadExchFrom)
 
-			md.ID, err = ts.RDBServices.CreateDBAppData(md, ts.ADataChan)
-			if err != nil {
-				fmt.Println(err)
+			if loadExchFrom != "BinanceTestnet" {
+				md.ID, err = ts.RDBServices.CreateDBAppData(md)
+				if err != nil {
+					fmt.Println(err)
+				}
+				md.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
+				if err != nil {
+					fmt.Println(err)
+				}
+			} else {
+				fmt.Println(ts.DataPoint, "Epoc done!!!")
 			}
-			md.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
-			if err != nil {
-				fmt.Println(err)
-			}
-			time.Sleep(time.Second * 30)
+			time.Sleep(ts.EpochTime)
 		}
 		err = ts.Reporting(md, "Backtesting")
 		if err != nil {
@@ -358,7 +442,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			orderResp.ExecutedPrice, orderResp.ExecutedQty, orderResp.Status)
 		// Update the profit, quote and base balances after the trade.
 		ts.QuoteBalance -= totalCost
-		ts.BaseBalance += orderResp.ExecutedQty - orderResp.Commission
+		ts.BaseBalance += orderResp.ExecutedQty
 		md.TotalProfitLoss -= (orderResp.Commission * averagePrice)
 
 		//Record entry entities for calculating profit/loss and stoploss later.
@@ -372,6 +456,8 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, nextProfitSeLLPrice+commissionAtProfitSeLLPrice)
 		ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, nextInvBuYPrice-commissionAtInvBuYPrice)
 
+		ts.TradingLevel = len(ts.EntryPrice)-1
+		
 		// Mark that we are in a trade.
 		ts.InTrade = true
 
@@ -423,14 +509,18 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		//You subtract the commission from the total cost because you are receiving less due to the commission fee. So, the formula would
 		//be something like: totalCost = (executedQty * averagePrice) - totalCommission.
 		//Confirm Binance or the Exch is deliverying commission for Sell in USDT
-		totalCost = (orderResp.ExecutedQty * averagePrice) - orderResp.Commission
+		totalCost = (orderResp.ExecutedQty * averagePrice)
 
 		ts.Log.Printf("Exit order placed with ID: %d Commission: %.8f CumulativeQuoteQty: %.8f ExecutedPrice: %.8f ExecutedQty: %.8f Status: %s\n", orderResp.OrderID, orderResp.Commission, orderResp.CumulativeQuoteQty,
 			orderResp.ExecutedPrice, orderResp.ExecutedQty, orderResp.Status)
 		// Update the totalP&L, quote and base balances after the trade.
 		ts.QuoteBalance += totalCost
 		ts.BaseBalance -= orderResp.ExecutedQty
-		md.TotalProfitLoss += CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], averagePrice, orderResp.ExecutedQty)
+		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], averagePrice, orderResp.ExecutedQty)
+		md.TotalProfitLoss += localProfitLoss
+		if localProfitLoss > 0 {
+			ts.ClosedWinTrades += 2 
+		}
 		// Mark that we are no longer in a trade.
 		ts.InTrade = false
 
@@ -447,6 +537,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			md.RiskPositionPercentage /= ts.RiskFactor //reduce riskPosition by a factor
 			ts.InTrade = true
 			ts.StopLossTrigered = true
+			ts.TradingLevel = len(ts.EntryPrice)-1
 		} else if len(ts.StopLossRecover) == 1 {
 			// Mark that we are no longer in a trade.
 			ts.InTrade = false
@@ -457,6 +548,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.EntryQuantity = []float64{}
 			ts.NextProfitSeLLPrice = []float64{}
 			ts.NextInvestBuYPrice = []float64{}
+			ts.TradingLevel = 0
 		}
 
 		return resp, nil
@@ -496,10 +588,10 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		md.RiskPositionPercentage *= ts.RiskFactor                       //increase riskPosition by a factor
 		ts.StopLossRecover = append(ts.StopLossRecover, ts.CurrentPrice) //* (1.0 - ts.RiskStopLossPercentage)
 
-		ts.Log.Printf("Stoploss Marked!!! at CurrentPrice: %.8f, of EntryPrice[%d]: %.8f, NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f",
-			exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
+		ts.Log.Printf("Stoploss Marked!!! For L%d demarc: at CurrentPrice: %.8f, of EntryPrice[%d]: %.8f, NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f",
+			len(ts.StopLossRecover), exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
 		// I commented it out to make stoploss just a marker
-		resp := fmt.Sprintf("Stoploss Marked!!! at this Price: %.8f NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f", exitPrice, i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
+		resp := fmt.Sprintf("Stoploss Marked!!! For L%d demarc: at CurrentPrice: %.8f NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f", len(ts.StopLossRecover), exitPrice, i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
 		// 	ts.CurrentPrice, quantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 		return resp
 	} else {
@@ -550,10 +642,10 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 
 			if buySignal && (Action == "Entry") && (len(ts.NextInvestBuYPrice) >= 1) {
 				i := len(ts.NextInvestBuYPrice) - 1
-				ts.Log.Printf("TA Signalled: BuY: %v at currentPrice: %.8f, not yet below NextInvestBuYPrice[%d]: %.8f, Target Stoploss: %.8f", buySignal, ts.CurrentPrice, i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
+				ts.Log.Printf("TA Signalled: BuY: %v at currentPrice: %.8f, will BuY below NextInvestBuYPrice[%d]: %.8f, and StopLossRecover[%d]: %.8f, Target Stoploss: %.8f", buySignal, ts.CurrentPrice, i, ts.NextInvestBuYPrice[i], i, ts.StopLossRecover[i], -md.TargetStopLoss)
 			} else if sellSignal && (Action == "Exit") && (len(ts.NextProfitSeLLPrice) >= 1) {
 				i := len(ts.NextProfitSeLLPrice) - 1
-				ts.Log.Printf("TA Signalled: SeLL, currentPrice: %.8f, NextProfitSeLLPrice[%d]: %.8f, Target Profit: %.8f", ts.CurrentPrice, i, ts.NextProfitSeLLPrice[i], md.TargetProfit)
+				ts.Log.Printf("TA Signalled: SeLL, currentPrice: %.8f, will SeLL above NextProfitSeLLPrice[%d]: %.8f, and StopLossRecover[%d]: %.8f, Target Profit: %.8f", ts.CurrentPrice, i, ts.NextProfitSeLLPrice[i], i, ts.StopLossRecover[i], md.TargetProfit)
 			} else if buySignal && (Action == "Entry") {
 				ts.Log.Printf("TA Signalled: BuY, at currentPrice: %.8f", ts.CurrentPrice)
 			} else if sellSignal && (Action == "Exit") {

@@ -1,7 +1,5 @@
 package model
 
-
-
 type TradingSystemData struct {
 	Symbol                   string  `json:"symbol"`
 	ClosingPrices            float64 `json:"closing_prices"`
@@ -24,6 +22,8 @@ type TradingSystemData struct {
 	StrategyCombLogic        string  `json:"strategy_comb_logic"`
 	EntryCostLoss            float64 `json:"entry_cost_loss"`
 	TradeCount               int     `json:"trade_count"`
+	TradingLevel             int     `json:"trading_level"`
+	ClosedWinTrades          int     `json:"closed_win_trades"`
 	EnableStoploss           bool    `json:"enable_stoploss"`
 	StopLossTrigered         bool    `json:"stop_loss_triggered"`
 	StopLossRecover          float64 `json:"stop_loss_recover"`
@@ -37,22 +37,22 @@ type TradingSystemData struct {
 	MinNotional              float64 `json:"min_notional"`
 	StepSize                 float64 `json:"step_size"`
 }
+
 // type AppID uint64
 
 type AppData struct {
-    ID               uint    `gorm:"primaryKey" json:"id"`
-    DataPoint        int `json:"data_point"`
-    Strategy         string  `json:"strategy"`
-    ShortPeriod      int     `json:"short_period"`
-    LongPeriod       int     `json:"long_period"`
-    ShortEMA         float64 `json:"short_ema"`
-    LongEMA          float64 `json:"long_ema"`
-    TargetProfit     float64 `json:"target_profit"`
-    TargetStopLoss   float64 `json:"target_stop_loss"`
-    RiskPositionPercentage float64 `json:"risk_position_percentage"`
-    TotalProfitLoss  float64 `json:"total_profit_loss"`
+	ID                     uint    `gorm:"primaryKey" json:"id"`
+	DataPoint              int     `json:"data_point"`
+	Strategy               string  `json:"strategy"`
+	ShortPeriod            int     `json:"short_period"`
+	LongPeriod             int     `json:"long_period"`
+	ShortEMA               float64 `json:"short_ema"`
+	LongEMA                float64 `json:"long_ema"`
+	TargetProfit           float64 `json:"target_profit"`
+	TargetStopLoss         float64 `json:"target_stop_loss"`
+	RiskPositionPercentage float64 `json:"risk_position_percentage"`
+	TotalProfitLoss        float64 `json:"total_profit_loss"`
 }
-
 
 type ChartData struct {
 	ClosingPrices float64 `json:"ClosingPrices"`

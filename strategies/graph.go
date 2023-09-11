@@ -94,6 +94,18 @@ func (ts *TradingSystem)CreateLineChartWithSignals(md *model.AppData, timeSeries
 	p.Legend.Top = true
 	p.Legend.Left = false
 	p.Legend.Padding = 5.0
+	p.Legend.TextStyle.Color = color.White
+    p.BackgroundColor = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+	p.X.Color = color.White
+    p.Y.Color = color.White
+	
+    // Set labels to white color
+	p.X.Label.TextStyle.Color = color.White
+	p.Y.Label.TextStyle.Color = color.White
+
+    // Set scaling labels to white color
+    p.X.Tick.Label.Color = color.White
+    p.Y.Tick.Label.Color = color.White
 
 	// Save the plot to a file (you can also display it in a window if you prefer).
 	if err := p.Save(10*vg.Inch, 6*vg.Inch, "./webclient/assets/"+graph+"line_chart_with_signals.png"); err != nil {
@@ -233,9 +245,20 @@ func (ts *TradingSystem)CreateLineChartWithSignalsV3(md *model.AppData, timeSeri
 	p.Legend.Top = true
 	p.Legend.Left = false
 	p.Legend.Padding = 5.0
+	
+	
+	p.Legend.TextStyle.Color = color.White
+    p.BackgroundColor = color.RGBA{R: 0, G: 0, B: 0, A: 255}
+	p.X.Color = color.White
+    p.Y.Color = color.White
 
-	// Add the legend to the plot.
-	// p.Add(p.Legend)
+    // Set labels to white color
+	p.X.Label.TextStyle.Color = color.White
+	p.Y.Label.TextStyle.Color = color.White
+
+    // Set scaling labels to white color
+    p.X.Tick.Label.Color = color.White
+    p.Y.Tick.Label.Color = color.White
 
 	// Save the plot to a file (you can also display it in a window if you prefer).
 	if err := p.Save(10*vg.Inch, 6*vg.Inch, "./webclient/assets/"+graph+"line_chart_with_signals.png"); err != nil {

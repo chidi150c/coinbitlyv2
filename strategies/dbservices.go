@@ -73,11 +73,7 @@ func(dbs *RDBServices)CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, er
 		"action": "create",
 		"entity": "trading-system",
 		"data":   json.RawMessage(appDataJSON), // RawMessage to keep it as JSON
-	}
-    select{
-    case ts.TSDataChan <- appDataJSON:
-    default:
-    }    
+	}   
 	
     // Send the message
     err = conn.WriteJSON(request)
@@ -243,7 +239,7 @@ func(dbs *RDBServices)DeleteDBTradingSystem(tradeID uint) (err error){
 	fmt.Printf("%v\n", ms)
 	return err
 }
-func(dbs *RDBServices)CreateDBAppData(data *model.AppData, ADataChan chan []byte) (id uint, err error){
+func(dbs *RDBServices)CreateDBAppData(data *model.AppData) (id uint, err error){
     // Create a mock WebSocket connection
     conn, _, err := websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
     if err != nil {
@@ -263,10 +259,6 @@ func(dbs *RDBServices)CreateDBAppData(data *model.AppData, ADataChan chan []byte
 		"entity": "app-data",
 		"data":   json.RawMessage(appDataJSON), // RawMessage to keep it as JSON
 	}	
-    select{
-    case ADataChan <- appDataJSON:
-    default:
-    } 
     // Send the message
     err = conn.WriteJSON(request)
     if err != nil {
