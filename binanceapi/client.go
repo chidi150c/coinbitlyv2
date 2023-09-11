@@ -131,6 +131,19 @@ func (e *APIServices) PlaceLimitOrder(symbol, side string, price, quantity float
 	return orderResp, nil
 }
 
+func (e *APIServices) GetQuoteAndBaseBalances(symbol string) (quoteBalance float64, baseBalance float64, err error) {
+	quoteBalance, baseBalance, err = getQuoteAndBaseBalances(e.ApiKey, symbol)
+	if err != nil {
+		fmt.Println("Error fetching balances:", err)
+		return 0.0, 0.0, err
+	}
+
+	fmt.Printf("Quote Balance for %s: %.8f\n", symbol, quoteBalance)
+	fmt.Printf("Base Balance for %s: %.8f\n", symbol, baseBalance)
+
+	return quoteBalance, baseBalance, nil
+}
+
 // fetchAndDisplay24hrTickerData fetches and displays 24-hour price change statistics for the given symbol
 // func (e *APIServices)Fetch24hrChange(symbol string) (*model.Ticker24hrChange, error){
 // 	ticker, err := fetch24hrTickerData(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)

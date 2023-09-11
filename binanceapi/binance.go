@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -24,6 +25,50 @@ type Candlestick struct {
 	Close     float64 `json:"close"`
 	Volume    float64 `json:"volume"`
 }
+
+
+// GetQuoteAndBaseBalances retrieves the quote and base balances for a given trading pair.
+func getQuoteAndBaseBalances(symbol, baseURL, apiVersion, apiKey string) (float64, float64, error) {
+	// Fetch exchange information to determine quote and base assets
+	exchangeInfo, err := fetchExchangeInfo(symbol, baseURL, apiVersion, apiKey)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	// Find the trading pair in the exchange information
+	var quoteAsset, baseAsset string
+	for _, symbolInfo := range exchangeInfo["symbols"].([]interface{}) {
+		symbolMap := symbolInfo.(map[string]interface{})
+		if symbolMap["symbol"] == symbol {
+			quoteAsset = symbolMap["quoteAsset"].(string)
+			baseAsset = symbolMap["baseAsset"].(string)
+			break
+		}
+	}
+
+	if quoteAsset == "" || baseAsset == "" {
+		return 0, 0, errors.New("Symbol not found in exchange information")
+	}
+
+	// Fetch account information to get the balances
+	account, err := getAccountInfo(apiKey)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	// Find the balances for quote and base assets
+	var quoteBalance, baseBalance float64
+	for _, balance := range account.Balances {
+		if balance.Asset == quoteAsset {
+			quoteBalance = balance.Free
+		} else if balance.Asset == baseAsset {
+			baseBalance = balance.Free
+		}
+	}
+
+	return quoteBalance, baseBalance, nil
+}
+
 // FetchHistoricalCandlesticks fetches historical candlestick data for the given symbol and time interval
 func fetchHistoricalCandlesticks(symbol, baseURL, apiVersion, apiKey, interval string, startTime, endTime int64) ([]Candlestick, error) {
 	// Initialize HTTP client with a custom transport to handle rate limiting
@@ -378,6 +423,40 @@ func generateSignature(data, secret string) string {
 	hmacSha256 := hmac.New(sha256.New, []byte(secret))
 	hmacSha256.Write([]byte(data))
 	return hex.EncodeToString(hmacSha256.Sum(nil))
+}
+func getAccountInfo(apiKey string) (AccountInfo, error) {
+	// Create an HTTP client
+	client := &http.Client{}
+
+	// Prepare the request to fetch account information
+	req, err := http.NewRequest("GET", "https://api.binance.com/api/v3/account", nil)
+	if err != nil {
+		return AccountInfo{}, err
+	}
+
+	// Set the API key in the request headers
+	req.Header.Add("X-MBX-APIKEY", apiKey)
+
+	// Send the request
+	resp, err := client.Do(req)
+	if err != nil {
+		return AccountInfo{}, err
+	}
+	defer resp.Body.Close()
+
+	// Check the response status code
+	if resp.StatusCode != http.StatusOK {
+		return AccountInfo{}, fmt.Errorf("API request failed with status: %s", resp.Status)
+	}
+
+	// Parse the response JSON
+	var accountInfo AccountInfo
+	err = json.NewDecoder(resp.Body).Decode(&accountInfo)
+	if err != nil {
+		return AccountInfo{}, err
+	}
+
+	return accountInfo, nil
 }
 
 // Function to log request details

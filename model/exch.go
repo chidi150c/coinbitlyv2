@@ -21,10 +21,12 @@ type Response struct{
 
 type APIServices interface {
 	FetchCandles(symbol, interval string, startTime, endTime int64) ([]Candle, error)
-	FetchTicker(symbol string)(CurrentPrice float64, err error)
-	FetchExchangeEntities(symbol string)(minQty, maxQty, stepSize, minNotional float64, err error)
-	PlaceLimitOrder(symbol, side string, price, quantity float64) (response Response, err error)
+	FetchTicker(symbol string) (float64, error)
+	FetchExchangeEntities(symbol string) (minQty, maxQty, stepSize, minNotional float64, err error)
+	PlaceLimitOrder(symbol, side string, price, quantity float64) (Response, error)
+	GetQuoteAndBaseBalances(symbol string) (quoteBalance float64, baseBalance float64, err error) 
 }
+
 type DBServices interface{	
 	FetchCandlesFromDB(symbol, interval string, startTime, endTime int64) ([]Candle, error)
 	WriteCandleToDB(ClosePrice float64, Timestamp int64)error
