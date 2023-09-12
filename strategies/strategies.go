@@ -814,9 +814,30 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom string) error {
 	ts.QuoteCurrency = exchConfigParam.QuoteCurrency
 	ts.Symbol = exchConfigParam.Symbol
 	ts.CurrentPrice, err = exch.FetchTicker(ts.Symbol)
-	ts.QuoteBalance, ts.BaseBalance, err = ts.APIServices.GetQuoteAndBaseBalances(ts.Symbol)
-	if err != nil {
-		return fmt.Errorf("GetQuoteAndBaseBalances Error: %v", err)
+	if strings.Contains(loadExchFrom, "Testnet"){
+		ts.QuoteBalance = 100.0
+	}else{
+		go func(){	
+			log.Printf("First Balance Update Occuring Now!!!")
+			ts.QuoteBalance, ts.BaseBalance, err = ts.APIServices.GetQuoteAndBaseBalances(ts.Symbol)
+			if err != nil {
+				log.Fatalf("GetQuoteAndBaseBalances Error: %v", err)
+			}
+			fmt.Printf("Quote Balance for %s: %.8f\n", ts.Symbol, ts.QuoteBalance)
+			fmt.Printf("Base Balance for %s: %.8f\n", ts.Symbol, ts.BaseBalance)
+			for{
+				select{
+				case <-time.After(time.Minute * 30):
+					log.Printf("Balance Update Occuring Now!!!")
+					ts.Log.Printf("Balance Update Occuring Now!!!\n")
+					ts.QuoteBalance, ts.BaseBalance, err = ts.APIServices.GetQuoteAndBaseBalances(ts.Symbol)
+					if err != nil {
+						log.Printf("GetQuoteAndBaseBalances Error: %v", err)
+						ts.Log.Printf("GetQuoteAndBaseBalances Error: %v", err)
+					}
+				}
+			}
+		}()	
 	}
 	ts.MiniQty, ts.MaxQty, ts.StepSize, ts.MinNotional, err = exch.FetchExchangeEntities(ts.Symbol)
 	if err != nil {

@@ -452,7 +452,7 @@ func getAccountInfo(apiKey, baseURL, apiVersion, secretKey string) (AccountInfo,
 	url := fmt.Sprintf("%s/%s/account", baseURL, apiVersion)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		logRequestDetails(req)
+		// logRequestDetails(req)
 		return AccountInfo{}, err
 	}
 
@@ -468,7 +468,7 @@ func getAccountInfo(apiKey, baseURL, apiVersion, secretKey string) (AccountInfo,
 
 	// Check the response status code
 	if resp.StatusCode != http.StatusOK {
-		logResponseDetails(resp)
+		// logResponseDetails(resp)
 		return AccountInfo{}, fmt.Errorf("API request failed with status: %s", resp.Status)
 	}
 	// Parse the response JSON

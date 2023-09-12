@@ -137,10 +137,6 @@ func (e *APIServices) GetQuoteAndBaseBalances(symbol string) (quoteBalance float
 		fmt.Println("Error fetching balances:", err)
 		return 0.0, 0.0, fmt.Errorf("Error fetching balances: %v", err)
 	}
-
-	fmt.Printf("Quote Balance for %s: %.8f\n", symbol, quoteBalance)
-	fmt.Printf("Base Balance for %s: %.8f\n", symbol, baseBalance)
-	panic("fffffffffff")
 	return quoteBalance, baseBalance, nil
 }
 

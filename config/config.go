@@ -83,8 +83,8 @@ func NewExchangeConfigs() map[string]*ExchConfig {
 			Symbols:         []string{"BNBUSDT"},
 			BaseURL:         "https://api.binance.com", //testnet.  https://testnet.binance.vision/api/v3/klines
 			ApiVersion:      "api/v3",
-			ApiKey:          "1CHA2mXswJdHjfossO43t4WRa82HPzFaeZOt2entAgajkAYIUaf55f7CepLt58YK",   // os.Getenv("BINANCE_API_KEY"),    // Replace with your Binance API key
-			SecretKey:       "0DiulGqjlOuQlQHcVQYLYjKfpkq6Qs2rNxNVHHTtF1s2uy7n5clugQRxTXltjqFj",   // os.Getenv("BINANCE_API_SECRET"), // Replace with your Binance API secret key
+			ApiKey:          os.Getenv("BINANCE_API_KEY"),    // Replace with your Binance API key
+			SecretKey:       os.Getenv("BINANCE_API_SECRET"), // Replace with your Binance API secret key
 			Symbol:          "BNBUSDT",
 			BaseCurrency:    "BNB",
 			QuoteCurrency:   "USDT",
