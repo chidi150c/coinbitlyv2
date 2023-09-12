@@ -28,7 +28,7 @@ type Candlestick struct {
 
 
 // GetQuoteAndBaseBalances retrieves the quote and base balances for a given trading pair.
-func getQuoteAndBaseBalances(symbol, baseURL, apiVersion, apiKey string) (float64, float64, error) {
+func getQuoteAndBaseBalances(symbol, baseURL, apiVersion, apiKey, secretKey string) (float64, float64, error) {
     // Fetch exchange information to determine quote and base assets
     exchangeInfo, err := fetchExchangeInfo(symbol, baseURL, apiVersion, apiKey)
     if err != nil {
@@ -51,7 +51,7 @@ func getQuoteAndBaseBalances(symbol, baseURL, apiVersion, apiKey string) (float6
     }
 
     // Fetch account information to get the balances
-    account, err := getAccountInfo(apiKey)
+    account, err := getAccountInfo(apiKey, baseURL, apiVersion, secretKey)
     if err != nil {
         return 0, 0, err
     }
@@ -412,11 +412,21 @@ func sign(req *http.Request, apiKey, secretKey string) {
 
 	// Sort and encode the query parameters
 	params := query.Encode()
-	query.Set("signature", generateSignature(params, secretKey))
 
+	// Generate the HMAC-SHA256 signature
+	signature := generateSignature(params, secretKey)
+
+	// Set the signature parameter
+	query.Set("signature", signature)
+
+	// Update the query string with the signature
 	req.URL.RawQuery = query.Encode()
+
+	// Add the API key and signature headers
 	req.Header.Add("X-MBX-APIKEY", apiKey)
+	req.Header.Add("X-MBX-SIGNATURE", signature)
 }
+
 
 type AccountInfo struct {
     Balances []Balance `json:"balances"`
@@ -434,18 +444,20 @@ func generateSignature(data, secret string) string {
 	hmacSha256.Write([]byte(data))
 	return hex.EncodeToString(hmacSha256.Sum(nil))
 }
-func getAccountInfo(apiKey string) (AccountInfo, error) {
+func getAccountInfo(apiKey, baseURL, apiVersion, secretKey string) (AccountInfo, error) {
 	// Create an HTTP client
 	client := &http.Client{}
 
 	// Prepare the request to fetch account information
-	req, err := http.NewRequest("GET", "https://api.binance.com/api/v3/account", nil)
+	url := fmt.Sprintf("%s/%s/account", baseURL, apiVersion)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		logRequestDetails(req)
 		return AccountInfo{}, err
 	}
 
-	// Set the API key in the request headers
-	req.Header.Add("X-MBX-APIKEY", apiKey)
+
+	sign(req, apiKey, secretKey) // Sign the request with API key and secret
 
 	// Send the request
 	resp, err := client.Do(req)
@@ -456,9 +468,9 @@ func getAccountInfo(apiKey string) (AccountInfo, error) {
 
 	// Check the response status code
 	if resp.StatusCode != http.StatusOK {
+		logResponseDetails(resp)
 		return AccountInfo{}, fmt.Errorf("API request failed with status: %s", resp.Status)
 	}
-
 	// Parse the response JSON
 	var accountInfo AccountInfo
 	err = json.NewDecoder(resp.Body).Decode(&accountInfo)

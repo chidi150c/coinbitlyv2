@@ -132,10 +132,10 @@ func (e *APIServices) PlaceLimitOrder(symbol, side string, price, quantity float
 }
 
 func (e *APIServices) GetQuoteAndBaseBalances(symbol string) (quoteBalance float64, baseBalance float64, err error) {
-	quoteBalance, baseBalance, err = getQuoteAndBaseBalances(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
+	quoteBalance, baseBalance, err = getQuoteAndBaseBalances(symbol, e.BaseURL, e.ApiVersion, e.ApiKey, e.SecretKey)
 	if err != nil {
 		fmt.Println("Error fetching balances:", err)
-		return 0.0, 0.0, err
+		return 0.0, 0.0, fmt.Errorf("Error fetching balances: %v", err)
 	}
 
 	fmt.Printf("Quote Balance for %s: %.8f\n", symbol, quoteBalance)

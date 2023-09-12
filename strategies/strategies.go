@@ -814,12 +814,9 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom string) error {
 	ts.QuoteCurrency = exchConfigParam.QuoteCurrency
 	ts.Symbol = exchConfigParam.Symbol
 	ts.CurrentPrice, err = exch.FetchTicker(ts.Symbol)
-	if err != nil {
-		return err
-	}
 	ts.QuoteBalance, ts.BaseBalance, err = ts.APIServices.GetQuoteAndBaseBalances(ts.Symbol)
 	if err != nil {
-		return err
+		return fmt.Errorf("GetQuoteAndBaseBalances Error: %v", err)
 	}
 	ts.MiniQty, ts.MaxQty, ts.StepSize, ts.MinNotional, err = exch.FetchExchangeEntities(ts.Symbol)
 	if err != nil {
