@@ -50,8 +50,6 @@ type TradingSystem struct {
 	DataPoint                int
 	CurrentPrice             float64
 	EntryQuantity            []float64
-	Scalping                 string
-	StrategyCombLogic        string
 	EntryCostLoss            []float64
 	TradeCount               int
 	TradingLevel             int
@@ -87,33 +85,39 @@ type TradingSystem struct {
 // MACD signal period, Bollinger Bands period, and more.
 func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadDBFrom string) (*TradingSystem, error) {
 	// Initialize the trading system.
-	ts := &TradingSystem{}
+	loadDataFrom := ""
+	rDBServices := NewRDBServices()
+	ts, err := rDBServices.ReadDBTradingSystem(0)
+	if err != nil{
+		fmt.Println("TS = ",ts)		
+		log.Printf("\n%v: But going ahead to initialize empty TS struct\n", err)
+		ts = &TradingSystem{}
+		ts.RiskFactor = 2.0 
+		ts.CommissionPercentage = 0.00075 
+		ts.RiskProfitLossPercentage = 0.00075
+		ts.EnableStoploss = true
+		ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64) 
+		ts.MaxDataSize = 500
+		ts.BaseCurrency = BaseCurrency
+	}else{
+		loadDataFrom = "DataBase"
+	}
+	fmt.Println("TS = ",ts)
 	if liveTrading {
-		err := ts.LiveUpdate(loadExchFrom, loadDBFrom)
+		err = ts.LiveUpdate(loadExchFrom, loadDBFrom, loadDataFrom)
 		if err != nil {
 			return &TradingSystem{}, err
 		}
 	} else {
-		err := ts.UpdateHistoricalData(loadExchFrom, loadDBFrom)
+		err = ts.UpdateHistoricalData(loadExchFrom, loadDBFrom)
 		if err != nil {
 			return &TradingSystem{}, err
 		}
-	}
-	ts.RDBServices = NewRDBServices()
-	ts.RiskFactor = 2.0                   // Define 1% slippage
-	ts.CommissionPercentage = 0.00075     // Define 0.1% transaction cost
-	ts.RiskProfitLossPercentage = 0.00025 //percentage of Initial Capital used to represent Target profit or stoplooss amount
-	// ts.QuoteBalance = ts.InitialCapital   //continer to hold the balance
-	ts.Scalping = ""                      //"UseTA"
-	ts.StrategyCombLogic = "OR"
-	ts.EnableStoploss = true
-	ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64) //
-	ts.MaxDataSize = 500
+	}                 
 	ts.ShutDownCh = make(chan string)
 	ts.EpochTime = time.Second * 30
 	ts.ChartChan = make(chan model.ChartData, 1)
-	ts.BaseCurrency = BaseCurrency
-	ts.DBStoreTicker = time.NewTicker(ts.EpochTime) // Adjust the interval as needed
+	ts.DBStoreTicker = time.NewTicker(ts.EpochTime)
 	ts.TSDataChan = make(chan []byte)
 	ts.ADataChan = make(chan []byte)
 	ts.MDChan = make(chan *model.AppData)
@@ -133,8 +137,6 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 				RiskCost:                 ts.RiskCost,
 				DataPoint:                ts.DataPoint,
 				CurrentPrice:             ts.CurrentPrice,
-				Scalping:                 ts.Scalping,
-				StrategyCombLogic:        ts.StrategyCombLogic,
 				TradeCount:               ts.TradeCount,
 				TradingLevel:             ts.TradingLevel,
 				ClosedWinTrades:          ts.ClosedWinTrades,
@@ -226,8 +228,6 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 	md := ts.NewAppData()
 	fmt.Println("App started. Press Ctrl+C to exit.")
 	go ts.ShutDown(md, sigchnl)
-	ts.BaseBalance = 0.0
-	ts.QuoteBalance = ts.InitialCapital
 	// Initialize variables for tracking trading performance.
 	ts.TradeCount = 0
 	ts.TradingLevel = 0
@@ -758,7 +758,7 @@ func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom, loadDBFrom string) e
 }
 
 // UpdateClosingPrices fetches historical data from the exchange and updates the ClosingPrices field in TradingSystem.
-func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom string) error {
+func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom string) error {
 	var (
 		err             error
 		exch            model.APIServices
@@ -807,12 +807,14 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom string) error {
 	default:
 		return errors.Errorf("Error updating Live data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
 	}
-	ts.InitialCapital = exchConfigParam.InitialCapital //Initial Capital for simulation on backtesting
+	if LoadDataFrom != "DataBase"{
+		ts.InitialCapital = exchConfigParam.InitialCapital
+		ts.BaseCurrency = exchConfigParam.BaseCurrency
+		ts.QuoteCurrency = exchConfigParam.QuoteCurrency
+	}
+	ts.Symbol = exchConfigParam.Symbol
 	ts.DBServices = DB
 	ts.APIServices = exch
-	ts.BaseCurrency = exchConfigParam.BaseCurrency
-	ts.QuoteCurrency = exchConfigParam.QuoteCurrency
-	ts.Symbol = exchConfigParam.Symbol
 	ts.CurrentPrice, err = exch.FetchTicker(ts.Symbol)
 	if strings.Contains(loadExchFrom, "Testnet"){
 		ts.QuoteBalance = 100.0
@@ -911,7 +913,7 @@ func (ts *TradingSystem) ShutDown(md *model.AppData, sigchnl chan os.Signal) {
 						len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 				}
 				// Print the overall trading performance after backtesting.
-				fmt.Printf("Summary: Strategy: %s Combination: %s, ", md.Strategy, ts.StrategyCombLogic)
+				fmt.Printf("Summary: Strategy: %s ", md.Strategy)
 				fmt.Printf("Total Trades: %d, out of %d trials ", ts.TradeCount, len(ts.Signals))
 				fmt.Printf("Total Profit/Loss: %.2f, ", md.TotalProfitLoss)
 				fmt.Printf("Final Capital: %.2f, ", ts.QuoteBalance)

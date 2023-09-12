@@ -1,48 +1,47 @@
 package model
 
-// EntryPrice 
-// EntryCostLoss 
-// EntryQuantity 
+// EntryPrice
+// EntryCostLoss
+// EntryQuantity
 // StopLossRecover
-// NextProfitSeLLPrice 
+// NextProfitSeLLPrice
 // NextInvestBuYPrice
 
 type TradingSystemData struct {
-	Symbol                   string  `json:"symbol"`
-	ClosingPrices            float64 `json:"closing_prices"`
-	Timestamps               int64   `json:"timestamps"`
-	Signals                  string  `json:"signals"`
+	ID                       uint
+	Symbol                   string    `json:"symbol"`
+	ClosingPrices            float64   `json:"closing_prices"`
+	Timestamps               int64     `json:"timestamps"`
+	Signals                  string    `json:"signals"`
 	NextInvestBuYPrice       []float64 `json:"next_invest_buy_price"`
 	NextProfitSeLLPrice      []float64 `json:"next_profit_sell_price"`
-	CommissionPercentage     float64 `json:"commission_percentage"`
-	InitialCapital           float64 `json:"initial_capital"`
-	PositionSize             float64 `json:"position_size"`
+	CommissionPercentage     float64   `json:"commission_percentage"`
+	InitialCapital           float64   `json:"initial_capital"`
+	PositionSize             float64   `json:"position_size"`
 	EntryPrice               []float64 `json:"entry_price"`
-	InTrade                  bool    `json:"in_trade"`
-	QuoteBalance             float64 `json:"quote_balance"`
-	BaseBalance              float64 `json:"base_balance"`
-	RiskCost                 float64 `json:"risk_cost"`
-	DataPoint                int     `json:"data_point"`
-	CurrentPrice             float64 `json:"current_price"`
+	InTrade                  bool      `json:"in_trade"`
+	QuoteBalance             float64   `json:"quote_balance"`
+	BaseBalance              float64   `json:"base_balance"`
+	RiskCost                 float64   `json:"risk_cost"`
+	DataPoint                int       `json:"data_point"`
+	CurrentPrice             float64   `json:"current_price"`
 	EntryQuantity            []float64 `json:"entry_quantity"`
-	Scalping                 string  `json:"scalping"`
-	StrategyCombLogic        string  `json:"strategy_comb_logic"`
 	EntryCostLoss            []float64 `json:"entry_cost_loss"`
-	TradeCount               int     `json:"trade_count"`
-	TradingLevel             int     `json:"trading_level"`
-	ClosedWinTrades          int     `json:"closed_win_trades"`
-	EnableStoploss           bool    `json:"enable_stoploss"`
-	StopLossTrigered         bool    `json:"stop_loss_triggered"`
+	TradeCount               int       `json:"trade_count"`
+	TradingLevel             int       `json:"trading_level"`
+	ClosedWinTrades          int       `json:"closed_win_trades"`
+	EnableStoploss           bool      `json:"enable_stoploss"`
+	StopLossTrigered         bool      `json:"stop_loss_triggered"`
 	StopLossRecover          []float64 `json:"stop_loss_recover"`
-	RiskFactor               float64 `json:"risk_factor"`
-	MaxDataSize              int     `json:"max_data_size"`
-	RiskProfitLossPercentage float64 `json:"risk_profit_loss_percentage"`
-	BaseCurrency             string  `json:"base_currency"`
-	QuoteCurrency            string  `json:"quote_currency"`
-	MiniQty                  float64 `json:"mini_qty"`
-	MaxQty                   float64 `json:"max_qty"`
-	MinNotional              float64 `json:"min_notional"`
-	StepSize                 float64 `json:"step_size"`
+	RiskFactor               float64   `json:"risk_factor"`
+	MaxDataSize              int       `json:"max_data_size"`
+	RiskProfitLossPercentage float64   `json:"risk_profit_loss_percentage"`
+	BaseCurrency             string    `json:"base_currency"`
+	QuoteCurrency            string    `json:"quote_currency"`
+	MiniQty                  float64   `json:"mini_qty"`
+	MaxQty                   float64   `json:"max_qty"`
+	MinNotional              float64   `json:"min_notional"`
+	StepSize                 float64   `json:"step_size"`
 }
 
 // type AppID uint64

@@ -19,7 +19,7 @@ func main() {
 	
 
 	//You specify the source of Exch API (e.g., "HitBTC", "Binance", "BinanceTestnet")
-	loadExchFrom := "BinanceTestnet" 
+	loadExchFrom := "Binance" 
 	//You specify the source of DataBase (e.g., "InfluxDB")
 	loadDBFrom :=  "InfluxDB"	
 	//You specify whether you're performing live trading or not 
@@ -52,8 +52,8 @@ func main() {
     ts.CSVWriter = csv.NewWriter(appfile)
 	// Write headers to the CSV file
 	headers := []string{
-		"Count","Strategy","ShortPeriod","LongPeriod", "ShortEMA", "LongEMA", "TargetProfit",
-		"TargetStopLoss","RiskPositionPercentage","TotalProfitLoss",   
+		// "Count","Strategy","ShortPeriod","LongPeriod", "ShortEMA", "LongEMA", "TargetProfit",
+		// "TargetStopLoss","RiskPositionPercentage","TotalProfitLoss",   
 	}
 	err = ts.CSVWriter.Write(headers)
 	if err != nil {

@@ -20,7 +20,7 @@ func NewRDBServices()*RDBServices{
 
 func(dbs *RDBServices)CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, err error){	
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
     if err != nil {
         return 0, fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
@@ -39,8 +39,6 @@ func(dbs *RDBServices)CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, er
         RiskCost:                 ts.RiskCost,
         DataPoint:                ts.DataPoint,
         CurrentPrice:             ts.CurrentPrice,
-        Scalping:                 ts.Scalping,
-        StrategyCombLogic:        ts.StrategyCombLogic,
         TradeCount:               ts.TradeCount,
         EnableStoploss:           ts.EnableStoploss,
         StopLossTrigered:         ts.StopLossTrigered,
@@ -99,32 +97,32 @@ func(dbs *RDBServices)CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, er
 	}
 	fmt.Printf("%v with id: %v and ChanBuffer: %v\n", ms, uint(uid), len(ts.TSDataChan))
     if !strings.Contains(ms, "successfully"){
-        return 0, fmt.Errorf("something went wrong %v", ms)
+        return 0, fmt.Errorf("Something went wrong: %v", ms)
     }
 	return uint(uid), err
 }
 func(dbs *RDBServices)ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
     if err != nil {
         return nil, fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
     defer conn.Close()
-	ap := model.AppData{ ID: tradeID}
-	
-	// Serialize the TradingSystemData object to JSON
-	appDataJSON, err := json.Marshal(ap)
-	if err != nil {
-		return nil, fmt.Errorf("Error marshaling TradingSystemData to JSON: %v", err)
-	}
+    ap := model.TradingSystemData{ ID: tradeID}
 
-	// Create a message (request) to send
-	request := map[string]interface{}{
-		"action": "read",
-		"entity": "trading-system",
-		"data":   json.RawMessage(appDataJSON), // RawMessage to keep it as JSON
-	}
-	
+    // Serialize the TradingSystemData object to JSON
+    appDataJSON, err := json.Marshal(ap)
+    if err != nil {
+        return nil, fmt.Errorf("Error marshaling TradingSystemData to JSON: %v", err)
+    }
+
+    // Create a message (request) to send
+    request := map[string]interface{}{
+        "action": "read",
+        "entity": "trading-system",
+        "data":   json.RawMessage(appDataJSON), // RawMessage to keep it as JSON
+    }
+
     // Send the message
     err = conn.WriteJSON(request)
     if err != nil {
@@ -143,20 +141,60 @@ func(dbs *RDBServices)ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, err 
     if !ok {
         return nil, fmt.Errorf("Invalid response format %v", ms)
     }
+    if !strings.Contains(ms, "successfully"){
+        return nil, fmt.Errorf("Something went wrong: %v", ms)
+    }
+    var dbts model.TradingSystemData
+    dataByte, _ := json.Marshal(response["data"])
+    // Deserialize the WebSocket message directly into the struct
+    if err := json.Unmarshal(dataByte, &dbts); err != nil {
+        return nil, fmt.Errorf("Error parsing WebSocket message: %v", err)
+    }
 
-	var dbts TradingSystem				
-	dataByte, _ := json.Marshal(response["data"])
-	// Deserialize the WebSocket message directly into the struct
-	if err := json.Unmarshal(dataByte, &dbts); err != nil {
-		return nil, fmt.Errorf("Error parsing WebSocket message: %v", err)
-	}
-
-	fmt.Printf("%v\n", ms)
-	return &dbts, err
+    //After reading data from the database in the model.TradingSystemData format 
+    //it has to be converted to the TradingSystem format as follows:
+    ts = &TradingSystem{}
+    ts.ID = dbts.ID 
+    ts.ClosingPrices = append(ts.ClosingPrices, dbts.ClosingPrices)
+    ts.Timestamps = append(ts.Timestamps, dbts.Timestamps)
+    ts.Signals = append(ts.Signals, dbts.Signals)
+    ts.ClosingPrices = append(ts.ClosingPrices, dbts.ClosingPrices)
+    ts.ClosingPrices = append(ts.ClosingPrices, dbts.ClosingPrices)      
+    ts.NextInvestBuYPrice = dbts.NextInvestBuYPrice    
+    ts.NextProfitSeLLPrice = dbts.NextProfitSeLLPrice 
+    ts.EntryPrice = dbts.EntryPrice 
+    ts.EntryQuantity = dbts.EntryQuantity 
+    ts.EntryCostLoss = dbts.EntryCostLoss 
+    ts.StopLossRecover = dbts.StopLossRecover
+    ts.CommissionPercentage = dbts.CommissionPercentage
+    ts.InitialCapital = dbts.InitialCapital
+    ts.PositionSize   = dbts.PositionSize
+    ts.InTrade      = dbts.InTrade
+    ts.QuoteBalance   = dbts.QuoteBalance
+    ts.BaseBalance    = dbts.BaseBalance
+    ts.RiskCost       = dbts.RiskCost
+    ts.DataPoint    = dbts.DataPoint
+    ts.CurrentPrice   = dbts.CurrentPrice
+    ts.TradeCount   = dbts.TradeCount
+    ts.TradingLevel = dbts.TradingLevel
+    ts.ClosedWinTrades  = dbts.ClosedWinTrades
+    ts.EnableStoploss    = dbts.EnableStoploss
+    ts.StopLossTrigered  = dbts.StopLossTrigered
+    ts.RiskFactor     = dbts.RiskFactor
+    ts.MaxDataSize      = dbts.MaxDataSize
+    ts.RiskProfitLossPercentage = dbts.RiskProfitLossPercentage
+    ts.BaseCurrency    = dbts.BaseCurrency
+    ts.QuoteCurrency    = dbts.QuoteCurrency
+    ts.MiniQty        = dbts.MiniQty
+    ts.MaxQty         = dbts.MaxQty
+    ts.MinNotional    = dbts.MinNotional
+    ts.StepSize       = dbts.StepSize
+	fmt.Printf("%v with id: %v\n", ms, ts.ID)
+    return ts, nil
 }
 func(dbs *RDBServices)UpdateDBTradingSystem(trade *TradingSystem)(err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
     if err != nil {
         return fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
@@ -198,7 +236,7 @@ func(dbs *RDBServices)UpdateDBTradingSystem(trade *TradingSystem)(err error){
 }
 func(dbs *RDBServices)DeleteDBTradingSystem(tradeID uint) (err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
     if err != nil {
         return fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
@@ -241,7 +279,7 @@ func(dbs *RDBServices)DeleteDBTradingSystem(tradeID uint) (err error){
 }
 func(dbs *RDBServices)CreateDBAppData(data *model.AppData) (id uint, err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
     if err != nil {
         return 0, fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
@@ -284,13 +322,13 @@ func(dbs *RDBServices)CreateDBAppData(data *model.AppData) (id uint, err error){
     }
 	fmt.Printf("%v with id: %v\n", ms, uint(uid))
     if !strings.Contains(ms, "successfully"){
-        return 0, fmt.Errorf("something went wrong %v", ms)
+        return 0, fmt.Errorf("Something went wrong: %v", ms)
     }
 	return uint(uid), nil
 }
 func(dbs *RDBServices)ReadDBAppData(dataID uint) (ad *model.AppData, err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
     if err != nil {
         return nil, fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
@@ -333,7 +371,7 @@ func(dbs *RDBServices)ReadDBAppData(dataID uint) (ad *model.AppData, err error){
 }
 func(dbs *RDBServices)UpdateDBAppData(data *model.AppData)(err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
     if err != nil {
         return fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
@@ -375,7 +413,7 @@ func(dbs *RDBServices)UpdateDBAppData(data *model.AppData)(err error){
 }
 func(dbs *RDBServices)DeleteDBAppData(dataID uint) (err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
     if err != nil {
         return fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
