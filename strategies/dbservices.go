@@ -44,7 +44,7 @@ func(dbs *RDBServices)CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, er
         TradeCount:               ts.TradeCount,
         EnableStoploss:           ts.EnableStoploss,
         StopLossTrigered:         ts.StopLossTrigered,
-        StopLossRecover:          ts.StopLossRecover[len(ts.StopLossRecover)-1],
+        StopLossRecover:          ts.StopLossRecover,
         RiskFactor:               ts.RiskFactor,
         MaxDataSize:              ts.MaxDataSize,
         RiskProfitLossPercentage: ts.RiskProfitLossPercentage,
@@ -56,17 +56,17 @@ func(dbs *RDBServices)CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, er
         StepSize:                 ts.StepSize,
     }
     if len(ts.EntryPrice) >= 1 {
-        trade.EntryCostLoss =  ts.EntryCostLoss[len(ts.EntryCostLoss)-1]
-        trade.EntryQuantity =  ts.EntryQuantity[len(ts.EntryQuantity)-1]
-        trade.EntryPrice =     ts.EntryPrice[len(ts.EntryPrice)-1]
-        trade.NextInvestBuYPrice = ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
-        trade.NextProfitSeLLPrice = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1]
+        trade.EntryCostLoss =  ts.EntryCostLoss
+        trade.EntryQuantity =  ts.EntryQuantity
+        trade.EntryPrice =     ts.EntryPrice
+        trade.NextInvestBuYPrice = ts.NextInvestBuYPrice
+        trade.NextProfitSeLLPrice = ts.NextProfitSeLLPrice
     }
     
-	// Serialize the DBAppData object to JSON
+	// Serialize the TradingSystemData object to JSON
 	appDataJSON, err := json.Marshal(trade)
 	if err != nil {
-		return 0, fmt.Errorf("Error marshaling DBAppData to JSON: %v", err)
+		return 0, fmt.Errorf("Error marshaling TradingSystemData to JSON: %v", err)
 	}
 	// Create a message (request) to send
 	request := map[string]interface{}{
@@ -112,10 +112,10 @@ func(dbs *RDBServices)ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, err 
     defer conn.Close()
 	ap := model.AppData{ ID: tradeID}
 	
-	// Serialize the DBAppData object to JSON
+	// Serialize the TradingSystemData object to JSON
 	appDataJSON, err := json.Marshal(ap)
 	if err != nil {
-		return nil, fmt.Errorf("Error marshaling DBAppData to JSON: %v", err)
+		return nil, fmt.Errorf("Error marshaling TradingSystemData to JSON: %v", err)
 	}
 
 	// Create a message (request) to send
@@ -162,10 +162,10 @@ func(dbs *RDBServices)UpdateDBTradingSystem(trade *TradingSystem)(err error){
     }
     defer conn.Close()
 	
-	// Serialize the DBAppData object to JSON
+	// Serialize the TradingSystemData object to JSON
 	appDataJSON, err := json.Marshal(trade)
 	if err != nil {
-		return fmt.Errorf("Error marshaling DBAppData to JSON: %v", err)
+		return fmt.Errorf("Error marshaling TradingSystemData to JSON: %v", err)
 	}
 
 	// Create a message (request) to send
@@ -205,10 +205,10 @@ func(dbs *RDBServices)DeleteDBTradingSystem(tradeID uint) (err error){
     defer conn.Close()
 	ap := model.AppData{ ID: tradeID}
 	
-	// Serialize the DBAppData object to JSON
+	// Serialize the TradingSystemData object to JSON
 	appDataJSON, err := json.Marshal(ap)
 	if err != nil {
-		return fmt.Errorf("Error marshaling DBAppData to JSON: %v", err)
+		return fmt.Errorf("Error marshaling TradingSystemData to JSON: %v", err)
 	}
 
 	// Create a message (request) to send

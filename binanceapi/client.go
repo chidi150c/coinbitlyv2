@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"coinbitly.com/config"
 	"coinbitly.com/helper"
@@ -11,16 +12,17 @@ import (
 )
 
 type APIServices struct {
+	loadExchFrom string
 	*config.ExchConfig
 }
 
-func NewAPIServices(exchConfig *config.ExchConfig) (*APIServices, error) {
+func NewAPIServices(exchConfig *config.ExchConfig, loadExchFrom string) (*APIServices, error) {
 	// Check if the environment variables are set
 	if exchConfig.ApiKey == "" || exchConfig.SecretKey == "" {
 		fmt.Println("Error: Binance API credentials not set.")
 		return nil, errors.New("Error: Binance API credentials not set.")
 	}
-	return &APIServices{exchConfig}, nil
+	return &APIServices{loadExchFrom, exchConfig}, nil
 }
 
 // FetchHistoricalCandlesticks fetches historical candlestick data for the given symbol and time interval
@@ -100,14 +102,16 @@ func (e *APIServices) FetchExchangeEntities(symbol string) (minQty, maxQty, step
 }
 
 func (e *APIServices) PlaceLimitOrder(symbol, side string, price, quantity float64) (orderResp model.Response, err error) {
-	// return model.Response{
-	// 	OrderID:            int64(23211),
-	// 	ExecutedQty:        quantity,
-	// 	ExecutedPrice:      price,
-	// 	Commission:         0.00075 * quantity,
-	// 	CumulativeQuoteQty: quantity * price,
-	// 	Status:             "",
-	// }, err
+	if strings.Contains(e.loadExchFrom, "Testnet"){
+		return model.Response{
+			OrderID:            int64(23211),
+			ExecutedQty:        quantity,
+			ExecutedPrice:      price,
+			Commission:         0.00075 * quantity,
+			CumulativeQuoteQty: quantity * price,
+			Status:             "",
+		}, err
+	 }
 	orderType := "LIMIT"
 	timeInForce := "GTC"
 	Price := fmt.Sprintf("%.8f", price)

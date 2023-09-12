@@ -140,7 +140,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 				ClosedWinTrades:          ts.ClosedWinTrades,
 				EnableStoploss:           ts.EnableStoploss,
 				StopLossTrigered:         ts.StopLossTrigered,
-				StopLossRecover:          ts.StopLossRecover[len(ts.StopLossRecover)-1],
+				StopLossRecover:          ts.StopLossRecover,
 				RiskFactor:               ts.RiskFactor,
 				MaxDataSize:              ts.MaxDataSize,
 				RiskProfitLossPercentage: ts.RiskProfitLossPercentage,
@@ -152,11 +152,11 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 				StepSize:                 ts.StepSize,
 			}
 			if len(ts.EntryPrice) >= 1 {
-				trade.EntryCostLoss = ts.EntryCostLoss[len(ts.EntryCostLoss)-1]
-				trade.EntryQuantity = ts.EntryQuantity[len(ts.EntryQuantity)-1]
-				trade.EntryPrice = ts.EntryPrice[len(ts.EntryPrice)-1]
-				trade.NextInvestBuYPrice = ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
-				trade.NextProfitSeLLPrice = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1]
+				trade.EntryCostLoss = ts.EntryCostLoss
+				trade.EntryQuantity = ts.EntryQuantity
+				trade.EntryPrice = ts.EntryPrice
+				trade.NextInvestBuYPrice = ts.NextInvestBuYPrice
+				trade.NextProfitSeLLPrice = ts.NextProfitSeLLPrice
 			}
 
 			// Serialize the DBAppData object to JSON
@@ -719,12 +719,12 @@ func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom, loadDBFrom string) e
 			log.Fatalf("Error getting new exchange services from HitBTC: %v", err)
 		}
 	case "Binance":
-		exch, err = binanceapi.NewAPIServices(exchConfigParam)
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
 		if err != nil {
 			log.Fatalf("Error getting new exchange services from Binance: %v", err)
 		}
 	case "BinanceTestnet":
-		exch, err = binanceapi.NewAPIServices(exchConfigParam)
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
 		if err != nil {
 			log.Fatalf("Error getting new exchange services from Binance: %v", err)
 		}
@@ -795,12 +795,12 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom string) error {
 			log.Fatalf("Error getting new exchange services from HitBTC: %v", err)
 		}
 	case "Binance":
-		exch, err = binanceapi.NewAPIServices(exchConfigParam)
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
 		if err != nil {
 			log.Fatalf("Error getting new exchange services from Binance: %v", err)
 		}
 	case "BinanceTestnet":
-		exch, err = binanceapi.NewAPIServices(exchConfigParam)
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
 		if err != nil {
 			log.Fatalf("Error getting new exchange services from Binance: %v", err)
 		}
