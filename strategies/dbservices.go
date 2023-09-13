@@ -97,7 +97,7 @@ func(dbs *RDBServices)CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, er
 	}
 	fmt.Printf("%v with id: %v and ChanBuffer: %v\n", ms, uint(uid), len(ts.TSDataChan))
     if !strings.Contains(ms, "successfully"){
-        return 0, fmt.Errorf("Something went wrong: %v", ms)
+        return 0, fmt.Errorf("Something TradingSystem went wrong: %v", ms)
     }
 	return uint(uid), err
 }
@@ -142,7 +142,7 @@ func(dbs *RDBServices)ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, err 
         return nil, fmt.Errorf("Invalid response format %v", ms)
     }
     if !strings.Contains(ms, "successfully"){
-        return nil, fmt.Errorf("Something went wrong: %v", ms)
+        return nil, fmt.Errorf("Something TradingSystem went wrong: %v", ms)
     }
     var dbts model.TradingSystemData
     dataByte, _ := json.Marshal(response["data"])
@@ -322,11 +322,11 @@ func(dbs *RDBServices)CreateDBAppData(data *model.AppData) (id uint, err error){
     }
 	fmt.Printf("%v with id: %v\n", ms, uint(uid))
     if !strings.Contains(ms, "successfully"){
-        return 0, fmt.Errorf("Something went wrong: %v", ms)
+        return 0, fmt.Errorf("Something AppData went wrong: %v", ms)
     }
 	return uint(uid), nil
 }
-func(dbs *RDBServices)ReadDBAppData(dataID uint) (ad *model.AppData, err error){
+func(dbs *RDBServices)ReadDBAppData(dataID uint) ( *model.AppData, error){
     // Create a mock WebSocket connection
     conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
@@ -364,10 +364,18 @@ func(dbs *RDBServices)ReadDBAppData(dataID uint) (ad *model.AppData, err error){
     // Perform assertions to verify the response
     ms, ok := response["message"].(string)
     if !ok {
-        return nil, fmt.Errorf("Invalid response format %v and resp: %v", ms, response)
+        return nil, fmt.Errorf("Invalid response format %v", ms)
     }
-	fmt.Printf("tradrID in uint correct: %v\n", ms)
-	return ad, err
+    if !strings.Contains(ms, "successfully"){
+        return nil, fmt.Errorf("Something AppData went wrong: %v", ms)
+    }
+    var dbts *model.AppData
+    dataByte, _ := json.Marshal(response["data"])
+    // Deserialize the WebSocket message directly into the struct
+    if err := json.Unmarshal(dataByte, dbts); err != nil {
+        return nil, fmt.Errorf("Error parsing WebSocket message: %v", err)
+    }
+	return dbts, err
 }
 func(dbs *RDBServices)UpdateDBAppData(data *model.AppData)(err error){
     // Create a mock WebSocket connection
