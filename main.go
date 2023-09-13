@@ -21,7 +21,7 @@ func main() {
 	//You specify the source of Exch API (e.g., "HitBTC", "Binance", "BinanceTestnet")
 	loadExchFrom := "Binance" 
 	//You specify the source of DataBase (e.g., "InfluxDB")
-	loadDBFrom :=  "InfluxDB"	
+	loadDBFrom :=  "InfluxDB"
 	//You specify whether you're performing live trading or not 
 	liveTrading := true
 

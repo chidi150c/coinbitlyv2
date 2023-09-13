@@ -123,6 +123,10 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	ts.MDChan = make(chan *model.AppData)
 	go func() {
 		for {
+			if len(ts.Signals) < 1 {
+				time.Sleep(ts.EpochTime)
+				continue
+			}
 			trade := model.TradingSystemData{
 				Symbol:                   ts.Symbol,
 				ClosingPrices:            ts.ClosingPrices[len(ts.ClosingPrices)-1],
@@ -173,6 +177,20 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			time.Sleep(time.Second * 1)
 		}
 	}()
+
+	go func(){
+		for {
+			select{
+			case <-time.After(time.Minute * 60):
+				log.Printf("Storing TradingSystem happening now!!!")
+				ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
+				if err != nil {
+					fmt.Printf("Error Storing TradingSystem: %v", err)
+				}
+				log.Printf("Storing TradingSystem done!!!")
+			}
+		}
+	}()
 	return ts, nil
 }
 func (ts *TradingSystem) NewAppData() *model.AppData {
@@ -207,6 +225,21 @@ func (ts *TradingSystem) NewAppData() *model.AppData {
 			time.Sleep(time.Second * 1)
 		}
 	}()
+	go func(){
+		var err error
+		for {
+			select{
+			case <-time.After(time.Minute * 60):
+				log.Printf("Storing AppData happening now!!!")
+				md.ID, err = ts.RDBServices.CreateDBAppData(md)
+				if err != nil {
+					fmt.Printf("Error Storing AppData: %v", err)
+				}
+				log.Printf("Storing AppData done!!!")
+			}
+		}
+	}()
+
 	return md
 }
 func (ts *TradingSystem) TickerQueueAdjustment() {
@@ -256,18 +289,6 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			fmt.Println("Error Reporting Live Trade: ", err)
 			return
 		}
-		if loadExchFrom != "BinanceTestnet" {
-			md.ID, err = ts.RDBServices.CreateDBAppData(md)
-			if err != nil {
-				fmt.Println(err)
-			}
-			md.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
-			if err != nil {
-				fmt.Println(err)
-			}
-		} else {
-			fmt.Println(ts.DataPoint, "Epoc done!!!")
-		}
 
 		time.Sleep(ts.EpochTime)
 		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
@@ -314,18 +335,6 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 			}
 			_ = ts.Trading(md, loadExchFrom)
 
-			if loadExchFrom != "BinanceTestnet" {
-				md.ID, err = ts.RDBServices.CreateDBAppData(md)
-				if err != nil {
-					fmt.Println(err)
-				}
-				md.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
-				if err != nil {
-					fmt.Println(err)
-				}
-			} else {
-				fmt.Println(ts.DataPoint, "Epoc done!!!")
-			}
 			time.Sleep(ts.EpochTime)
 		}
 		err = ts.Reporting(md, "Backtesting")
