@@ -121,7 +121,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	ts.TSDataChan = make(chan []byte)
 	ts.ADataChan = make(chan []byte)
 	ts.MDChan = make(chan *model.AppData)
-	go func() {
+	go func() { //Goroutine to feed the front end React UI
 		for {
 			if len(ts.Signals) < 1 {
 				time.Sleep(ts.EpochTime)
@@ -178,7 +178,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		}
 	}()
 
-	go func(){
+	go func(){//Goroutine to store TS into Database
 		for {
 			select{
 			case <-time.After(time.Minute * 60):
@@ -194,17 +194,22 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	return ts, nil
 }
 func (ts *TradingSystem) NewAppData() *model.AppData {
-	md := &model.AppData{}
-	md.DataPoint = 0
-	md.Strategy = "EMA"
-	md.ShortPeriod = 10 // Define moving average short period for the strategy.
-	md.LongPeriod = 30  // Define moving average long period for the strategy.
-	md.ShortEMA = 0.0
-	md.LongEMA = 0.0
-	md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
-	md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
-	md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
-	md.TotalProfitLoss = 0.0
+	// Initialize the App Data
+	// loadDataFrom := ""
+	rDBServices := NewRDBServices()
+	md, err := rDBServices.ReadDBAppData(0)
+	if err != nil{
+		md.DataPoint = 0
+		md.Strategy = "EMA"
+		md.ShortPeriod = 10 // Define moving average short period for the strategy.
+		md.LongPeriod = 30  // Define moving average long period for the strategy.
+		md.ShortEMA = 0.0
+		md.LongEMA = 0.0
+		md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
+		md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
+		md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
+		md.TotalProfitLoss = 0.0
+	}
 	go func() {
 		for {
 			select {
@@ -617,7 +622,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 	// Calculate moving averages (MA) using historical data.
 	longEMA, shortEMA, _, err := CandleExponentialMovingAverage(ts.ClosingPrices, ts.Timestamps, md.LongPeriod, md.ShortPeriod)
 	if err != nil {
-		log.Printf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
+		// log.Printf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
 		md.LongEMA, md.ShortEMA = 0.0, 0.0
 	} else {
 		md.LongEMA, md.ShortEMA = longEMA[ts.DataPoint], shortEMA[ts.DataPoint]

@@ -29,7 +29,8 @@ type Candlestick struct {
 
 // GetQuoteAndBaseBalances retrieves the quote and base balances for a given trading pair.
 func getQuoteAndBaseBalances(symbol, baseURL, apiVersion, apiKey, secretKey string) (float64, float64, error) {
-    // Fetch exchange information to determine quote and base assets
+    //return  float64(100.0), float64(0.0), nil
+	// Fetch exchange information to determine quote and base assets
     exchangeInfo, err := fetchExchangeInfo(symbol, baseURL, apiVersion, apiKey)
     if err != nil {
         return 0, 0, err

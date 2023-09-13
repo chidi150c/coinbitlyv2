@@ -222,7 +222,7 @@ func (ts *TradingSystem)CreateLineChartWithSignalsV3(md *model.AppData, timeSeri
 		return err
 	}
 	buyScatter.Shape = plotutil.Shape(3) // Triangle shape for Buy signals
-	buyScatter.Color = color.RGBA{R: 255, G: 0, B: 0, A: 255} // Red color for Buy signals
+	buyScatter.Color = color.RGBA{R: 213, G: 184, B: 255, A: 255} // Red color for Buy signals
 	buyScatter.GlyphStyle.Radius = vg.Points(5)
 
 	sellScatter, err := plotter.NewScatter(sellSignalPoints)
@@ -230,7 +230,7 @@ func (ts *TradingSystem)CreateLineChartWithSignalsV3(md *model.AppData, timeSeri
 		return err
 	}
 	sellScatter.Shape = plotutil.Shape(1) // Circle shape for Sell signals
-	sellScatter.Color = color.RGBA{R: 255, G: 0, B: 0, A: 255} // Red color for Sell signals
+	sellScatter.Color = color.RGBA{R: 213, G: 184, B: 255, A: 255} // Red color for Sell signals
 	sellScatter.GlyphStyle.Radius = vg.Points(5)
 
 	// Add the scatter plots to the plot.
