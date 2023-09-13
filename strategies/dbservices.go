@@ -20,7 +20,7 @@ func NewRDBServices()*RDBServices{
 
 func(dbs *RDBServices)CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, err error){	
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
         return 0, fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
@@ -103,7 +103,7 @@ func(dbs *RDBServices)CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, er
 }
 func(dbs *RDBServices)ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
         return nil, fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
@@ -194,7 +194,7 @@ func(dbs *RDBServices)ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, err 
 }
 func(dbs *RDBServices)UpdateDBTradingSystem(trade *TradingSystem)(err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
         return fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
@@ -236,7 +236,7 @@ func(dbs *RDBServices)UpdateDBTradingSystem(trade *TradingSystem)(err error){
 }
 func(dbs *RDBServices)DeleteDBTradingSystem(tradeID uint) (err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
         return fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
@@ -279,7 +279,7 @@ func(dbs *RDBServices)DeleteDBTradingSystem(tradeID uint) (err error){
 }
 func(dbs *RDBServices)CreateDBAppData(data *model.AppData) (id uint, err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
         return 0, fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
@@ -328,7 +328,7 @@ func(dbs *RDBServices)CreateDBAppData(data *model.AppData) (id uint, err error){
 }
 func(dbs *RDBServices)ReadDBAppData(dataID uint) (ad *model.AppData, err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
         return nil, fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
@@ -371,7 +371,7 @@ func(dbs *RDBServices)ReadDBAppData(dataID uint) (ad *model.AppData, err error){
 }
 func(dbs *RDBServices)UpdateDBAppData(data *model.AppData)(err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
         return fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
@@ -413,7 +413,7 @@ func(dbs *RDBServices)UpdateDBAppData(data *model.AppData)(err error){
 }
 func(dbs *RDBServices)DeleteDBAppData(dataID uint) (err error){
     // Create a mock WebSocket connection
-    conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
+    conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
         return fmt.Errorf("Failed to connect to WebSocket: %v", err)
     }
