@@ -199,6 +199,9 @@ func (ts *TradingSystem) NewAppData() *model.AppData {
 	rDBServices := NewRDBServices()
 	md, err := rDBServices.ReadDBAppData(0)
 	if err != nil{
+		fmt.Println("MD = ", md)		
+		log.Printf("\n%v: But going ahead to initialize empty AppData struct\n", err)
+		md = &model.AppData{}
 		md.DataPoint = 0
 		md.Strategy = "EMA"
 		md.ShortPeriod = 10 // Define moving average short period for the strategy.
