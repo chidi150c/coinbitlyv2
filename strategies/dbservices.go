@@ -22,7 +22,7 @@ func(dbs *RDBServices)CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, er
     // Create a mock WebSocket connection
     conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
-        return 0, fmt.Errorf("Failed to connect to WebSocket: %v", err)
+        return 0, fmt.Errorf("Failed24 to connect to WebSocket: %v", err)
     }
     defer conn.Close()
 	trade := model.TradingSystemData{
@@ -64,7 +64,7 @@ func(dbs *RDBServices)CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, er
 	// Serialize the TradingSystemData object to JSON
 	appDataJSON, err := json.Marshal(trade)
 	if err != nil {
-		return 0, fmt.Errorf("Error marshaling TradingSystemData to JSON: %v", err)
+		return 0, fmt.Errorf("Error1 marshaling TradingSystemData to JSON: %v", err)
 	}
 	// Create a message (request) to send
 	request := map[string]interface{}{
@@ -76,28 +76,28 @@ func(dbs *RDBServices)CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, er
     // Send the message
     err = conn.WriteJSON(request)
     if err != nil {
-        return 0, fmt.Errorf("Failed to send WebSocket message: %v", err)
+        return 0, fmt.Errorf("Failed1 to send WebSocket message: %v", err)
     }
 
     // Receive and parse the response
     var response map[string]interface{}
     err = conn.ReadJSON(&response)
     if err != nil {
-        return 0, fmt.Errorf("Failed to read WebSocket response: %v", err)
+        return 0, fmt.Errorf("Failed2 to read WebSocket response: %v", err)
     }
     // Perform assertions to verify the response
     ms, ok := response["message"].(string)
     if !ok {
-        return 0, fmt.Errorf("Invalid response format %v", ms)
+        return 0, fmt.Errorf("Invalid1 response format %v", ms)
     }
 	// Perform assertions to verify the response
 	uid, ok := response["data_id"].(float64)
 	if !ok {
-		return 0, fmt.Errorf("Invalid response format %v ", uid)
+		return 0, fmt.Errorf("Invalid2 response format %v ", uid)
 	}
 	fmt.Printf("%v with id: %v and ChanBuffer: %v\n", ms, uint(uid), len(ts.TSDataChan))
     if !strings.Contains(ms, "successfully"){
-        return 0, fmt.Errorf("Something TradingSystem went wrong: %v", ms)
+        return 0, fmt.Errorf("Something1 TradingSystem went wrong: %v", ms)
     }
 	return uint(uid), err
 }
@@ -105,7 +105,7 @@ func(dbs *RDBServices)ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, err 
     // Create a mock WebSocket connection
     conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
-        return nil, fmt.Errorf("Failed to connect to WebSocket: %v", err)
+        return nil, fmt.Errorf("Failed3 to connect to WebSocket: %v", err)
     }
     defer conn.Close()
     ap := model.TradingSystemData{ ID: tradeID}
@@ -113,7 +113,7 @@ func(dbs *RDBServices)ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, err 
     // Serialize the TradingSystemData object to JSON
     appDataJSON, err := json.Marshal(ap)
     if err != nil {
-        return nil, fmt.Errorf("Error marshaling TradingSystemData to JSON: %v", err)
+        return nil, fmt.Errorf("Error2 marshaling TradingSystemData to JSON: %v", err)
     }
 
     // Create a message (request) to send
@@ -126,29 +126,29 @@ func(dbs *RDBServices)ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, err 
     // Send the message
     err = conn.WriteJSON(request)
     if err != nil {
-        return nil, fmt.Errorf("Failed to send WebSocket message: %v", err)
+        return nil, fmt.Errorf("Failed4 to send WebSocket message: %v", err)
     }
 
     // Receive and parse the response
     var response map[string]interface{}
     err = conn.ReadJSON(&response)
     if err != nil {
-        return nil, fmt.Errorf("Failed to read WebSocket response: %v", err)
+        return nil, fmt.Errorf("Failed5 to read WebSocket response: %v", err)
     }
 
     // Perform assertions to verify the response
     ms, ok := response["message"].(string)
     if !ok {
-        return nil, fmt.Errorf("Invalid response format %v", ms)
+        return nil, fmt.Errorf("Invalid3 response format %v", ms)
     }
     if !strings.Contains(ms, "successfully"){
-        return nil, fmt.Errorf("Something TradingSystem went wrong: %v", ms)
+        return nil, fmt.Errorf("Something2 TradingSystem went wrong: %v", ms)
     }
     var dbts model.TradingSystemData
     dataByte, _ := json.Marshal(response["data"])
     // Deserialize the WebSocket message directly into the struct
     if err := json.Unmarshal(dataByte, &dbts); err != nil {
-        return nil, fmt.Errorf("Error parsing WebSocket message: %v", err)
+        return nil, fmt.Errorf("Error3 parsing WebSocket message: %v", err)
     }
 
     //After reading data from the database in the model.TradingSystemData format 
@@ -196,14 +196,14 @@ func(dbs *RDBServices)UpdateDBTradingSystem(trade *TradingSystem)(err error){
     // Create a mock WebSocket connection
     conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
-        return fmt.Errorf("Failed to connect to WebSocket: %v", err)
+        return fmt.Errorf("Failed6 to connect to WebSocket: %v", err)
     }
     defer conn.Close()
 	
 	// Serialize the TradingSystemData object to JSON
 	appDataJSON, err := json.Marshal(trade)
 	if err != nil {
-		return fmt.Errorf("Error marshaling TradingSystemData to JSON: %v", err)
+		return fmt.Errorf("Error4 marshaling TradingSystemData to JSON: %v", err)
 	}
 
 	// Create a message (request) to send
@@ -216,20 +216,20 @@ func(dbs *RDBServices)UpdateDBTradingSystem(trade *TradingSystem)(err error){
     // Send the message
     err = conn.WriteJSON(request)
     if err != nil {
-        return fmt.Errorf("Failed to send WebSocket message: %v", err)
+        return fmt.Errorf("Failed7 to send WebSocket message: %v", err)
     }
 
     // Receive and parse the response
     var response map[string]interface{}
     err = conn.ReadJSON(&response)
     if err != nil {
-        return fmt.Errorf("Failed to read WebSocket response: %v", err)
+        return fmt.Errorf("Failed8 to read WebSocket response: %v", err)
     }
 
     // Perform assertions to verify the response
     ms, ok := response["message"].(string)
     if !ok {
-        return fmt.Errorf("Invalid response format %v", ms)
+        return fmt.Errorf("Invalid4 response format %v", ms)
     }
 	fmt.Printf("%v\n", ms)
 	return nil
@@ -238,7 +238,7 @@ func(dbs *RDBServices)DeleteDBTradingSystem(tradeID uint) (err error){
     // Create a mock WebSocket connection
     conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
-        return fmt.Errorf("Failed to connect to WebSocket: %v", err)
+        return fmt.Errorf("Failed9 to connect to WebSocket: %v", err)
     }
     defer conn.Close()
 	ap := model.AppData{ ID: tradeID}
@@ -246,7 +246,7 @@ func(dbs *RDBServices)DeleteDBTradingSystem(tradeID uint) (err error){
 	// Serialize the TradingSystemData object to JSON
 	appDataJSON, err := json.Marshal(ap)
 	if err != nil {
-		return fmt.Errorf("Error marshaling TradingSystemData to JSON: %v", err)
+		return fmt.Errorf("Error5 marshaling TradingSystemData to JSON: %v", err)
 	}
 
 	// Create a message (request) to send
@@ -259,20 +259,20 @@ func(dbs *RDBServices)DeleteDBTradingSystem(tradeID uint) (err error){
     // Send the message
     err = conn.WriteJSON(request)
     if err != nil {
-        return fmt.Errorf("Failed to send WebSocket message: %v", err)
+        return fmt.Errorf("Failed10 to send WebSocket message: %v", err)
     }
 
     // Receive and parse the response
     var response map[string]interface{}
     err = conn.ReadJSON(&response)
     if err != nil {
-        return fmt.Errorf("Failed to read WebSocket response: %v", err)
+        return fmt.Errorf("Failed11 to read WebSocket response: %v", err)
     }
 
     // Perform assertions to verify the response
     ms, ok := response["message"].(string)
     if !ok {
-        return fmt.Errorf("Invalid response format %v and resp: %v", ms, response)
+        return fmt.Errorf("Invalid4 response format %v and resp: %v", ms, response)
     }
 	fmt.Printf("%v\n", ms)
 	return err
@@ -281,14 +281,14 @@ func(dbs *RDBServices)CreateDBAppData(data *model.AppData) (id uint, err error){
     // Create a mock WebSocket connection
     conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
-        return 0, fmt.Errorf("Failed to connect to WebSocket: %v", err)
+        return 0, fmt.Errorf("Failed12 to connect to WebSocket: %v", err)
     }
     defer conn.Close()
 	
 	// Serialize the DBAppData object to JSON
 	appDataJSON, err := json.Marshal(data)
 	if err != nil {
-		return 0, fmt.Errorf("Error marshaling DBAppData to JSON: %v", err)
+		return 0, fmt.Errorf("Error6 marshaling DBAppData to JSON: %v", err)
 	}
 
 	// Create a message (request) to send
@@ -300,25 +300,25 @@ func(dbs *RDBServices)CreateDBAppData(data *model.AppData) (id uint, err error){
     // Send the message
     err = conn.WriteJSON(request)
     if err != nil {
-        return 0, fmt.Errorf("Failed to send WebSocket message: %v", err)
+        return 0, fmt.Errorf("Failed13 to send WebSocket message: %v", err)
     }
 
     // Receive and parse the response
     var response map[string]interface{}
     err = conn.ReadJSON(&response)
     if err != nil {
-        return 0, fmt.Errorf("Failed to read WebSocket response: %v", err)
+        return 0, fmt.Errorf("Failed14 to read WebSocket response: %v", err)
     }
 
     // Perform assertions to verify the response
     ms, ok := response["message"].(string)
     if !ok {
-        return 0, fmt.Errorf("Invalid response format %v", ms)
+        return 0, fmt.Errorf("Invalid5 response format %v", ms)
     }
     // Perform assertions to verify the response
     uid, ok := response["data_id"].(float64)
     if !ok {
-        return 0, fmt.Errorf("Invalid response format %v", id)
+        return 0, fmt.Errorf("Invalid6 response format %v", id)
     }
 	fmt.Printf("%v with id: %v\n", ms, uint(uid))
     if !strings.Contains(ms, "successfully"){
@@ -330,7 +330,7 @@ func(dbs *RDBServices)ReadDBAppData(dataID uint) ( *model.AppData, error){
     // Create a mock WebSocket connection
     conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
-        return nil, fmt.Errorf("Failed to connect to WebSocket: %v", err)
+        return nil, fmt.Errorf("Failed15 to connect to WebSocket: %v", err)
     }
     defer conn.Close()
 	ap := model.AppData{ ID: dataID}
@@ -351,20 +351,20 @@ func(dbs *RDBServices)ReadDBAppData(dataID uint) ( *model.AppData, error){
     // Send the message
     err = conn.WriteJSON(request)
     if err != nil {
-        return nil, fmt.Errorf("Failed to send WebSocket message: %v", err)
+        return nil, fmt.Errorf("Failed16 to send WebSocket message: %v", err)
     }
 
     // Receive and parse the response
     var response map[string]interface{}
     err = conn.ReadJSON(&response)
     if err != nil {
-        return nil, fmt.Errorf("Failed to read WebSocket response: %v", err)
+        return nil, fmt.Errorf("Failed17 to read WebSocket response: %v", err)
     }
 
     // Perform assertions to verify the response
     ms, ok := response["message"].(string)
     if !ok {
-        return nil, fmt.Errorf("Invalid response format %v", ms)
+        return nil, fmt.Errorf("Invalid7 response format %v", ms)
     }
     if !strings.Contains(ms, "successfully"){
         return nil, fmt.Errorf("Something AppData went wrong: %v", ms)
@@ -381,14 +381,14 @@ func(dbs *RDBServices)UpdateDBAppData(data *model.AppData)(err error){
     // Create a mock WebSocket connection
     conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
-        return fmt.Errorf("Failed to connect to WebSocket: %v", err)
+        return fmt.Errorf("Failed18 to connect to WebSocket: %v", err)
     }
     defer conn.Close()
 	
 	// Serialize the DBAppData object to JSON
 	appDataJSON, err := json.Marshal(data)
 	if err != nil {
-		return fmt.Errorf("Error marshaling DBAppData to JSON: %v", err)
+		return fmt.Errorf("Error6 marshaling DBAppData to JSON: %v", err)
 	}
 
 	// Create a message (request) to send
@@ -401,20 +401,20 @@ func(dbs *RDBServices)UpdateDBAppData(data *model.AppData)(err error){
     // Send the message
     err = conn.WriteJSON(request)
     if err != nil {
-        return fmt.Errorf("Failed to send WebSocket message: %v", err)
+        return fmt.Errorf("Failed19 to send WebSocket message: %v", err)
     }
 
     // Receive and parse the response
     var response map[string]interface{}
     err = conn.ReadJSON(&response)
     if err != nil {
-        return fmt.Errorf("Failed to read WebSocket response: %v", err)
+        return fmt.Errorf("Failed20 to read WebSocket response: %v", err)
     }
 
     // Perform assertions to verify the response
     ms, ok := response["message"].(string)
     if !ok {
-        return fmt.Errorf("Invalid response format %v and resp: %v", ms, response)
+        return fmt.Errorf("Invalid8 response format %v and resp: %v", ms, response)
     }
 	fmt.Printf("tradrID in uint correct: %v\n", ms)
 	return err
@@ -423,7 +423,7 @@ func(dbs *RDBServices)DeleteDBAppData(dataID uint) (err error){
     // Create a mock WebSocket connection
     conn, _, err := websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
     if err != nil {
-        return fmt.Errorf("Failed to connect to WebSocket: %v", err)
+        return fmt.Errorf("Failed21 to connect to WebSocket: %v", err)
     }
     defer conn.Close()
 	ap := model.AppData{ ID: dataID}
@@ -431,7 +431,7 @@ func(dbs *RDBServices)DeleteDBAppData(dataID uint) (err error){
 	// Serialize the DBAppData object to JSON
 	appDataJSON, err := json.Marshal(ap)
 	if err != nil {
-		return fmt.Errorf("Error marshaling DBAppData to JSON: %v", err)
+		return fmt.Errorf("Error7 marshaling DBAppData to JSON: %v", err)
 	}
 
 	// Create a message (request) to send
@@ -444,20 +444,20 @@ func(dbs *RDBServices)DeleteDBAppData(dataID uint) (err error){
     // Send the message
     err = conn.WriteJSON(request)
     if err != nil {
-        return fmt.Errorf("Failed to send WebSocket message: %v", err)
+        return fmt.Errorf("Failed22 to send WebSocket message: %v", err)
     }
 
     // Receive and parse the response
     var response map[string]interface{}
     err = conn.ReadJSON(&response)
     if err != nil {
-        return fmt.Errorf("Failed to read WebSocket response: %v", err)
+        return fmt.Errorf("Failed23 to read WebSocket response: %v", err)
     }
 
     // Perform assertions to verify the response
     ms, ok := response["message"].(string)
     if !ok {
-        return fmt.Errorf("Invalid response format %v and resp: %v", ms, response)
+        return fmt.Errorf("Invalid9 response format %v and resp: %v", ms, response)
     }
 	fmt.Printf("tradrID in uint correct: %v\n", ms)
 	return err
