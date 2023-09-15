@@ -248,8 +248,8 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md = &model.AppData{}
 			md.DataPoint = 0
 			md.Strategy = "EMA"
-		md.ShortPeriod = 10 // Define moving average short period for the strategy.
-		md.LongPeriod = 30  // Define moving average long period for the strategy.
+			md.ShortPeriod = 10 // Define moving average short period for the strategy.
+			md.LongPeriod = 30  // Define moving average long period for the strategy.
 			md.ShortEMA = 0.0
 			md.LongEMA = 0.0
 			md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
