@@ -85,22 +85,44 @@ type TradingSystem struct {
 // MACD signal period, Bollinger Bands period, and more.
 func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadDBFrom string) (*TradingSystem, error) {
 	// Initialize the trading system.
+	var (
+		ts *TradingSystem
+		err error
+	)
 	loadDataFrom := ""
-	rDBServices := NewRDBServices()
-	ts, err := rDBServices.ReadDBTradingSystem(0)
-	if err != nil{
-		fmt.Println("TS = ",ts)		
-		log.Printf("\n%v: But going ahead to initialize empty TS struct\n", err)
-		ts = &TradingSystem{}
-		ts.RiskFactor = 2.0 
-		ts.CommissionPercentage = 0.00075 
-		ts.RiskProfitLossPercentage = 0.00075
-		ts.EnableStoploss = true
-		ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64) 
-		ts.MaxDataSize = 500
-		ts.BaseCurrency = BaseCurrency
+	if strings.Contains(loadExchFrom, "Testnet"){
+		ts, err = &TradingSystem{}, fmt.Errorf(("ff"))
+		if err != nil{
+			fmt.Println("TS = ",ts)		
+			log.Printf("\n%v: But going ahead to initialize empty TS struct\n", err)
+			ts = &TradingSystem{}
+			ts.RiskFactor = 2.0 
+			ts.CommissionPercentage = 0.00075 
+			ts.RiskProfitLossPercentage = 0.00075
+			ts.EnableStoploss = true
+			ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64) 
+			ts.MaxDataSize = 500
+			ts.BaseCurrency = BaseCurrency
+		}else{
+			loadDataFrom = "DataBase"
+		}
 	}else{
-		loadDataFrom = "DataBase"
+		rDBServices := NewRDBServices()
+		ts, err = rDBServices.ReadDBTradingSystem(0)
+		if err != nil{
+			fmt.Println("TS = ",ts)		
+			log.Printf("\n%v: But going ahead to initialize empty TS struct\n", err)
+			ts = &TradingSystem{}
+			ts.RiskFactor = 2.0 
+			ts.CommissionPercentage = 0.00075 
+			ts.RiskProfitLossPercentage = 0.00075
+			ts.EnableStoploss = true
+			ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64) 
+			ts.MaxDataSize = 500
+			ts.BaseCurrency = BaseCurrency
+		}else{
+			loadDataFrom = "DataBase"
+		}
 	}
 	fmt.Println("TS = ",ts)
 	if liveTrading {
@@ -193,25 +215,48 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	}()
 	return ts, nil
 }
-func (ts *TradingSystem) NewAppData() *model.AppData {
+func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 	// Initialize the App Data
 	// loadDataFrom := ""
-	rDBServices := NewRDBServices()
-	md, err := rDBServices.ReadDBAppData(0)
-	if err != nil{
-		fmt.Println("MD = ", md)		
-		log.Printf("\n%v: But going ahead to initialize empty AppData struct\n", err)
-		md = &model.AppData{}
-		md.DataPoint = 0
-		md.Strategy = "EMA"
+	var (
+		md *model.AppData
+		err error
+	)
+	if strings.Contains(loadExchFrom, "Testnet"){
+		md, err = &model.AppData{}, fmt.Errorf(("ff"))
+		if err != nil{
+			fmt.Println("MD = ", md)		
+			log.Printf("\n%v: But going ahead to initialize empty AppData struct\n", err)
+			md = &model.AppData{}
+			md.DataPoint = 0
+			md.Strategy = "EMA"
+			md.ShortPeriod = 10 //10 Define moving average short period for the strategy.
+			md.LongPeriod = 30 //30 Define moving average long period for the strategy.
+			md.ShortEMA = 0.0
+			md.LongEMA = 0.0
+			md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
+			md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
+			md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
+			md.TotalProfitLoss = 0.0
+		}
+	}else{
+		rDBServices := NewRDBServices()
+		md, err = rDBServices.ReadDBAppData(0)
+		if err != nil{
+			fmt.Println("MD = ", md)		
+			log.Printf("\n%v: But going ahead to initialize empty AppData struct\n", err)
+			md = &model.AppData{}
+			md.DataPoint = 0
+			md.Strategy = "EMA"
 		md.ShortPeriod = 10 // Define moving average short period for the strategy.
 		md.LongPeriod = 30  // Define moving average long period for the strategy.
-		md.ShortEMA = 0.0
-		md.LongEMA = 0.0
-		md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
-		md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
-		md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
-		md.TotalProfitLoss = 0.0
+			md.ShortEMA = 0.0
+			md.LongEMA = 0.0
+			md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
+			md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
+			md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
+			md.TotalProfitLoss = 0.0
+		}
 	}
 	go func() {
 		for {
@@ -266,7 +311,7 @@ func (ts *TradingSystem) TickerQueueAdjustment() {
 func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl, syscall.SIGINT)
-	md := ts.NewAppData()
+	md := ts.NewAppData(loadExchFrom)
 	fmt.Println("App started. Press Ctrl+C to exit.")
 	go ts.ShutDown(md, sigchnl)
 	// Initialize variables for tracking trading performance.
@@ -324,7 +369,7 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 	fmt.Println("App started. Press Ctrl+C to exit.")
 	var err error
 	for i, md := range backT {
-		md = ts.NewAppData()
+		md = ts.NewAppData(loadExchFrom)
 		ts.BaseBalance = 0.0
 		ts.QuoteBalance = ts.InitialCapital
 		// Initialize variables for tracking trading performance.
@@ -343,7 +388,7 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 			}
 			_ = ts.Trading(md, loadExchFrom)
 
-			time.Sleep(ts.EpochTime)
+			// time.Sleep(ts.EpochTime)
 		}
 		err = ts.Reporting(md, "Backtesting")
 		if err != nil {
@@ -623,7 +668,9 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 // Bands. It determines the buy and sell signals based on various strategy rules.
 func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (buySignal, sellSignal bool) {
 	// Calculate moving averages (MA) using historical data.
-	longEMA, shortEMA, _, err := CandleExponentialMovingAverage(ts.ClosingPrices, ts.Timestamps, md.LongPeriod, md.ShortPeriod)
+	period6EMA, period4EMA, _, err := CandleExponentialMovingAverage(ts.ClosingPrices, ts.Timestamps, 6, 4)
+	_, _=period4EMA, period6EMA
+	longEMA, shortEMA, _, err := CandleExponentialMovingAverage(period4EMA, ts.Timestamps, md.LongPeriod, md.ShortPeriod)
 	if err != nil {
 		// log.Printf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
 		md.LongEMA, md.ShortEMA = 0.0, 0.0
@@ -835,7 +882,7 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 	ts.CurrentPrice, err = exch.FetchTicker(ts.Symbol)
 	if strings.Contains(loadExchFrom, "Testnet"){
 		ts.QuoteBalance = 100.0
-	}else{
+	}else if !strings.Contains(loadExchFrom, "Testnet"){
 		go func(){	
 			log.Printf("First Balance Update Occuring Now!!!")
 			ts.QuoteBalance, ts.BaseBalance, err = ts.APIServices.GetQuoteAndBaseBalances(ts.Symbol)
