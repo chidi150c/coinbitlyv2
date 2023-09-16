@@ -205,14 +205,18 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	go func(){//Goroutine to store TS into Database
 		for {
 			select{
-			case <-time.After(time.Minute * 60):
-				log.Printf("Storing TradingSystem happening now!!!")
-				ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
-				if err != nil {
-					fmt.Printf("Error Storing TradingSystem: %v", err)
+			case <-time.After(time.Second * 60): //1750
+				log.Printf("Updating TradingSystem happening now!!!")
+				if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil{
+					log.Printf("Creating TradingSystem happening now!!! where %v", err)
+					ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
+					if err != nil {
+						fmt.Printf("Error Creating TradingSystem: %v", err)
+					}
 				}
-				log.Printf("Storing TradingSystem done!!!")
+				log.Printf("Update/Create TradingSystem done!!!")
 				ts.StoreAppDataChan <- ""
+				time.Sleep(time.Second * 10)
 			}
 		}
 	}()
@@ -286,12 +290,15 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		for {
 			select{
 			case <-ts.StoreAppDataChan:
-				log.Printf("Storing AppData happening now!!!")
-				md.ID, err = ts.RDBServices.CreateDBAppData(md)
-				if err != nil {
-					fmt.Printf("Error Storing AppData: %v", err)
+				log.Printf("Updating AppData happening now!!!")
+				if err = ts.RDBServices.UpdateDBAppData(md); err != nil{
+					log.Printf("Creating AppData happening now!!!")
+					md.ID, err = ts.RDBServices.CreateDBAppData(md)
+					if err != nil {
+						fmt.Printf("Error Storing AppData: %v", err)
+					}
 				}
-				log.Printf("Storing AppData done!!!")
+				log.Printf("Create/Update AppData done!!!")
 			}
 		}
 	}()

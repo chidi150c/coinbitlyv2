@@ -206,7 +206,7 @@ func(dbs *RDBServices)ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, err 
 	fmt.Printf("%v with id: %v\n", ms, ts.ID)
     return ts, nil
 }
-func(dbs *RDBServices)UpdateDBTradingSystem(trade *TradingSystem)(err error){
+func(dbs *RDBServices)UpdateDBTradingSystem(ts *TradingSystem)(err error){
     // Create a mock WebSocket connection
     var (
         conn *websocket.Conn
@@ -220,6 +220,41 @@ func(dbs *RDBServices)UpdateDBTradingSystem(trade *TradingSystem)(err error){
         return fmt.Errorf("Failed6 to connect to WebSocket: %v", err)
     }
     defer conn.Close()
+	trade := model.TradingSystemData{
+        Symbol:                   ts.Symbol,
+        ClosingPrices:            ts.ClosingPrices,
+        Timestamps:               ts.Timestamps,
+        Signals:                  ts.Signals,
+        CommissionPercentage:     ts.CommissionPercentage,
+        InitialCapital:           ts.InitialCapital,
+        PositionSize:             ts.PositionSize,
+        InTrade:                  ts.InTrade,
+        QuoteBalance:             ts.QuoteBalance,
+        BaseBalance:              ts.BaseBalance,
+        RiskCost:                 ts.RiskCost,
+        DataPoint:                ts.DataPoint,
+        CurrentPrice:             ts.CurrentPrice,
+        TradeCount:               ts.TradeCount,
+        EnableStoploss:           ts.EnableStoploss,
+        StopLossTrigered:         ts.StopLossTrigered,
+        StopLossRecover:          ts.StopLossRecover,
+        RiskFactor:               ts.RiskFactor,
+        MaxDataSize:              ts.MaxDataSize,
+        RiskProfitLossPercentage: ts.RiskProfitLossPercentage,
+        BaseCurrency:             ts.BaseCurrency,
+        QuoteCurrency:            ts.QuoteCurrency,
+        MiniQty:                  ts.MiniQty,
+        MaxQty:                   ts.MaxQty,
+        MinNotional:              ts.MinNotional,
+        StepSize:                 ts.StepSize,
+    }
+    if len(ts.EntryPrice) >= 1 {
+        trade.EntryCostLoss =  ts.EntryCostLoss
+        trade.EntryQuantity =  ts.EntryQuantity
+        trade.EntryPrice =     ts.EntryPrice
+        trade.NextInvestBuYPrice = ts.NextInvestBuYPrice
+        trade.NextProfitSeLLPrice = ts.NextProfitSeLLPrice
+    }
 	
 	// Serialize the TradingSystemData object to JSON
 	appDataJSON, err := json.Marshal(trade)
@@ -252,8 +287,16 @@ func(dbs *RDBServices)UpdateDBTradingSystem(trade *TradingSystem)(err error){
     if !ok {
         return fmt.Errorf("Invalid4 response format %v", ms)
     }
-	fmt.Printf("%v\n", ms)
-	return nil
+	// Perform assertions to verify the response
+	uid, ok := response["data_id"].(float64)
+	if !ok {
+		return fmt.Errorf("Invalid2 response format %v ", uid)
+	}
+	if !strings.Contains(ms, "successfully"){
+        return fmt.Errorf("Something1i TradingSystem went wrong: %v", ms)
+    }
+	fmt.Printf("%v with id: %v \n", ms, uint(uid))
+    return nil
 }
 func(dbs *RDBServices)DeleteDBTradingSystem(tradeID uint) (err error){
     // Create a mock WebSocket connection
@@ -463,8 +506,16 @@ func(dbs *RDBServices)UpdateDBAppData(data *model.AppData)(err error){
     ms, ok := response["message"].(string)
     if !ok {
         return fmt.Errorf("Invalid8 response format %v and resp: %v", ms, response)
+    }	
+	// Perform assertions to verify the response
+	uid, ok := response["data_id"].(float64)
+	if !ok {
+		return fmt.Errorf("Invalid2 response format %v ", uid)
+	}
+	if !strings.Contains(ms, "successfully"){
+        return fmt.Errorf("Something1a TradingSystem went wrong: %v", ms)
     }
-	fmt.Printf("tradrID in uint correct: %v\n", ms)
+	fmt.Printf("%v with id: %v \n", ms, uint(uid))
 	return err
 }
 func(dbs *RDBServices)DeleteDBAppData(dataID uint) (err error){
