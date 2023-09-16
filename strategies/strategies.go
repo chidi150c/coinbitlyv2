@@ -90,7 +90,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		err error
 	)
 	loadDataFrom := ""
-	if strings.Contains(loadExchFrom, "Testnet"){
+	if loadExchFrom == "BinanceTestnet"{
 		ts, err = &TradingSystem{}, fmt.Errorf(("ff"))
 		if err != nil{
 			fmt.Println("TS = ",ts)		
@@ -190,13 +190,13 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			// Serialize the DBAppData object to JSON
 			appDataJSON, err := json.Marshal(trade)
 			if err != nil {
-				fmt.Printf("Error marshaling DBAppData to JSON: %v", err)
+				fmt.Printf("Error marshaling TradingSystem to JSON: %v", err)
 			} else {
 				select {
 				case ts.TSDataChan <- appDataJSON:
 				}
 			}
-			time.Sleep(time.Second * 1)
+			time.Sleep(time.Millisecond * 300)
 		}
 	}()
 
@@ -269,7 +269,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		for { // Serialize the DBAppData object to JSON
 			appDataJSON, err := json.Marshal(md)
 			if err != nil {
-				fmt.Printf("Error marshaling DBAppData to JSON: %v", err)
+				fmt.Printf("Error2 marshaling DBAppData to JSON: %v", err)
 			} else {
 				select {
 				case ts.ADataChan <- appDataJSON:
@@ -792,6 +792,11 @@ func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom, loadDBFrom string) e
 		if err != nil {
 			log.Fatalf("Error getting new exchange services from Binance: %v", err)
 		}
+	case "BinanceTestnetWithDB":
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
+		if err != nil {
+			log.Fatalf("Error getting new exchange services from Binance: %v", err)
+		}
 	default:
 		return errors.Errorf("Error updating historical data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
 	}
@@ -864,6 +869,11 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 			log.Fatalf("Error getting new exchange services from Binance: %v", err)
 		}
 	case "BinanceTestnet":
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
+		if err != nil {
+			log.Fatalf("Error getting new exchange services from Binance: %v", err)
+		}
+	case "BinanceTestnetWithDB":
 		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
 		if err != nil {
 			log.Fatalf("Error getting new exchange services from Binance: %v", err)

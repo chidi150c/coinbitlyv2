@@ -18,12 +18,12 @@ import (
 func main() {
 	
 
-	//You specify the source of Exch API (e.g., "HitBTC", "Binance", "BinanceTestnet")
-	loadExchFrom := "BinanceTestnet" 
+	//You specify the source of Exch API (e.g., "HitBTC", "Binance", "BinanceTestnet", "BinanceTestnetWithDB")
+	loadExchFrom := "Binance" 
 	//You specify the source of DataBase (e.g., "InfluxDB")
 	loadDBFrom :=  "InfluxDB"
 	//You specify whether you're performing live trading or not 
-	liveTrading := false
+	liveTrading := true
 
 	config := config.NewExchangeConfigs()[loadExchFrom]
     //You're initializing your trading system using the strategies.NewTradingSystem function. 

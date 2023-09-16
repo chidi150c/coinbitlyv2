@@ -170,6 +170,7 @@ func(dbs *RDBServices)ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, err 
     //it has to be converted to the TradingSystem format as follows:
     ts = &TradingSystem{}
     ts.ID = dbts.ID 
+    ts.Symbol = dbts.Symbol
     ts.ClosingPrices = dbts.ClosingPrices
     ts.Timestamps = dbts.Timestamps
     ts.Signals = dbts.Signals     
