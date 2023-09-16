@@ -107,7 +107,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			loadDataFrom = "DataBase"
 		}
 	}else{
-		rDBServices := NewRDBServices()
+		rDBServices := NewRDBServices(loadExchFrom)
 		ts, err = rDBServices.ReadDBTradingSystem(0)
 		if err != nil{
 			fmt.Println("TS = ",ts)		
@@ -151,9 +151,9 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			}
 			trade := model.TradingSystemData{
 				Symbol:                   ts.Symbol,
-				ClosingPrices:            ts.ClosingPrices[len(ts.ClosingPrices)-1],
-				Timestamps:               ts.Timestamps[len(ts.Timestamps)-1],
-				Signals:                  ts.Signals[len(ts.Signals)-1],
+				ClosingPrices:            ts.ClosingPrices,
+				Timestamps:               ts.Timestamps,
+				Signals:                  ts.Signals,
 				CommissionPercentage:     ts.CommissionPercentage,
 				InitialCapital:           ts.InitialCapital,
 				PositionSize:             ts.PositionSize,
@@ -240,7 +240,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md.TotalProfitLoss = 0.0
 		}
 	}else{
-		rDBServices := NewRDBServices()
+		rDBServices := NewRDBServices(loadExchFrom)
 		md, err = rDBServices.ReadDBAppData(0)
 		if err != nil{
 			fmt.Println("MD = ", md)		
@@ -670,7 +670,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 	// Calculate moving averages (MA) using historical data.
 	period6EMA, period4EMA, _, err := CandleExponentialMovingAverage(ts.ClosingPrices, ts.Timestamps, 6, 4)
 	_, _=period4EMA, period6EMA
-	longEMA, shortEMA, _, err := CandleExponentialMovingAverage(period4EMA, ts.Timestamps, md.LongPeriod, md.ShortPeriod)
+	longEMA, shortEMA, _, err := CandleExponentialMovingAverage(period6EMA, ts.Timestamps, md.LongPeriod, md.ShortPeriod)
 	if err != nil {
 		// log.Printf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
 		md.LongEMA, md.ShortEMA = 0.0, 0.0
@@ -924,15 +924,12 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 func (ts *TradingSystem) Reporting(md *model.AppData, from string) error {
 	var err error
 
-	if len(ts.Container1) > 0 && (!strings.Contains(md.Strategy, "Bollinger")) && (!strings.Contains(md.Strategy, "EMA")) && (!strings.Contains(md.Strategy, "MACD")) {
-		err = ts.CreateLineChartWithSignals(md, ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
-		err = ts.CreateLineChartWithSignals(md, ts.Timestamps, ts.Container1, ts.Signals, "StrategyOnly")
-	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "Bollinger") {
+	if (len(ts.Container1) > 0) && strings.Contains(md.Strategy, "EMA") && (len(ts.Container1) <= 400){
 		err = ts.CreateLineChartWithSignalsV3(md, ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
-	} else if len(ts.Container1) > 0 && strings.Contains(md.Strategy, "EMA") {
-		err = ts.CreateLineChartWithSignalsV3(md, ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
-	} else {
+	} else if (len(ts.Container1) <= 400){
 		err = ts.CreateLineChartWithSignals(md, ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
+	}else{
+		err = ts.CreateLineChartWithSignalsV3(md, ts.Timestamps[399:], ts.ClosingPrices[399:], ts.Container1[399:], ts.Container2[399:], ts.Signals[399:], "")	
 	}
 	if err != nil {
 		return fmt.Errorf("Error creating Line Chart with signals: %v", err)
