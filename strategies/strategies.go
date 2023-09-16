@@ -88,6 +88,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	var (
 		ts *TradingSystem
 		err error
+		rDBServices *RDBServices
 	)
 	loadDataFrom := ""
 	if loadExchFrom == "BinanceTestnet"{
@@ -107,7 +108,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			loadDataFrom = "DataBase"
 		}
 	}else{
-		rDBServices := NewRDBServices(loadExchFrom)
+		rDBServices = NewRDBServices(loadExchFrom)
 		ts, err = rDBServices.ReadDBTradingSystem(0)
 		if err != nil{
 			fmt.Println("TS = ",ts)		
@@ -136,6 +137,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			return &TradingSystem{}, err
 		}
 	}                 
+	ts.RDBServices = rDBServices
 	ts.ShutDownCh = make(chan string)
 	ts.EpochTime = time.Second * 30
 	ts.ChartChan = make(chan model.ChartData, 1)
