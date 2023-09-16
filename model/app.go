@@ -10,9 +10,9 @@ package model
 type TradingSystemData struct {
 	ID                       uint
 	Symbol                   string    `json:"symbol"`
-	ClosingPrices            float64   `json:"closing_prices"`
-	Timestamps               int64     `json:"timestamps"`
-	Signals                  string    `json:"signals"`
+	ClosingPrices            []float64   `json:"closing_prices"`
+	Timestamps               []int64     `json:"timestamps"`
+	Signals                  []string    `json:"signals"`
 	NextInvestBuYPrice       []float64 `json:"next_invest_buy_price"`
 	NextProfitSeLLPrice      []float64 `json:"next_profit_sell_price"`
 	CommissionPercentage     float64   `json:"commission_percentage"`
