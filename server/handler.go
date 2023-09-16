@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"coinbitly.com/model"
 	"coinbitly.com/strategies"
 	"coinbitly.com/webclient"
 	"github.com/go-chi/chi"
@@ -65,7 +64,6 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string) TradeHandler
 	h.mux.Get("/ImageReceiver/ws", h.ImageReceiverHandler)
 	h.mux.Get("/FeedsTradingSystem/ws", h.realTimeTradingSystemFeed)
 	h.mux.Get("/FeedsAppData/ws", h.realTimeAppDataFeed)
-	h.mux.Get("/margins/ws", h.realTimeChartHandler)//this.socket = new WebSocket.w3cwebsocket("ws://localhost:35260/ImageReceiver/ws");
 	return h
 }
 
@@ -136,47 +134,6 @@ func (h TradeHandler)realTimeTradingSystemFeed(w http.ResponseWriter, r *http.Re
 	}
 	log.Println("realTimeTradingSystemFeed: going away!!!")
 	return
-}
-func (h TradeHandler) realTimeChartHandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		http.Error(w, "Failed to upgrade connection to WebSocket", http.StatusInternalServerError)
-		log.Println("realTimeChartHandler: WebSocket upgrade error:", err)
-		return
-	}
-	defer conn.Close()
-	var cd model.ChartData
-	for {
-		select{
-		case cd = <-h.ts.ChartChan:
-			fmt.Println(cd)
-		default:
-		}
-		data := struct {
-			ClosingPrices float64 `json:"ClosingPrices"`
-			Timestamps    int64   `json:"Timestamps"`
-			Signals       string  `json:"Signals"`
-			ShortEMA      float64 `json:"ShortEMA"`
-			LongEMA       float64 `json:"LongEMA"`
-		}{
-			ClosingPrices:  cd.ClosingPrices,
-			Timestamps:     cd.Timestamps,
-			Signals:        cd.Signals,
-			ShortEMA:       cd.ShortEMA,
-			LongEMA:        cd.LongEMA,
-		}
-		if data.ClosingPrices > 110.0 {
-			data.Signals = "Sell"
-		}		
-
-		if err := conn.WriteJSON(data); err != nil {
-			log.Println("realTimeChartHandler: WebSocket write error:", err)
-			break
-		}
-
-		// Simulate real-time updates every second
-		time.Sleep(time.Second)
-	}
 }
 
 func (h TradeHandler) ImageReceiverHandler(w http.ResponseWriter, r *http.Request) {

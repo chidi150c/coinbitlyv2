@@ -59,14 +59,6 @@ type AppData struct {
 	RiskPositionPercentage float64 `json:"risk_position_percentage"`
 	TotalProfitLoss        float64 `json:"total_profit_loss"`
 }
-
-type ChartData struct {
-	ClosingPrices float64 `json:"ClosingPrices"`
-	Timestamps    int64   `json:"Timestamps"`
-	Signals       string  `json:"Signals"`
-	ShortEMA      float64 `json:"ShortEMA"`
-	LongEMA       float64 `json:"LongEMA"`
-}
 type BacTServices interface {
 	WriteToInfluxDB(backTData *AppData) error
 }

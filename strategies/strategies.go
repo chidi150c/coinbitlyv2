@@ -64,7 +64,7 @@ type TradingSystem struct {
 	EpochTime                time.Duration
 	CSVWriter                *csv.Writer
 	RiskProfitLossPercentage float64
-	ChartChan                chan model.ChartData
+	StoreAppDataChan                chan string
 	BaseCurrency             string //in Binance is called BaseAsset
 	QuoteCurrency            string //in Binance is called QuoteAsset
 	MiniQty                  float64
@@ -140,7 +140,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	ts.RDBServices = rDBServices
 	ts.ShutDownCh = make(chan string)
 	ts.EpochTime = time.Second * 30
-	ts.ChartChan = make(chan model.ChartData, 1)
+	ts.StoreAppDataChan = make(chan string, 1)
 	ts.DBStoreTicker = time.NewTicker(ts.EpochTime)
 	ts.TSDataChan = make(chan []byte)
 	ts.ADataChan = make(chan []byte)
@@ -212,6 +212,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 					fmt.Printf("Error Storing TradingSystem: %v", err)
 				}
 				log.Printf("Storing TradingSystem done!!!")
+				ts.StoreAppDataChan <- ""
 			}
 		}
 	}()
@@ -284,7 +285,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		var err error
 		for {
 			select{
-			case <-time.After(time.Minute * 60):
+			case <-ts.StoreAppDataChan:
 				log.Printf("Storing AppData happening now!!!")
 				md.ID, err = ts.RDBServices.CreateDBAppData(md)
 				if err != nil {
