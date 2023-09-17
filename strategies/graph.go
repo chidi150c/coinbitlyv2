@@ -13,14 +13,6 @@ import (
 )
 
 func (ts *TradingSystem)CreateLineChartWithSignals(md *model.AppData, timeSeries []int64, dataSeries []float64, signals []string, graph string) error {
-	// ts.ChartChan <- model.ChartData{
-	// 	ClosingPrices: dataSeries[len(dataSeries)-1], 
-	// 	Timestamps: timeSeries[len(dataSeries)-1], 
-	// 	Signals: signals[len(dataSeries)-1], 
-	// 	ShortEMA: 0.0,
-	// 	LongEMA: 0.0,
-	// }
-	// Create a new plot with a title and axis labels.
 	p := plot.New()
 	p.Title.Text = ts.BaseCurrency+ " Price and Buy/Sell Signal Trading Chart"
 	p.X.Label.Text = "Time"
@@ -115,14 +107,6 @@ func (ts *TradingSystem)CreateLineChartWithSignals(md *model.AppData, timeSeries
 }
 
 func (ts *TradingSystem)CreateLineChartWithSignalsV3(md *model.AppData, timeSeries []int64, dataSeries []float64, greenDataSeries []float64, yellowDataSeries []float64, signals []string, graph string) error {
-	// ts.ChartChan <- model.ChartData{
-	// 	ClosingPrices: dataSeries[len(dataSeries)-1], 
-	// 	Timestamps: timeSeries[len(dataSeries)-1], 
-	// 	Signals: signals[len(dataSeries)-1], 
-	// 	ShortEMA: greenDataSeries[len(dataSeries)-1],
-	// 	LongEMA: yellowDataSeries[len(dataSeries)-1],
-	// }
-	// Create a new plot with a title and axis labels.
 	p := plot.New()
 	p.Title.Text = ts.BaseCurrency+ " Price, EMA and Buy/Sell Signal Trading Chart"
 	p.X.Label.Text = "Time"
