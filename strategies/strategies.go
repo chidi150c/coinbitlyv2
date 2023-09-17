@@ -676,7 +676,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 	// Calculate moving averages (MA) using historical data.
 	period6EMA, period4EMA, _, err := CandleExponentialMovingAverage(ts.ClosingPrices, ts.Timestamps, 6, 4)
 	_, _=period4EMA, period6EMA
-	longEMA, shortEMA, _, err := CandleExponentialMovingAverage(period6EMA, ts.Timestamps, md.LongPeriod, md.ShortPeriod)
+	longEMA, shortEMA, _, err := CandleExponentialMovingAverage(period4EMA, ts.Timestamps, md.LongPeriod, md.ShortPeriod)
 	if err != nil {
 		// log.Printf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
 		md.LongEMA, md.ShortEMA = 0.0, 0.0
