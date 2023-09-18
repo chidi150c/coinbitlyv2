@@ -23,6 +23,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	Zoom = 200
+)
+
 // TradingSystem struct: The TradingSystem struct represents the main trading
 // system and holds various parameters and fields related to the strategy,
 // trading state, and performance.
@@ -192,7 +196,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			// Serialize the DBAppData object to JSON
 			appDataJSON, err := json.Marshal(trade)
 			if err != nil {
-				fmt.Printf("Error marshaling TradingSystem to JSON: %v", err)
+				log.Printf("Error marshaling TradingSystem to JSON: %v", err)
 			} else {
 				select {
 				case ts.TSDataChan <- appDataJSON:
@@ -210,7 +214,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 					log.Printf("Creating TradingSystem happening now!!! where %v", err)
 					ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
 					if err != nil {
-						fmt.Printf("Error Creating TradingSystem: %v", err)
+						log.Printf("Error Creating TradingSystem: %v", err)
 					}
 				}
 				ts.StoreAppDataChan <- ""
@@ -274,7 +278,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		for { // Serialize the DBAppData object to JSON
 			appDataJSON, err := json.Marshal(md)
 			if err != nil {
-				fmt.Printf("Error2 marshaling DBAppData to JSON: %v", err)
+				log.Printf("Error2 marshaling DBAppData to JSON: %v", err)
 			} else {
 				select {
 				case ts.ADataChan <- appDataJSON:
@@ -292,7 +296,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 					log.Printf("Creating AppData happening now!!!")
 					md.ID, err = ts.RDBServices.CreateDBAppData(md)
 					if err != nil {
-						fmt.Printf("Error Storing AppData: %v", err)
+						log.Printf("Error Storing AppData: %v", err)
 					}
 				}
 			}
@@ -595,7 +599,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		resp := fmt.Sprintf("- SELL at ExitPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, \nGlobalP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
 			exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, orderResp.Commission, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 
-		if len(ts.StopLossRecover) > 1 {
+		if len(ts.EntryPrice) > 1 {
 			ts.EntryPrice = ts.EntryPrice[:len(ts.EntryPrice)-1]
 			ts.EntryCostLoss = ts.EntryCostLoss[:len(ts.EntryCostLoss)-1]
 			ts.EntryQuantity = ts.EntryQuantity[:len(ts.EntryQuantity)-1]
@@ -606,11 +610,11 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.InTrade = true
 			ts.StopLossTrigered = true
 			ts.TradingLevel = len(ts.EntryPrice)-1
-		} else if len(ts.StopLossRecover) == 1 {
+		} else if len(ts.EntryPrice) <= 1 {
 			// Mark that we are no longer in a trade.
 			ts.InTrade = false
 			ts.StopLossTrigered = false
-			ts.StopLossRecover[len(ts.StopLossRecover)-1] = math.MaxFloat64
+			ts.StopLossRecover = []float64{math.MaxFloat64}
 			ts.EntryPrice = []float64{}
 			ts.EntryCostLoss = []float64{}
 			ts.EntryQuantity = []float64{}
@@ -905,8 +909,8 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 			if err != nil {
 				log.Fatalf("GetQuoteAndBaseBalances Error: %v", err)
 			}
-			fmt.Printf("Quote Balance for %s: %.8f\n", ts.Symbol, ts.QuoteBalance)
-			fmt.Printf("Base Balance for %s: %.8f\n", ts.Symbol, ts.BaseBalance)
+			log.Printf("Quote Balance for %s: %.8f\n", ts.Symbol, ts.QuoteBalance)
+			log.Printf("Base Balance for %s: %.8f\n", ts.Symbol, ts.BaseBalance)
 			for{
 				select{
 				case <-time.After(time.Minute * 30):
@@ -940,12 +944,14 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 func (ts *TradingSystem) Reporting(md *model.AppData, from string) error {
 	var err error
 
-	if (len(ts.Container1) > 0) && strings.Contains(md.Strategy, "EMA") && (len(ts.Container1) <= 400){
-		err = ts.CreateLineChartWithSignalsV3(md, ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
-	} else if (len(ts.Container1) <= 400){
+	if (len(ts.Container1) > 0) && (len(ts.Container1) <= md.LongPeriod){
 		err = ts.CreateLineChartWithSignals(md, ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
-	}else{
-		err = ts.CreateLineChartWithSignalsV3(md, ts.Timestamps[399:], ts.ClosingPrices[399:], ts.Container1[399:], ts.Container2[399:], ts.Signals[399:], "")	
+	}else if (len(ts.Container1) <= Zoom){
+		err = ts.CreateLineChartWithSignalsV3(md, ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
+	} else {
+		b := len(ts.ClosingPrices)-1
+		a := len(ts.ClosingPrices)- Zoom
+		err = ts.CreateLineChartWithSignalsV3(md, ts.Timestamps[a:b], ts.ClosingPrices[a:b], ts.Container1[a:b], ts.Container2[a:b], ts.Signals[a:b], "")	
 	}
 	if err != nil {
 		return fmt.Errorf("Error creating Line Chart with signals: %v", err)
@@ -964,7 +970,7 @@ func (ts *TradingSystem) ShutDown(md *model.AppData, sigchnl chan os.Signal) {
 		select {
 		case sig := <-sigchnl:
 			if sig == syscall.SIGINT {
-				fmt.Printf("Received signal: %v. Exiting...\n", sig)
+				log.Printf("Received signal: %v. Exiting...\n", sig)
 				//Check if there is still asset remainning and sell off
 				if ts.BaseBalance > 0.0 {
 					// After sell off Update the quote and base balances after the trade.
@@ -986,18 +992,18 @@ func (ts *TradingSystem) ShutDown(md *model.AppData, sigchnl chan os.Signal) {
 					ts.InTrade = false
 					ts.TradeCount++
 					ts.Mu.Unlock()
-					fmt.Printf("- SELL-OFF at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L %.2f LocalP&L: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
+					log.Printf("- SELL-OFF at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L %.2f LocalP&L: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
 						len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 				}
 				// Print the overall trading performance after backtesting.
-				fmt.Printf("Summary: Strategy: %s ", md.Strategy)
-				fmt.Printf("Total Trades: %d, out of %d trials ", ts.TradeCount, len(ts.Signals))
-				fmt.Printf("Total Profit/Loss: %.2f, ", md.TotalProfitLoss)
-				fmt.Printf("Final Capital: %.2f, ", ts.QuoteBalance)
-				fmt.Printf("Final Asset: %.8f tsDataPoint: %d, mdDataPoint: %d\n\n", ts.BaseBalance, ts.DataPoint, md.DataPoint)
+				log.Printf("Summary: Strategy: %s ", md.Strategy)
+				log.Printf("Total Trades: %d, out of %d trials ", ts.TradeCount, len(ts.Signals))
+				log.Printf("Total Profit/Loss: %.2f, ", md.TotalProfitLoss)
+				log.Printf("Final Capital: %.2f, ", ts.QuoteBalance)
+				log.Printf("Final Asset: %.8f tsDataPoint: %d, mdDataPoint: %d\n\n", ts.BaseBalance, ts.DataPoint, md.DataPoint)
 				ts.DBStoreTicker.Stop()
 				// if err := ts.APIServices.CloseDB(); err != nil{
-				// 	fmt.Printf("Error while closing the DataBase: %v", err)
+				// 	log.Printf("Error while closing the DataBase: %v", err)
 				// 	os.Exit(1)
 				// }
 				ts.ShutDownCh <- "Received termination signal. Shutting down..."

@@ -18,7 +18,7 @@ import (
 func main() {
 	
 
-	//You specify the source of Exch API (e.g., "HitBTC", "Binance", "BinanceTestnet", "BinanceTestnetWithDB")
+	//You specify the source of Exch API (e.g., "HitBTC", "Binance", "BinanceTestnet" "BinanceTestnetWithDB")
 	loadExchFrom := "Binance" 
 	//You specify the source of DataBase (e.g., "InfluxDB")
 	loadDBFrom :=  "InfluxDB"
