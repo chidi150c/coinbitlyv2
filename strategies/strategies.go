@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	Zoom = 200
+	Zoom = 100
 )
 
 // TradingSystem struct: The TradingSystem struct represents the main trading
@@ -232,7 +232,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		err error
 	)
 	if strings.Contains(loadExchFrom, "Testnet"){
-		md, err = &model.AppData{}, fmt.Errorf(("ff"))
+		md, err = &model.AppData{}, fmt.Errorf(("Testnet Error simulation"))
 		if err != nil{
 			fmt.Println("MD = ", md)		
 			log.Printf("\n%v: But going ahead to initialize empty AppData struct\n", err)
@@ -325,9 +325,6 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 	fmt.Println("App started. Press Ctrl+C to exit.")
 	go ts.ShutDown(md, sigchnl)
 	// Initialize variables for tracking trading performance.
-	ts.TradeCount = 0
-	ts.TradingLevel = 0
-	ts.ClosedWinTrades = 0
 	var err error
 	for {
 		ts.CurrentPrice, err = ts.APIServices.FetchTicker(ts.Symbol)
@@ -380,12 +377,6 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 	var err error
 	for i, md := range backT {
 		md = ts.NewAppData(loadExchFrom)
-		ts.BaseBalance = 0.0
-		ts.QuoteBalance = ts.InitialCapital
-		// Initialize variables for tracking trading performance.
-		ts.TradeCount = 0
-		ts.TradingLevel = 0
-		ts.ClosedWinTrades = 0
 		// Simulate the backtesting process using historical price data.
 		for ts.DataPoint, ts.CurrentPrice = range ts.ClosingPrices {
 			select {
@@ -930,7 +921,7 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 		return err
 	}
 	// Mining data for historical analysis
-	ts.DataPoint = 0
+	ts.DataPoint++
 	ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 	ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 	ts.Signals = append(ts.Signals, "Hold")
