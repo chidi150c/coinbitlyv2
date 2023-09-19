@@ -921,7 +921,7 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 		return err
 	}
 	// Mining data for historical analysis
-	ts.DataPoint++
+	ts.DataPoint = 0
 	ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 	ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 	ts.Signals = append(ts.Signals, "Hold")
