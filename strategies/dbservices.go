@@ -458,6 +458,7 @@ func (dbs *RDBServices) ReadDBAppData(dataID uint) (dbts *model.AppData, err err
 	if !strings.Contains(ms, "successfully") {
 		return nil, fmt.Errorf("Something AppData went wrong: %v", ms)
 	}
+    dbts = &model.AppData{}
 	dataByte, _ := json.Marshal(response["data"])
 	// Deserialize the WebSocket message directly into the struct
 	if err := json.Unmarshal(dataByte, dbts); err != nil {
