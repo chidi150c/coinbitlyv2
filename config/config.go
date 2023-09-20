@@ -123,6 +123,21 @@ func NewExchangeConfigs() map[string]*ExchConfig {
 			CandleStartTime: time.Now().Add(time.Duration(-3) * 24 * time.Hour).Unix(), // 3 days ago
 			CandleEndTime:   time.Now().Add(time.Duration(-1) * 0 * time.Hour).Unix(),  // 3 days ago
 		},
+		"BinanceTestnetWithDBRemote": {
+			Name:            "BinanceTestnetWithDBRemote",
+			Symbols:         []string{"BNBUSDT"},
+			BaseURL:         "https://testnet.binance.vision",
+			ApiVersion:      "api/v3",
+			ApiKey:          "Ob1mJrsNFb7Msfpb6eFwjc1IpQc3ivmGZdMaabxbttXwFipTlgASE6Zqjw2xqETZ", // os.Getenv("BINANCE_API_KEY"),    // Replace with your Binance API key
+			SecretKey:       "tef6clCsc4zxTVqhGsD1neE7Od5CXEhEe8l8xScnyciA79OxcHpmIqcswLWOapfk", //os.Getenv("BINANCE_API_SECRET"), // Replace with your Binance API secret key
+			Symbol:          "BNBUSDT",
+			BaseCurrency:    "BNB",
+			QuoteCurrency:   "USDT",
+			InitialCapital:  54.1,
+			CandleInterval:  "1m",
+			CandleStartTime: time.Now().Add(time.Duration(-3) * 24 * time.Hour).Unix(), // 3 days ago
+			CandleEndTime:   time.Now().Add(time.Duration(-1) * 0 * time.Hour).Unix(),  // 3 days ago
+		},
 		"HitBTC": {
 			Name:            "HitBTC",
 			BaseURL:         "https://api.hitbtc.com",

@@ -24,7 +24,9 @@ func (dbs *RDBServices) CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, 
 	var (
 		conn *websocket.Conn
 	)
-	if strings.Contains(dbs.loadExchFrom, "Testnet") {
+	if strings.Contains(dbs.loadExchFrom, "TestnetWithDBRemote") {
+		conn, _, err = websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+	} else if strings.Contains(dbs.loadExchFrom, "Testnet") {
 		conn, _, err = websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
 	} else {
 		conn, _, err = websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
@@ -116,7 +118,9 @@ func (dbs *RDBServices) ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, er
 	var (
 		conn *websocket.Conn
 	)
-	if strings.Contains(dbs.loadExchFrom, "Testnet") {
+	if strings.Contains(dbs.loadExchFrom, "TestnetWithDBRemote") {
+		conn, _, err = websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+	} else if strings.Contains(dbs.loadExchFrom, "Testnet") {
 		conn, _, err = websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
 	} else {
 		conn, _, err = websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
@@ -213,7 +217,9 @@ func (dbs *RDBServices) UpdateDBTradingSystem(ts *TradingSystem) (err error) {
 	var (
 		conn *websocket.Conn
 	)
-	if strings.Contains(dbs.loadExchFrom, "Testnet") {
+	if strings.Contains(dbs.loadExchFrom, "TestnetWithDBRemote") {
+		conn, _, err = websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+	} else if strings.Contains(dbs.loadExchFrom, "Testnet") {
 		conn, _, err = websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
 	} else {
 		conn, _, err = websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
@@ -413,7 +419,9 @@ func (dbs *RDBServices) ReadDBAppData(dataID uint) (dbts *model.AppData, err err
 	var (
 		conn *websocket.Conn
 	)
-	if strings.Contains(dbs.loadExchFrom, "Testnet") {
+	if strings.Contains(dbs.loadExchFrom, "TestnetWithDBRemote") {
+		conn, _, err = websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+	} else if strings.Contains(dbs.loadExchFrom, "Testnet") {
 		conn, _, err = websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
 	} else {
 		conn, _, err = websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
@@ -463,7 +471,8 @@ func (dbs *RDBServices) ReadDBAppData(dataID uint) (dbts *model.AppData, err err
 	// Deserialize the WebSocket message directly into the struct
 	if err := json.Unmarshal(dataByte, dbts); err != nil {
 		return nil, fmt.Errorf("Error1 parsing WebSocket message: %v", err)
-	}
+	}	
+	fmt.Printf("%v with id: %v\n", ms, dbts.ID)
 	return dbts, err
 }
 func (dbs *RDBServices) UpdateDBAppData(data *model.AppData) (err error) {
@@ -471,7 +480,9 @@ func (dbs *RDBServices) UpdateDBAppData(data *model.AppData) (err error) {
 	var (
 		conn *websocket.Conn
 	)
-	if strings.Contains(dbs.loadExchFrom, "Testnet") {
+	if strings.Contains(dbs.loadExchFrom, "TestnetWithDBRemote") {
+		conn, _, err = websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+	} else if strings.Contains(dbs.loadExchFrom, "Testnet") {
 		conn, _, err = websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
 	} else {
 		conn, _, err = websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
@@ -528,7 +539,9 @@ func (dbs *RDBServices) DeleteDBAppData(dataID uint) (err error) {
 	var (
 		conn *websocket.Conn
 	)
-	if strings.Contains(dbs.loadExchFrom, "Testnet") {
+	if strings.Contains(dbs.loadExchFrom, "TestnetWithDBRemote") {
+		conn, _, err = websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
+	} else if strings.Contains(dbs.loadExchFrom, "Testnet") {
 		conn, _, err = websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
 	} else {
 		conn, _, err = websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)

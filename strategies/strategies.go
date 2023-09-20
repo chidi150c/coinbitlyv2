@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	Zoom = 100
+	Zoom = 499
 )
 
 // TradingSystem struct: The TradingSystem struct represents the main trading
@@ -95,6 +95,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		rDBServices *RDBServices
 	)
 	loadDataFrom := ""
+	rDBServices = NewRDBServices(loadExchFrom)
 	if loadExchFrom == "BinanceTestnet"{
 		ts, err = &TradingSystem{}, fmt.Errorf(("ff"))
 		if err != nil{
@@ -108,11 +109,11 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64) 
 			ts.MaxDataSize = 500
 			ts.BaseCurrency = BaseCurrency
+			ts.QuoteBalance = 100.0
 		}else{
 			loadDataFrom = "DataBase"
 		}
 	}else{
-		rDBServices = NewRDBServices(loadExchFrom)
 		ts, err = rDBServices.ReadDBTradingSystem(0)
 		if err != nil{
 			fmt.Println("TS = ",ts)		
@@ -205,23 +206,24 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			time.Sleep(time.Millisecond * 300)
 		}
 	}()
-
-	go func(){//Goroutine to store TS into Database
-		for {
-			select{
-			case <-time.After(time.Second * 900): 
-				if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil{
-					log.Printf("Creating TradingSystem happening now!!! where %v", err)
-					ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
-					if err != nil {
-						log.Printf("Error Creating TradingSystem: %v", err)
+	if !strings.Contains(loadExchFrom, "Remote") {
+		go func(){//Goroutine to store TS into Database
+			for {
+				select{
+				case <-time.After(time.Second * 900): 
+					if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil{
+						log.Printf("Creating TradingSystem happening now!!! where %v", err)
+						ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
+						if err != nil {
+							log.Printf("Error Creating TradingSystem: %v", err)
+						}
 					}
+					ts.StoreAppDataChan <- ""
+					time.Sleep(time.Second * 10)
 				}
-				ts.StoreAppDataChan <- ""
-				time.Sleep(time.Second * 10)
 			}
-		}
-	}()
+		}()
+	}
 	return ts, nil
 }
 func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
@@ -231,7 +233,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		md *model.AppData
 		err error
 	)
-	if strings.Contains(loadExchFrom, "Testnet"){
+	if loadExchFrom == "BinanceTestnet"{
 		md, err = &model.AppData{}, fmt.Errorf(("Testnet Error simulation"))
 		if err != nil{
 			fmt.Println("MD = ", md)		
@@ -267,6 +269,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md.TotalProfitLoss = 0.0
 		}
 	}
+	fmt.Println("MD = ", md)
 	go func() {
 		for {
 			select {
@@ -275,10 +278,11 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		}
 	}()
 	go func() {
-		for { // Serialize the DBAppData object to JSON
+		for { // Serialize the DBAppData object to JSON for the UI frontend
 			appDataJSON, err := json.Marshal(md)
 			if err != nil {
 				log.Printf("Error2 marshaling DBAppData to JSON: %v", err)
+				panic(fmt.Sprintf("Do not panic just look up the trail path: AppData at this panic = %v",md))
 			} else {
 				select {
 				case ts.ADataChan <- appDataJSON:
@@ -302,8 +306,201 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			}
 		}
 	}()
-
 	return md
+}
+// UpdateClosingPrices fetches historical data from the exchange and updates the ClosingPrices field in TradingSystem.
+func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom, loadDBFrom string) error {
+	var (
+		err             error
+		exch            model.APIServices
+		exchConfigParam *config.ExchConfig
+		dBConfigParam   *config.DBConfig
+		ok              bool
+		DB              model.DBServices
+	)
+
+	if exchConfigParam, ok = config.NewExchangeConfigs()[loadExchFrom]; !ok {
+		fmt.Println("Error Internal: Exch name not", loadExchFrom)
+		return errors.New("Exch name not " + loadExchFrom)
+	}
+	// Check if REQUIRED "InfluxDB" exists in the map
+	if dBConfigParam, ok = config.NewDataBaseConfigs()[loadDBFrom]; !ok {
+		fmt.Println("Error Internal: DB Manager Required")
+		return errors.New("Required DB services not contracted")
+	}
+	switch loadDBFrom {
+	case "InfluxDB":
+		//Initiallize InfluDB config Parameters and instanciate its struct
+		DB, err = influxdb.NewAPIServices(dBConfigParam)
+		if err != nil {
+			log.Fatalf("Error getting Required services from InfluxDB: %v", err)
+		}
+	default:
+		return errors.Errorf("Error updating historical data from %s and %s: invalid loadExchFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
+	}
+
+	switch loadExchFrom {
+	case "HitBTC":
+		exch, err = hitbtcapi.NewAPIServices(exchConfigParam)
+		if err != nil {
+			log.Fatalf("Error getting new exchange services from HitBTC: %v", err)
+		}
+	case "Binance":
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
+		if err != nil {
+			log.Fatalf("Error getting new exchange services from Binance: %v", err)
+		}
+	case "BinanceTestnet":
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
+		if err != nil {
+			log.Fatalf("Error getting new exchange services from Binance: %v", err)
+		}
+	case "BinanceTestnetWithDB":
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
+		if err != nil {
+			log.Fatalf("Error getting new exchange services from Binance: %v", err)
+		}
+	case "BinanceTestnetWithDBRemote":
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
+		if err != nil {
+			log.Fatalf("Error getting new exchange services from Binance: %v", err)
+		}
+	default:
+		return errors.Errorf("Error updating historical data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
+	}
+	ts.InitialCapital = exchConfigParam.InitialCapital
+	ts.DBServices = DB
+	ts.APIServices = exch
+	HistoricalData, err := ts.APIServices.FetchCandles(exchConfigParam.Symbol, exchConfigParam.CandleInterval, exchConfigParam.CandleStartTime, exchConfigParam.CandleEndTime)
+	ts.BaseCurrency = exchConfigParam.BaseCurrency
+	ts.QuoteCurrency = exchConfigParam.QuoteCurrency
+	ts.Symbol = exchConfigParam.Symbol
+	ts.MiniQty, ts.MaxQty, ts.StepSize, ts.MinNotional, err = exch.FetchExchangeEntities(ts.Symbol)
+	if err != nil {
+		return err
+	}
+	if err != nil {
+		return err
+	}
+	// Extract the closing prices from the candles data
+	for _, candle := range HistoricalData {
+		ts.ClosingPrices = append(ts.ClosingPrices, candle.Close)
+		ts.Timestamps = append(ts.Timestamps, candle.Timestamp)
+		// err := ts.DBServices.WriteCandleToDB(candle.Close, candle.Timestamp)
+		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
+		// 	log.Fatalf("Error: writing to influxDB: %v", err)
+		// }
+	}
+	return nil
+}
+// UpdateClosingPrices fetches historical data from the exchange and updates the ClosingPrices field in TradingSystem.
+func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom string) error {
+	var (
+		err             error
+		exch            model.APIServices
+		exchConfigParam *config.ExchConfig
+		dBConfigParam   *config.DBConfig
+		ok              bool
+		DB              model.DBServices
+	)
+
+	if exchConfigParam, ok = config.NewExchangeConfigs()[loadExchFrom]; !ok {
+		fmt.Println("Error Internal: Exch name not", loadExchFrom)
+		return errors.New("Exch name not " + loadExchFrom)
+	}
+	// Check if REQUIRED "InfluxDB" exists in the map
+	if dBConfigParam, ok = config.NewDataBaseConfigs()["InfluxDB"]; !ok {
+		fmt.Println("Error Internal: Exch Required InfluxDB")
+		return errors.New("Required InfluxDB services not contracted")
+	}
+	switch loadDBFrom {
+	case "InfluxDB":
+		//Initiallize InfluDB config Parameters and instanciate its struct
+		DB, err = influxdb.NewAPIServices(dBConfigParam)
+		if err != nil {
+			log.Fatalf("Error getting Required services from InfluxDB: %v", err)
+		}
+	default:
+		return errors.Errorf("Error updating Live data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
+	}
+
+	switch loadExchFrom {
+	case "HitBTC":
+		exch, err = hitbtcapi.NewAPIServices(exchConfigParam)
+		if err != nil {
+			log.Fatalf("Error getting new exchange services from HitBTC: %v", err)
+		}
+	case "Binance":
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
+		if err != nil {
+			log.Fatalf("Error getting new exchange services from Binance: %v", err)
+		}
+	case "BinanceTestnet":
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
+		if err != nil {
+			log.Fatalf("Error getting new exchange services from Binance: %v", err)
+		}
+	case "BinanceTestnetWithDB":
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
+		if err != nil {
+			log.Fatalf("Error getting new exchange services from Binance: %v", err)
+		}
+	case "BinanceTestnetWithDBRemote":
+		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
+		if err != nil {
+			log.Fatalf("Error getting new exchange services from Binance: %v", err)
+		}
+	default:
+		return errors.Errorf("Error updating Live data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
+	}
+	if LoadDataFrom != "DataBase"{
+		ts.InitialCapital = exchConfigParam.InitialCapital
+		ts.BaseCurrency = exchConfigParam.BaseCurrency
+		ts.QuoteCurrency = exchConfigParam.QuoteCurrency
+	}
+	ts.Symbol = exchConfigParam.Symbol
+	ts.DBServices = DB
+	ts.APIServices = exch
+	ts.CurrentPrice, err = exch.FetchTicker(ts.Symbol)
+	if loadExchFrom == "BinanceTestnet"{
+		ts.QuoteBalance = 100.0
+	}else if !strings.Contains(loadExchFrom, "Testnet"){
+		go func(){	//goroutine to get balances
+			log.Printf("First Balance Update Occuring Now!!!")
+			ts.QuoteBalance, ts.BaseBalance, err = ts.APIServices.GetQuoteAndBaseBalances(ts.Symbol)
+			if err != nil {
+				log.Fatalf("GetQuoteAndBaseBalances Error: %v", err)
+			}
+			log.Printf("Quote Balance for %s: %.8f\n", ts.Symbol, ts.QuoteBalance)
+			log.Printf("Base Balance for %s: %.8f\n", ts.Symbol, ts.BaseBalance)
+			for{
+				select{
+				case <-time.After(time.Minute * 30):
+					log.Printf("Balance Update Occuring Now!!!")
+					ts.Log.Printf("Balance Update Occuring Now!!!\n")
+					ts.QuoteBalance, ts.BaseBalance, err = ts.APIServices.GetQuoteAndBaseBalances(ts.Symbol)
+					if err != nil {
+						log.Printf("GetQuoteAndBaseBalances Error: %v", err)
+						ts.Log.Printf("GetQuoteAndBaseBalances Error: %v", err)
+					}
+				}
+			}
+		}()	
+	}
+	ts.MiniQty, ts.MaxQty, ts.StepSize, ts.MinNotional, err = exch.FetchExchangeEntities(ts.Symbol)
+	if err != nil {
+		return err
+	}
+	// Mining data for historical analysis
+	ts.DataPoint = 0
+	ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
+	ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
+	ts.Signals = append(ts.Signals, "Hold")
+	// err = ts.DBServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
+	// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
+	// 	log.Fatalf("Error: writing to influxDB: %v", err)
+	// }
+	return nil
 }
 func (ts *TradingSystem) TickerQueueAdjustment() {
 	if len(ts.ClosingPrices) > ts.MaxDataSize {
@@ -519,7 +716,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, nextProfitSeLLPrice+commissionAtProfitSeLLPrice)
 		ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, nextInvBuYPrice-commissionAtInvBuYPrice)
 
-		ts.TradingLevel = len(ts.EntryPrice)-1
+		ts.TradingLevel = len(ts.EntryPrice)
 		
 		// Mark that we are in a trade.
 		ts.InTrade = true
@@ -600,7 +797,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			md.RiskPositionPercentage /= ts.RiskFactor //reduce riskPosition by a factor
 			ts.InTrade = true
 			ts.StopLossTrigered = true
-			ts.TradingLevel = len(ts.EntryPrice)-1
+			ts.TradingLevel = len(ts.EntryPrice)
 		} else if len(ts.EntryPrice) <= 1 {
 			// Mark that we are no longer in a trade.
 			ts.InTrade = false
@@ -625,8 +822,39 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
 func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	// Calculate position size based on the fixed percentage of risk per trade.
-	ts.RiskCost = ts.QuoteBalance * md.RiskPositionPercentage
-	ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+	ts.RiskCost = (math.Floor((ts.MinNotional+1.0)/ts.StepSize) * ts.StepSize)
+
+	switch ts.TradingLevel{
+	case 0:
+		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+	case 1:
+		ts.RiskCost += 5.0 
+		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+	case 2:
+		ts.RiskCost += 10.0 
+		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+	case 3:
+		ts.RiskCost += 15.0 
+		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+	case 4:
+		ts.RiskCost += 20.0 
+		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+	case 6:
+		ts.RiskCost += 25.0 
+		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+	case 7:
+		ts.RiskCost += 30.0 
+		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+	case 8:
+		ts.RiskCost += 35.0 
+		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+	case 9:
+		ts.RiskCost += 40.0 
+		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+	default:
+		ts.RiskCost = 200.0
+		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+	}
 
 	// if this function was call for Buy Return to the caller at this point
 	if !ts.InTrade {
@@ -648,7 +876,8 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		// Mark that stoploss is triggered.
 		ts.InTrade = false
 		ts.StopLossTrigered = true
-		md.RiskPositionPercentage *= ts.RiskFactor                       //increase riskPosition by a factor
+		md.RiskPositionPercentage *= ts.RiskFactor 	
+		ts.TradingLevel = len(ts.EntryPrice)               
 		ts.StopLossRecover = append(ts.StopLossRecover, ts.CurrentPrice) //* (1.0 - ts.RiskStopLossPercentage)
 
 		ts.Log.Printf("Stoploss Marked!!! For L%d demarc: at CurrentPrice: %.8f, of EntryPrice[%d]: %.8f, NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f",
@@ -669,9 +898,10 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 // Bands. It determines the buy and sell signals based on various strategy rules.
 func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (buySignal, sellSignal bool) {
 	// Calculate moving averages (MA) using historical data.
-	period6EMA, period4EMA, _, err := CandleExponentialMovingAverage(ts.ClosingPrices, ts.Timestamps, 6, 4)
-	_, _=period4EMA, period6EMA
-	longEMA, shortEMA, _, err := CandleExponentialMovingAverage(period4EMA, ts.Timestamps, md.LongPeriod, md.ShortPeriod)
+	longEMA, period3EMA, err := CandleExponentialMovingAverage(ts.ClosingPrices, md.LongPeriod, 3)
+	shortEMA, err := CandleExponentialMovingAverageV1(period3EMA, md.ShortPeriod)
+	// period3EMA, err := CandleExponentialMovingAverageV1(ts.ClosingPrices, 3)
+	// longEMA, shortEMA, err := CandleExponentialMovingAverage(period3EMA, md.LongPeriod, md.ShortPeriod)
 	if err != nil {
 		// log.Printf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
 		md.LongEMA, md.ShortEMA = 0.0, 0.0
@@ -744,192 +974,6 @@ func (ts *TradingSystem) ExitRule(md *model.AppData) bool {
 	_, technicalSell := ts.TechnicalAnalysis(md, "Exit")
 	// fundamentalBuy, fundamentalSell := ts.FundamentalAnalysis()
 	return technicalSell
-}
-
-// UpdateClosingPrices fetches historical data from the exchange and updates the ClosingPrices field in TradingSystem.
-func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom, loadDBFrom string) error {
-	var (
-		err             error
-		exch            model.APIServices
-		exchConfigParam *config.ExchConfig
-		dBConfigParam   *config.DBConfig
-		ok              bool
-		DB              model.DBServices
-	)
-
-	if exchConfigParam, ok = config.NewExchangeConfigs()[loadExchFrom]; !ok {
-		fmt.Println("Error Internal: Exch name not", loadExchFrom)
-		return errors.New("Exch name not " + loadExchFrom)
-	}
-	// Check if REQUIRED "InfluxDB" exists in the map
-	if dBConfigParam, ok = config.NewDataBaseConfigs()[loadDBFrom]; !ok {
-		fmt.Println("Error Internal: DB Manager Required")
-		return errors.New("Required DB services not contracted")
-	}
-	switch loadDBFrom {
-	case "InfluxDB":
-		//Initiallize InfluDB config Parameters and instanciate its struct
-		DB, err = influxdb.NewAPIServices(dBConfigParam)
-		if err != nil {
-			log.Fatalf("Error getting Required services from InfluxDB: %v", err)
-		}
-	default:
-		return errors.Errorf("Error updating historical data from %s and %s: invalid loadExchFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
-	}
-
-	switch loadExchFrom {
-	case "HitBTC":
-		exch, err = hitbtcapi.NewAPIServices(exchConfigParam)
-		if err != nil {
-			log.Fatalf("Error getting new exchange services from HitBTC: %v", err)
-		}
-	case "Binance":
-		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
-		if err != nil {
-			log.Fatalf("Error getting new exchange services from Binance: %v", err)
-		}
-	case "BinanceTestnet":
-		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
-		if err != nil {
-			log.Fatalf("Error getting new exchange services from Binance: %v", err)
-		}
-	case "BinanceTestnetWithDB":
-		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
-		if err != nil {
-			log.Fatalf("Error getting new exchange services from Binance: %v", err)
-		}
-	default:
-		return errors.Errorf("Error updating historical data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
-	}
-	ts.InitialCapital = exchConfigParam.InitialCapital
-	ts.DBServices = DB
-	ts.APIServices = exch
-	HistoricalData, err := ts.APIServices.FetchCandles(exchConfigParam.Symbol, exchConfigParam.CandleInterval, exchConfigParam.CandleStartTime, exchConfigParam.CandleEndTime)
-	ts.BaseCurrency = exchConfigParam.BaseCurrency
-	ts.QuoteCurrency = exchConfigParam.QuoteCurrency
-	ts.Symbol = exchConfigParam.Symbol
-	ts.MiniQty, ts.MaxQty, ts.StepSize, ts.MinNotional, err = exch.FetchExchangeEntities(ts.Symbol)
-	if err != nil {
-		return err
-	}
-	if err != nil {
-		return err
-	}
-	// Extract the closing prices from the candles data
-	for _, candle := range HistoricalData {
-		ts.ClosingPrices = append(ts.ClosingPrices, candle.Close)
-		ts.Timestamps = append(ts.Timestamps, candle.Timestamp)
-		// err := ts.DBServices.WriteCandleToDB(candle.Close, candle.Timestamp)
-		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
-		// 	log.Fatalf("Error: writing to influxDB: %v", err)
-		// }
-	}
-	return nil
-}
-
-// UpdateClosingPrices fetches historical data from the exchange and updates the ClosingPrices field in TradingSystem.
-func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom string) error {
-	var (
-		err             error
-		exch            model.APIServices
-		exchConfigParam *config.ExchConfig
-		dBConfigParam   *config.DBConfig
-		ok              bool
-		DB              model.DBServices
-	)
-
-	if exchConfigParam, ok = config.NewExchangeConfigs()[loadExchFrom]; !ok {
-		fmt.Println("Error Internal: Exch name not", loadExchFrom)
-		return errors.New("Exch name not " + loadExchFrom)
-	}
-	// Check if REQUIRED "InfluxDB" exists in the map
-	if dBConfigParam, ok = config.NewDataBaseConfigs()["InfluxDB"]; !ok {
-		fmt.Println("Error Internal: Exch Required InfluxDB")
-		return errors.New("Required InfluxDB services not contracted")
-	}
-	switch loadDBFrom {
-	case "InfluxDB":
-		//Initiallize InfluDB config Parameters and instanciate its struct
-		DB, err = influxdb.NewAPIServices(dBConfigParam)
-		if err != nil {
-			log.Fatalf("Error getting Required services from InfluxDB: %v", err)
-		}
-	default:
-		return errors.Errorf("Error updating Live data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
-	}
-
-	switch loadExchFrom {
-	case "HitBTC":
-		exch, err = hitbtcapi.NewAPIServices(exchConfigParam)
-		if err != nil {
-			log.Fatalf("Error getting new exchange services from HitBTC: %v", err)
-		}
-	case "Binance":
-		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
-		if err != nil {
-			log.Fatalf("Error getting new exchange services from Binance: %v", err)
-		}
-	case "BinanceTestnet":
-		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
-		if err != nil {
-			log.Fatalf("Error getting new exchange services from Binance: %v", err)
-		}
-	case "BinanceTestnetWithDB":
-		exch, err = binanceapi.NewAPIServices(exchConfigParam, loadExchFrom)
-		if err != nil {
-			log.Fatalf("Error getting new exchange services from Binance: %v", err)
-		}
-	default:
-		return errors.Errorf("Error updating Live data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
-	}
-	if LoadDataFrom != "DataBase"{
-		ts.InitialCapital = exchConfigParam.InitialCapital
-		ts.BaseCurrency = exchConfigParam.BaseCurrency
-		ts.QuoteCurrency = exchConfigParam.QuoteCurrency
-	}
-	ts.Symbol = exchConfigParam.Symbol
-	ts.DBServices = DB
-	ts.APIServices = exch
-	ts.CurrentPrice, err = exch.FetchTicker(ts.Symbol)
-	if strings.Contains(loadExchFrom, "Testnet"){
-		ts.QuoteBalance = 100.0
-	}else if !strings.Contains(loadExchFrom, "Testnet"){
-		go func(){	
-			log.Printf("First Balance Update Occuring Now!!!")
-			ts.QuoteBalance, ts.BaseBalance, err = ts.APIServices.GetQuoteAndBaseBalances(ts.Symbol)
-			if err != nil {
-				log.Fatalf("GetQuoteAndBaseBalances Error: %v", err)
-			}
-			log.Printf("Quote Balance for %s: %.8f\n", ts.Symbol, ts.QuoteBalance)
-			log.Printf("Base Balance for %s: %.8f\n", ts.Symbol, ts.BaseBalance)
-			for{
-				select{
-				case <-time.After(time.Minute * 30):
-					log.Printf("Balance Update Occuring Now!!!")
-					ts.Log.Printf("Balance Update Occuring Now!!!\n")
-					ts.QuoteBalance, ts.BaseBalance, err = ts.APIServices.GetQuoteAndBaseBalances(ts.Symbol)
-					if err != nil {
-						log.Printf("GetQuoteAndBaseBalances Error: %v", err)
-						ts.Log.Printf("GetQuoteAndBaseBalances Error: %v", err)
-					}
-				}
-			}
-		}()	
-	}
-	ts.MiniQty, ts.MaxQty, ts.StepSize, ts.MinNotional, err = exch.FetchExchangeEntities(ts.Symbol)
-	if err != nil {
-		return err
-	}
-	// Mining data for historical analysis
-	ts.DataPoint = 0
-	ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
-	ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
-	ts.Signals = append(ts.Signals, "Hold")
-	// err = ts.DBServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
-	// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
-	// 	log.Fatalf("Error: writing to influxDB: %v", err)
-	// }
-	return nil
 }
 
 func (ts *TradingSystem) Reporting(md *model.AppData, from string) error {
@@ -1010,7 +1054,7 @@ func CalculateMACD(SignalMACDPeriod int, closingPrices []float64, timeStamps []i
 		return nil, nil, nil, err
 	}
 
-	longEMA, shortEMA, _, err := CandleExponentialMovingAverage(closingPrices, timeStamps, LongPeriod, ShortPeriod)
+	longEMA, shortEMA, err := CandleExponentialMovingAverage(closingPrices, LongPeriod, ShortPeriod)
 	if err != nil {
 		log.Fatalf("Error: in CalclateMACD while tring to get EMA")
 	}
@@ -1033,9 +1077,9 @@ func CalculateMACD(SignalMACDPeriod int, closingPrices []float64, timeStamps []i
 }
 
 //CandleExponentialMovingAverage calculates EMA from condles
-func CandleExponentialMovingAverage(closingPrices []float64, timeStamps []int64, LongPeriod, ShortPeriod int) (longEMA, shortEMA []float64, timestamps []int64, err error) {
+func CandleExponentialMovingAverage(closingPrices []float64, LongPeriod, ShortPeriod int) (longEMA, shortEMA []float64, err error) {
 	if LongPeriod <= 0 || len(closingPrices) < LongPeriod {
-		return nil, nil, nil, fmt.Errorf("Error Calculating Candle EMA: not enoguh data for period %v", LongPeriod)
+		return nil, nil, fmt.Errorf("Error Calculating Candle EMA: not enoguh data for period %v", LongPeriod)
 	}
 	var ema55, ema15 *ema.Ema
 	ema55 = ema.NewEma(alphaFromN(LongPeriod))
@@ -1043,15 +1087,29 @@ func CandleExponentialMovingAverage(closingPrices []float64, timeStamps []int64,
 
 	longEMA = make([]float64, len(closingPrices))
 	shortEMA = make([]float64, len(closingPrices))
-	timestamps = make([]int64, len(closingPrices))
 	for k, closePrice := range closingPrices {
 		ema55.Step(closePrice)
 		ema15.Step(closePrice)
 		longEMA[k] = ema55.Compute()
 		shortEMA[k] = ema15.Compute()
-		timestamps[k] = timeStamps[k]
 	}
-	return longEMA, shortEMA, timestamps, nil
+	return longEMA, shortEMA, nil
+}
+
+//CandleExponentialMovingAverage calculates EMA from condles
+func CandleExponentialMovingAverageV1(closingPrices []float64, ShortPeriod int) (shortEMA []float64, err error) {
+	if ShortPeriod <= 0 || len(closingPrices) < ShortPeriod {
+		return nil, fmt.Errorf("Error Calculating Candle EMA: not enoguh data for period %v", ShortPeriod)
+	}
+	var ema15 *ema.Ema
+	ema15 = ema.NewEma(alphaFromN(ShortPeriod))
+
+	shortEMA = make([]float64, len(closingPrices))
+	for k, closePrice := range closingPrices {
+		ema15.Step(closePrice)
+		shortEMA[k] = ema15.Compute()
+	}
+	return shortEMA, nil
 }
 
 // CalculateExponentialMovingAverage calculates the Exponential Moving Average (EMA) for the given data and period.
