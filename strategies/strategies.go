@@ -150,7 +150,9 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	ts.TSDataChan = make(chan []byte)
 	ts.ADataChan = make(chan []byte)
 	ts.MDChan = make(chan *model.AppData)
+	//Sending TS to Frontend UI
 	go func() { //Goroutine to feed the front end React UI
+		log.Printf("Ready to send TS to Frontend UI")
 		for {
 			if len(ts.Signals) < 1 {
 				time.Sleep(ts.EpochTime)
@@ -201,13 +203,16 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			} else {
 				select {
 				case ts.TSDataChan <- appDataJSON:
+					// log.Printf("Sent TS to Frontend UI DataPoint: %d", ts.DataPoint)
 				}
 			}
 			time.Sleep(time.Millisecond * 300)
 		}
 	}()
 	if !strings.Contains(loadExchFrom, "Remote") {
+		//Updating TS to the Database
 		go func(){//Goroutine to store TS into Database
+			log.Printf("Ready to send TS to Database")
 			for {
 				select{
 				case <-time.After(time.Second * 900): 
@@ -277,7 +282,9 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			}
 		}
 	}()
+	//Sending md to react Frontend UI
 	go func() {
+		log.Printf("Ready to send AppDatat to Frontend UI")
 		for { // Serialize the DBAppData object to JSON for the UI frontend
 			appDataJSON, err := json.Marshal(md)
 			if err != nil {
@@ -291,8 +298,10 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			time.Sleep(time.Second * 1)
 		}
 	}()
+	//Updating md to Database
 	go func(){
 		var err error
+		log.Printf("Ready to send AppDatat to Database")
 		for {
 			select{
 			case <-ts.StoreAppDataChan:
@@ -492,10 +501,10 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 		return err
 	}
 	// Mining data for historical analysis
-	ts.DataPoint = 0
-	ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
-	ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
-	ts.Signals = append(ts.Signals, "Hold")
+	ts.DataPoint = len(ts.ClosingPrices)-1
+	// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
+	// ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
+	// ts.Signals = append(ts.Signals, "Hold")
 	// err = ts.DBServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
 	// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
 	// 	log.Fatalf("Error: writing to influxDB: %v", err)
@@ -523,6 +532,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 	go ts.ShutDown(md, sigchnl)
 	// Initialize variables for tracking trading performance.
 	var err error
+	log.Println("Live Trading sarting now!!!")
 	for {
 		ts.CurrentPrice, err = ts.APIServices.FetchTicker(ts.Symbol)
 		if err != nil {
@@ -534,19 +544,18 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		md.DataPoint++
 		ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 		ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
-
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		md.TotalProfitLoss = ts.Trading(md, loadExchFrom)
-
+		
 		ts.TickerQueueAdjustment() //At this point you have all three(ts.ClosingPrices, ts.Timestamps and ts.Signals) assigned
-
+		
 		err = ts.Reporting(md, "Live Trading")
 		if err != nil {
 			fmt.Println("Error Reporting Live Trade: ", err)
 			return
 		}
-
+		
 		time.Sleep(ts.EpochTime)
 		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
 		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
