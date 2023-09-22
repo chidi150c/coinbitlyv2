@@ -140,7 +140,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		}
 	}
 	ts.RDBServices = rDBServices
-	ts.Zoom = 499
+	ts.Zoom = 100
 	ts.ShutDownCh = make(chan string)
 	ts.EpochTime = time.Second * 30
 	ts.StoreAppDataChan = make(chan string, 1)
