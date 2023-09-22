@@ -24,7 +24,7 @@ func main() {
 	loadDBFrom :=  "InfluxDB"
 	//You specify whether you're performing live trading or not 
 	liveTrading := true
-
+ 
 	config := config.NewExchangeConfigs()[loadExchFrom]
     //You're initializing your trading system using the strategies.NewTradingSystem function. 
 	ts, err := strategies.NewTradingSystem(config.BaseCurrency, liveTrading, loadExchFrom, loadDBFrom)
