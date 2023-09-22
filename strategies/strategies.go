@@ -23,10 +23,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	Zoom = 499
-)
-
 // TradingSystem struct: The TradingSystem struct represents the main trading
 // system and holds various parameters and fields related to the strategy,
 // trading state, and performance.
@@ -57,7 +53,7 @@ type TradingSystem struct {
 	EntryCostLoss            []float64
 	TradeCount               int
 	TradingLevel             int
-	ClosedWinTrades                int
+	ClosedWinTrades          int
 	EnableStoploss           bool
 	StopLossTrigered         bool
 	StopLossRecover          []float64
@@ -68,7 +64,7 @@ type TradingSystem struct {
 	EpochTime                time.Duration
 	CSVWriter                *csv.Writer
 	RiskProfitLossPercentage float64
-	StoreAppDataChan                chan string
+	StoreAppDataChan         chan string
 	BaseCurrency             string //in Binance is called BaseAsset
 	QuoteCurrency            string //in Binance is called QuoteAsset
 	MiniQty                  float64
@@ -81,6 +77,7 @@ type TradingSystem struct {
 	TSDataChan               chan []byte
 	ADataChan                chan []byte
 	MDChan                   chan *model.AppData
+	Zoom                     int
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -90,47 +87,47 @@ type TradingSystem struct {
 func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadDBFrom string) (*TradingSystem, error) {
 	// Initialize the trading system.
 	var (
-		ts *TradingSystem
-		err error
+		ts          *TradingSystem
+		err         error
 		rDBServices *RDBServices
 	)
 	loadDataFrom := ""
 	rDBServices = NewRDBServices(loadExchFrom)
-	if loadExchFrom == "BinanceTestnet"{
+	if loadExchFrom == "BinanceTestnet" {
 		ts, err = &TradingSystem{}, fmt.Errorf(("ff"))
-		if err != nil{
-			fmt.Println("TS = ",ts)		
+		if err != nil {
+			fmt.Println("TS = ", ts)
 			log.Printf("\n%v: But going ahead to initialize empty TS struct\n", err)
 			ts = &TradingSystem{}
-			ts.RiskFactor = 2.0 
-			ts.CommissionPercentage = 0.00075 
+			ts.RiskFactor = 2.0
+			ts.CommissionPercentage = 0.00075
 			ts.RiskProfitLossPercentage = 0.00075
 			ts.EnableStoploss = true
-			ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64) 
+			ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64)
 			ts.MaxDataSize = 500
 			ts.BaseCurrency = BaseCurrency
 			ts.QuoteBalance = 100.0
-		}else{
+		} else {
 			loadDataFrom = "DataBase"
 		}
-	}else{
+	} else {
 		ts, err = rDBServices.ReadDBTradingSystem(0)
-		if err != nil{
-			fmt.Println("TS = ",ts)		
+		if err != nil {
+			fmt.Println("TS = ", ts)
 			log.Printf("\n%v: But going ahead to initialize empty TS struct\n", err)
 			ts = &TradingSystem{}
-			ts.RiskFactor = 2.0 
-			ts.CommissionPercentage = 0.00075 
+			ts.RiskFactor = 2.0
+			ts.CommissionPercentage = 0.00075
 			ts.RiskProfitLossPercentage = 0.00075
 			ts.EnableStoploss = true
-			ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64) 
+			ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64)
 			ts.MaxDataSize = 500
 			ts.BaseCurrency = BaseCurrency
-		}else{
+		} else {
 			loadDataFrom = "DataBase"
 		}
 	}
-	fmt.Println("TS = ",ts)
+	fmt.Println("TS = ", ts)
 	if liveTrading {
 		err = ts.LiveUpdate(loadExchFrom, loadDBFrom, loadDataFrom)
 		if err != nil {
@@ -141,8 +138,9 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		if err != nil {
 			return &TradingSystem{}, err
 		}
-	}                 
+	}
 	ts.RDBServices = rDBServices
+	ts.Zoom = 499
 	ts.ShutDownCh = make(chan string)
 	ts.EpochTime = time.Second * 30
 	ts.StoreAppDataChan = make(chan string, 1)
@@ -211,12 +209,12 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	}()
 	if !strings.Contains(loadExchFrom, "Remote") {
 		//Updating TS to the Database
-		go func(){//Goroutine to store TS into Database
+		go func() { //Goroutine to store TS into Database
 			log.Printf("Ready to send TS to Database")
 			for {
-				select{
-				case <-time.After(time.Second * 900): 
-					if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil{
+				select {
+				case <-time.After(time.Second * 900):
+					if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil {
 						log.Printf("Creating TradingSystem happening now!!! where %v", err)
 						ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
 						if err != nil {
@@ -235,19 +233,19 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 	// Initialize the App Data
 	// loadDataFrom := ""
 	var (
-		md *model.AppData
+		md  *model.AppData
 		err error
 	)
-	if loadExchFrom == "BinanceTestnet"{
+	if loadExchFrom == "BinanceTestnet" {
 		md, err = &model.AppData{}, fmt.Errorf(("Testnet Error simulation"))
-		if err != nil{
-			fmt.Println("MD = ", md)		
+		if err != nil {
+			fmt.Println("MD = ", md)
 			log.Printf("\n%v: But going ahead to initialize empty AppData struct\n", err)
 			md = &model.AppData{}
 			md.DataPoint = 0
 			md.Strategy = "EMA"
 			md.ShortPeriod = 10 //10 Define moving average short period for the strategy.
-			md.LongPeriod = 30 //30 Define moving average long period for the strategy.
+			md.LongPeriod = 30  //30 Define moving average long period for the strategy.
 			md.ShortEMA = 0.0
 			md.LongEMA = 0.0
 			md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
@@ -255,11 +253,11 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
 			md.TotalProfitLoss = 0.0
 		}
-	}else{
+	} else {
 		rDBServices := NewRDBServices(loadExchFrom)
 		md, err = rDBServices.ReadDBAppData(0)
-		if err != nil{
-			fmt.Println("MD = ", md)		
+		if err != nil {
+			fmt.Println("MD = ", md)
 			log.Printf("\n%v: But going ahead to initialize empty AppData struct\n", err)
 			md = &model.AppData{}
 			md.DataPoint = 0
@@ -289,7 +287,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			appDataJSON, err := json.Marshal(md)
 			if err != nil {
 				log.Printf("Error2 marshaling DBAppData to JSON: %v", err)
-				panic(fmt.Sprintf("Do not panic just look up the trail path: AppData at this panic = %v",md))
+				panic(fmt.Sprintf("Do not panic just look up the trail path: AppData at this panic = %v", md))
 			} else {
 				select {
 				case ts.ADataChan <- appDataJSON:
@@ -299,13 +297,13 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		}
 	}()
 	//Updating md to Database
-	go func(){
+	go func() {
 		var err error
 		log.Printf("Ready to send AppDatat to Database")
 		for {
-			select{
+			select {
 			case <-ts.StoreAppDataChan:
-				if err = ts.RDBServices.UpdateDBAppData(md); err != nil{
+				if err = ts.RDBServices.UpdateDBAppData(md); err != nil {
 					log.Printf("Creating AppData happening now!!!")
 					md.ID, err = ts.RDBServices.CreateDBAppData(md)
 					if err != nil {
@@ -317,6 +315,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 	}()
 	return md
 }
+
 // UpdateClosingPrices fetches historical data from the exchange and updates the ClosingPrices field in TradingSystem.
 func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom, loadDBFrom string) error {
 	var (
@@ -402,6 +401,7 @@ func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom, loadDBFrom string) e
 	}
 	return nil
 }
+
 // UpdateClosingPrices fetches historical data from the exchange and updates the ClosingPrices field in TradingSystem.
 func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom string) error {
 	var (
@@ -462,7 +462,7 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 	default:
 		return errors.Errorf("Error updating Live data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
 	}
-	if LoadDataFrom != "DataBase"{
+	if LoadDataFrom != "DataBase" {
 		ts.InitialCapital = exchConfigParam.InitialCapital
 		ts.BaseCurrency = exchConfigParam.BaseCurrency
 		ts.QuoteCurrency = exchConfigParam.QuoteCurrency
@@ -471,10 +471,10 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 	ts.DBServices = DB
 	ts.APIServices = exch
 	ts.CurrentPrice, err = exch.FetchTicker(ts.Symbol)
-	if loadExchFrom == "BinanceTestnet"{
+	if loadExchFrom == "BinanceTestnet" {
 		ts.QuoteBalance = 100.0
-	}else if !strings.Contains(loadExchFrom, "Testnet"){
-		go func(){	//goroutine to get balances
+	} else if !strings.Contains(loadExchFrom, "Testnet") {
+		go func() { //goroutine to get balances
 			log.Printf("First Balance Update Occuring Now!!!")
 			ts.QuoteBalance, ts.BaseBalance, err = ts.APIServices.GetQuoteAndBaseBalances(ts.Symbol)
 			if err != nil {
@@ -482,8 +482,8 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 			}
 			log.Printf("Quote Balance for %s: %.8f\n", ts.Symbol, ts.QuoteBalance)
 			log.Printf("Base Balance for %s: %.8f\n", ts.Symbol, ts.BaseBalance)
-			for{
-				select{
+			for {
+				select {
 				case <-time.After(time.Minute * 30):
 					log.Printf("Balance Update Occuring Now!!!")
 					ts.Log.Printf("Balance Update Occuring Now!!!\n")
@@ -494,14 +494,14 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 					}
 				}
 			}
-		}()	
+		}()
 	}
 	ts.MiniQty, ts.MaxQty, ts.StepSize, ts.MinNotional, err = exch.FetchExchangeEntities(ts.Symbol)
 	if err != nil {
 		return err
 	}
 	// Mining data for historical analysis
-	ts.DataPoint = len(ts.ClosingPrices)-1
+	ts.DataPoint = len(ts.ClosingPrices) - 1
 	// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 	// ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 	// ts.Signals = append(ts.Signals, "Hold")
@@ -547,15 +547,15 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		md.TotalProfitLoss = ts.Trading(md, loadExchFrom)
-		
+
 		ts.TickerQueueAdjustment() //At this point you have all three(ts.ClosingPrices, ts.Timestamps and ts.Signals) assigned
-		
+
 		err = ts.Reporting(md, "Live Trading")
 		if err != nil {
 			fmt.Println("Error Reporting Live Trade: ", err)
 			return
 		}
-		
+
 		time.Sleep(ts.EpochTime)
 		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
 		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
@@ -726,7 +726,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, nextInvBuYPrice-commissionAtInvBuYPrice)
 
 		ts.TradingLevel = len(ts.EntryPrice)
-		
+
 		// Mark that we are in a trade.
 		ts.InTrade = true
 
@@ -788,7 +788,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], averagePrice, orderResp.ExecutedQty)
 		md.TotalProfitLoss += localProfitLoss
 		if localProfitLoss > 0 {
-			ts.ClosedWinTrades += 2 
+			ts.ClosedWinTrades += 2
 		}
 		// Mark that we are no longer in a trade.
 		ts.InTrade = false
@@ -833,36 +833,36 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	// Calculate position size based on the fixed percentage of risk per trade.
 	ts.RiskCost = (math.Floor((ts.MinNotional+1.0)/ts.StepSize) * ts.StepSize)
 
-	switch ts.TradingLevel{
+	switch ts.TradingLevel {
 	case 0:
-		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 1:
-		ts.RiskCost += 5.0 
-		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+		ts.RiskCost += 5.0
+		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 2:
-		ts.RiskCost += 10.0 
-		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+		ts.RiskCost += 10.0
+		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 3:
-		ts.RiskCost += 15.0 
-		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+		ts.RiskCost += 15.0
+		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 4:
-		ts.RiskCost += 20.0 
-		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+		ts.RiskCost += 20.0
+		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 6:
-		ts.RiskCost += 25.0 
-		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+		ts.RiskCost += 25.0
+		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 7:
-		ts.RiskCost += 30.0 
-		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+		ts.RiskCost += 30.0
+		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 8:
-		ts.RiskCost += 35.0 
-		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+		ts.RiskCost += 35.0
+		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 9:
-		ts.RiskCost += 40.0 
-		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+		ts.RiskCost += 40.0
+		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	default:
 		ts.RiskCost = 200.0
-		ts.PositionSize = ts.RiskCost/ts.CurrentPrice
+		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	}
 
 	// if this function was call for Buy Return to the caller at this point
@@ -885,8 +885,8 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		// Mark that stoploss is triggered.
 		ts.InTrade = false
 		ts.StopLossTrigered = true
-		md.RiskPositionPercentage *= ts.RiskFactor 	
-		ts.TradingLevel = len(ts.EntryPrice)               
+		md.RiskPositionPercentage *= ts.RiskFactor
+		ts.TradingLevel = len(ts.EntryPrice)
 		ts.StopLossRecover = append(ts.StopLossRecover, ts.CurrentPrice) //* (1.0 - ts.RiskStopLossPercentage)
 
 		ts.Log.Printf("Stoploss Marked!!! For L%d demarc: at CurrentPrice: %.8f, of EntryPrice[%d]: %.8f, NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f",
@@ -988,14 +988,14 @@ func (ts *TradingSystem) ExitRule(md *model.AppData) bool {
 func (ts *TradingSystem) Reporting(md *model.AppData, from string) error {
 	var err error
 
-	if (len(ts.Container1) > 0) && (len(ts.Container1) <= md.LongPeriod){
+	if (len(ts.Container1) > 0) && (len(ts.Container1) <= md.LongPeriod) {
 		err = ts.CreateLineChartWithSignals(md, ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
-	}else if (len(ts.Container1) <= Zoom){
+	} else if len(ts.Container1) <= ts.Zoom {
 		err = ts.CreateLineChartWithSignalsV3(md, ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
 	} else {
-		b := len(ts.ClosingPrices)-1
-		a := len(ts.ClosingPrices)- Zoom
-		err = ts.CreateLineChartWithSignalsV3(md, ts.Timestamps[a:b], ts.ClosingPrices[a:b], ts.Container1[a:b], ts.Container2[a:b], ts.Signals[a:b], "")	
+		b := len(ts.ClosingPrices) - 1
+		a := len(ts.ClosingPrices) - ts.Zoom
+		err = ts.CreateLineChartWithSignalsV3(md, ts.Timestamps[a:b], ts.ClosingPrices[a:b], ts.Container1[a:b], ts.Container2[a:b], ts.Signals[a:b], "")
 	}
 	if err != nil {
 		return fmt.Errorf("Error creating Line Chart with signals: %v", err)
