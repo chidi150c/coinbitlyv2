@@ -70,7 +70,7 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string) TradeHandler
 	// Add an OPTIONS route for /updateZoom
 	h.mux.Options("/updateZoom", func(w http.ResponseWriter, r *http.Request) {
 		// Add an OPTIONS route for /updateZoom
-    	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:35259") //Adjust 
+    	w.Header().Set("Access-Control-Allow-Origin", "http://176.58.125.70:35259") //Adjust 
 		w.Header().Set("Access-Control-Allow-Methods", "POST")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		w.WriteHeader(http.StatusOK)
