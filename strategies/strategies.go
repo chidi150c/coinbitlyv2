@@ -94,7 +94,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	loadDataFrom := ""
 	rDBServices = NewRDBServices(loadExchFrom)
 	if loadExchFrom == "BinanceTestnet" {
-		ts, err = &TradingSystem{}, fmt.Errorf(("ff"))
+		ts, err = &TradingSystem{}, fmt.Errorf(("Testnet Error simulation"))
 		if err != nil {
 			fmt.Println("TS = ", ts)
 			log.Printf("\n%v: But going ahead to initialize empty TS struct\n", err)
@@ -462,15 +462,20 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 	default:
 		return errors.Errorf("Error updating Live data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
 	}
-	if LoadDataFrom != "DataBase" {
-		ts.InitialCapital = exchConfigParam.InitialCapital
-		ts.BaseCurrency = exchConfigParam.BaseCurrency
-		ts.QuoteCurrency = exchConfigParam.QuoteCurrency
-	}
 	ts.Symbol = exchConfigParam.Symbol
 	ts.DBServices = DB
 	ts.APIServices = exch
 	ts.CurrentPrice, err = exch.FetchTicker(ts.Symbol)
+	ts.MiniQty, ts.MaxQty, ts.StepSize, ts.MinNotional, err = exch.FetchExchangeEntities(ts.Symbol)
+	if err != nil {
+		return err
+	}
+	if LoadDataFrom != "DataBase" {
+		ts.InitialCapital = exchConfigParam.InitialCapital
+		ts.BaseCurrency = exchConfigParam.BaseCurrency
+		ts.QuoteCurrency = exchConfigParam.QuoteCurrency
+		ts.RiskCost = (math.Floor((ts.MinNotional+1.0)/ts.StepSize) * ts.StepSize)
+	}
 	if loadExchFrom == "BinanceTestnet" {
 		ts.QuoteBalance = 100.0
 	} else if !strings.Contains(loadExchFrom, "Testnet") {
@@ -496,19 +501,8 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 			}
 		}()
 	}
-	ts.MiniQty, ts.MaxQty, ts.StepSize, ts.MinNotional, err = exch.FetchExchangeEntities(ts.Symbol)
-	if err != nil {
-		return err
-	}
 	// Mining data for historical analysis
 	ts.DataPoint = len(ts.ClosingPrices) - 1
-	// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
-	// ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
-	// ts.Signals = append(ts.Signals, "Hold")
-	// err = ts.DBServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
-	// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
-	// 	log.Fatalf("Error: writing to influxDB: %v", err)
-	// }
 	return nil
 }
 func (ts *TradingSystem) TickerQueueAdjustment() {
@@ -831,7 +825,6 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
 func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	// Calculate position size based on the fixed percentage of risk per trade.
-	ts.RiskCost = (math.Floor((ts.MinNotional+1.0)/ts.StepSize) * ts.StepSize)
 
 	switch ts.TradingLevel {
 	case 0:
