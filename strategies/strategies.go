@@ -474,7 +474,6 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 		ts.InitialCapital = exchConfigParam.InitialCapital
 		ts.BaseCurrency = exchConfigParam.BaseCurrency
 		ts.QuoteCurrency = exchConfigParam.QuoteCurrency
-		ts.RiskCost = (math.Floor((ts.MinNotional+1.0)/ts.StepSize) * ts.StepSize)
 	}
 	if loadExchFrom == "BinanceTestnet" {
 		ts.QuoteBalance = 100.0
@@ -826,6 +825,8 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	// Calculate position size based on the fixed percentage of risk per trade.
 
+	ts.RiskCost = math.Floor((ts.MinNotional+1.0)/ts.StepSize) * ts.StepSize
+	
 	switch ts.TradingLevel {
 	case 0:
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
