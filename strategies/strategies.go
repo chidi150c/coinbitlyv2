@@ -140,7 +140,11 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		}
 	}
 	ts.RDBServices = rDBServices
-	ts.Zoom = 100
+	if !strings.Contains(loadExchFrom, "Testnet") {
+		ts.Zoom = 100
+	}else{
+		ts.Zoom = 499			
+	}
 	ts.ShutDownCh = make(chan string)
 	ts.EpochTime = time.Second * 30
 	ts.StoreAppDataChan = make(chan string, 1)
@@ -826,7 +830,7 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	// Calculate position size based on the fixed percentage of risk per trade.
 
 	ts.RiskCost = math.Floor((ts.MinNotional+1.0)/ts.StepSize) * ts.StepSize
-	
+ 
 	switch ts.TradingLevel {
 	case 0:
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
@@ -901,10 +905,10 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 // Bands. It determines the buy and sell signals based on various strategy rules.
 func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (buySignal, sellSignal bool) {
 	// Calculate moving averages (MA) using historical data.
-	longEMA, period3EMA, err := CandleExponentialMovingAverage(ts.ClosingPrices, md.LongPeriod, 3)
-	shortEMA, err := CandleExponentialMovingAverageV1(period3EMA, md.ShortPeriod)
-	// period3EMA, err := CandleExponentialMovingAverageV1(ts.ClosingPrices, 3)
-	// longEMA, shortEMA, err := CandleExponentialMovingAverage(period3EMA, md.LongPeriod, md.ShortPeriod)
+	// longEMA, period3EMA, err := CandleExponentialMovingAverage(ts.ClosingPrices, md.LongPeriod, 3)
+	// shortEMA, err := CandleExponentialMovingAverageV1(period3EMA, md.ShortPeriod)
+	period3EMA, err := CandleExponentialMovingAverageV1(ts.ClosingPrices, 3)
+	longEMA, shortEMA, err := CandleExponentialMovingAverage(period3EMA, md.LongPeriod, md.ShortPeriod)
 	if err != nil {
 		// log.Printf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
 		md.LongEMA, md.ShortEMA = 0.0, 0.0
