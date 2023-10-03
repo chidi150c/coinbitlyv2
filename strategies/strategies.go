@@ -291,7 +291,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			appDataJSON, err := json.Marshal(md)
 			if err != nil {
 				log.Printf("Error2 marshaling DBAppData to JSON: %v", err)
-				panic(fmt.Sprintf("Do not panic just look up the trail path: AppData at this panic = %v", md))
+				// panic(fmt.Sprintf("Do not panic just look up the trail path: AppData at this panic = %v", md))
 			} else {
 				select {
 				case ts.ADataChan <- appDataJSON:
@@ -905,11 +905,23 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 // Bands. It determines the buy and sell signals based on various strategy rules.
 func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (buySignal, sellSignal bool) {
 	// Calculate moving averages (MA) using historical data.
-	longEMA, period4EMA, err := CandleExponentialMovingAverage(ts.ClosingPrices, md.LongPeriod, 4)
-	shortEMA, err := CandleExponentialMovingAverageV1(period4EMA, md.ShortPeriod)
+	ch := make(chan string)
+	var(
+		err1 error
+		shortEMA []float64
+	) 
+	go func (ch chan string)  {
+		shortEMA, err1 = CandleExponentialMovingAverageV2(CandleExponentialMovingAverageV1(ts.ClosingPrices, 4), md.ShortPeriod)
+		ch <- ""
+	}(ch)
+	longEMA, err2 := CandleExponentialMovingAverageV2(CandleExponentialMovingAverageV1(ts.ClosingPrices, 3), md.LongPeriod)
+	<-ch
+
+	// longEMA, period4EMA, err := CandleExponentialMovingAverage(ts.ClosingPrices, md.LongPeriod, 4)
+	// shortEMA, err := CandleExponentialMovingAverageV1(period4EMA, md.ShortPeriod)
 	// period3EMA, err := CandleExponentialMovingAverageV1(ts.ClosingPrices, 3)
 	// longEMA, shortEMA, err := CandleExponentialMovingAverage(period3EMA, md.LongPeriod, md.ShortPeriod)
-	if err != nil {
+	if (err1 != nil) || (err2 != nil) {
 		// log.Printf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
 		md.LongEMA, md.ShortEMA = 0.0, 0.0
 	} else {
@@ -1085,7 +1097,7 @@ func CalculateMACD(SignalMACDPeriod int, closingPrices []float64, timeStamps []i
 
 //CandleExponentialMovingAverage calculates EMA from condles
 func CandleExponentialMovingAverage(closingPrices []float64, LongPeriod, ShortPeriod int) (longEMA, shortEMA []float64, err error) {
-	if LongPeriod <= 0 || len(closingPrices) < LongPeriod {
+	if LongPeriod <= 0 || len(closingPrices) < LongPeriod || closingPrices == nil{
 		return nil, nil, fmt.Errorf("Error Calculating Candle EMA: not enoguh data for period %v", LongPeriod)
 	}
 	var ema55, ema15 *ema.Ema
@@ -1104,8 +1116,8 @@ func CandleExponentialMovingAverage(closingPrices []float64, LongPeriod, ShortPe
 }
 
 //CandleExponentialMovingAverage calculates EMA from condles
-func CandleExponentialMovingAverageV1(closingPrices []float64, ShortPeriod int) (shortEMA []float64, err error) {
-	if ShortPeriod <= 0 || len(closingPrices) < ShortPeriod {
+func CandleExponentialMovingAverageV2(closingPrices []float64, ShortPeriod int) (shortEMA []float64, err error) {
+	if ShortPeriod <= 0 || len(closingPrices) < ShortPeriod || closingPrices == nil{
 		return nil, fmt.Errorf("Error Calculating Candle EMA: not enoguh data for period %v", ShortPeriod)
 	}
 	var ema15 *ema.Ema
@@ -1117,6 +1129,21 @@ func CandleExponentialMovingAverageV1(closingPrices []float64, ShortPeriod int) 
 		shortEMA[k] = ema15.Compute()
 	}
 	return shortEMA, nil
+}
+//CandleExponentialMovingAverage calculates EMA from condles
+func CandleExponentialMovingAverageV1(closingPrices []float64, ShortPeriod int) (shortEMA []float64) {
+	if ShortPeriod <= 0 || len(closingPrices) < ShortPeriod || closingPrices == nil{
+		return nil
+	}
+	var ema15 *ema.Ema
+	ema15 = ema.NewEma(alphaFromN(ShortPeriod))
+
+	shortEMA = make([]float64, len(closingPrices))
+	for k, closePrice := range closingPrices {
+		ema15.Step(closePrice)
+		shortEMA[k] = ema15.Compute()
+	}
+	return shortEMA
 }
 
 // CalculateExponentialMovingAverage calculates the Exponential Moving Average (EMA) for the given data and period.
