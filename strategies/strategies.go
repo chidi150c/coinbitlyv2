@@ -274,6 +274,9 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
 			md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
 			md.TotalProfitLoss = 0.0
+		}else{
+			md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
+			md.LongPeriod = 55  //30 Define moving average long period for the strategy.
 		}
 	}
 	fmt.Println("MD = ", md)
