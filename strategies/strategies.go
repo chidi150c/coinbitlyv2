@@ -543,7 +543,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
-		md.TotalProfitLoss = ts.Trading(md, loadExchFrom)
+		ts.Trading(md, loadExchFrom)
 
 		ts.TickerQueueAdjustment() //At this point you have all three(ts.ClosingPrices, ts.Timestamps and ts.Signals) assigned
 
@@ -590,7 +590,8 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 				ts.ShutDown(md, sigchnl)
 			default:
 			}
-			_ = ts.Trading(md, loadExchFrom)
+
+			ts.Trading(md, loadExchFrom)
 
 			// time.Sleep(ts.EpochTime)
 		}
@@ -615,7 +616,7 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 	}
 }
 
-func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) (totalProfitLoss float64) {
+func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 	// Execute the trade if entry conditions are met.
 	if (!ts.InTrade) && (ts.EntryRule(md)) && (ts.CurrentPrice <= ts.StopLossRecover[len(ts.StopLossRecover)-1]) {
 		// Execute the buy order using the ExecuteStrategy function.
@@ -654,7 +655,6 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) (totalP
 		ts.EntryRule(md)
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
-	return md.TotalProfitLoss
 }
 
 // ExecuteStrategy executes the trade based on the provided trade action and current price.
