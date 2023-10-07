@@ -918,11 +918,12 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 		err1 error
 		shortEMA []float64
 	) 
+	cps := CandleExponentialMovingAverageV1(ts.ClosingPrices, 4)
 	go func (ch chan string)  {
-		shortEMA, err1 = CandleExponentialMovingAverageV2(CandleExponentialMovingAverageV1(ts.ClosingPrices, 5), md.ShortPeriod)
+		shortEMA, err1 = CandleExponentialMovingAverageV2(cps, md.ShortPeriod)
 		ch <- ""
 	}(ch)
-	longEMA, err2 := CandleExponentialMovingAverageV2(CandleExponentialMovingAverageV1(ts.ClosingPrices, 4), md.LongPeriod)
+	longEMA, err2 := CandleExponentialMovingAverageV2(cps, md.LongPeriod)
 	<-ch
 
 	// longEMA, period4EMA, err := CandleExponentialMovingAverage(ts.ClosingPrices, md.LongPeriod, 4)
