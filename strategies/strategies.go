@@ -713,12 +713,15 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.QuoteBalance -= totalCost
 		ts.BaseBalance += orderResp.ExecutedQty
 		md.TotalProfitLoss -= (orderResp.Commission * averagePrice)
-
+		mdTargetProfit := md.TargetProfit 
+		if ts.TradingLevel >= 2{
+			mdTargetProfit = md.TargetProfit + ((md.TargetProfit * float64(md.TargetProfit))/8.0)			
+		}
 		//Record entry entities for calculating profit/loss and stoploss later.
 		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
 		ts.EntryQuantity = append(ts.EntryQuantity, orderResp.ExecutedQty)
 		ts.EntryCostLoss = append(ts.EntryCostLoss, (orderResp.Commission * averagePrice))
-		nextProfitSeLLPrice := ((md.TargetProfit + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / orderResp.ExecutedQty) + ts.EntryPrice[len(ts.EntryPrice)-1]
+		nextProfitSeLLPrice := ((mdTargetProfit + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / orderResp.ExecutedQty) + ts.EntryPrice[len(ts.EntryPrice)-1]
 		nextInvBuYPrice := (-(md.TargetStopLoss + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / orderResp.ExecutedQty) + ts.EntryPrice[len(ts.EntryPrice)-1]
 		commissionAtProfitSeLLPrice := nextProfitSeLLPrice * orderResp.ExecutedQty * ts.CommissionPercentage
 		commissionAtInvBuYPrice := nextInvBuYPrice * orderResp.ExecutedQty * ts.CommissionPercentage
@@ -786,7 +789,9 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.QuoteBalance += totalCost
 		ts.BaseBalance -= orderResp.ExecutedQty
 		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], averagePrice, orderResp.ExecutedQty)
+		ts.Log.Printf("Profit Before Global: %v, Local: %v",md.TotalProfitLoss, localProfitLoss)
 		md.TotalProfitLoss += localProfitLoss
+		ts.Log.Printf("Profit After Global: %v, Local: %v",md.TotalProfitLoss, localProfitLoss)
 		if localProfitLoss > 0 {
 			ts.ClosedWinTrades += 2
 		}
