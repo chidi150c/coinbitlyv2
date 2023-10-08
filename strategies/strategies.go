@@ -146,7 +146,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		ts.Zoom = 499			
 	}
 	ts.ShutDownCh = make(chan string)
-	ts.EpochTime = time.Second * 15
+	ts.EpochTime = time.Second * 5
 	ts.StoreAppDataChan = make(chan string, 1)
 	ts.DBStoreTicker = time.NewTicker(ts.EpochTime)
 	ts.TSDataChan = make(chan []byte)
@@ -275,8 +275,8 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
 			md.TotalProfitLoss = 0.0
 		}else{
-			md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
-			md.LongPeriod = 55  //30 Define moving average long period for the strategy.
+			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
+			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
 		}
 	}
 	fmt.Println("MD = ", md)
@@ -924,7 +924,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 		err1 error
 		shortEMA []float64
 	) 
-	cps := CandleExponentialMovingAverageV1(ts.ClosingPrices, 4)
+	cps := CandleExponentialMovingAverageV1(ts.ClosingPrices, 6)
 	go func (ch chan string)  {
 		shortEMA, err1 = CandleExponentialMovingAverageV2(cps, md.ShortPeriod)
 		ch <- ""
