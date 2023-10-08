@@ -776,7 +776,13 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.Log.Println("Error placing exit order:", err)
 			return "", fmt.Errorf("Error placing exit order: %v", err)
 		}
-		averagePrice := orderResp.CumulativeQuoteQty / orderResp.ExecutedQty
+		averagePrice := exitPrice
+		if orderResp.ExecutedPrice > exitPrice{
+			averagePrice = orderResp.ExecutedPrice
+		}
+		if orderResp.ExecutedQty <= 0.0{
+			orderResp.ExecutedQty = quantity
+		}
 		//For a sell order:
 		//You subtract the commission from the total cost because you are receiving less due to the commission fee. So, the formula would
 		//be something like: totalCost = (executedQty * averagePrice) - totalCommission.
@@ -789,9 +795,9 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.QuoteBalance += totalCost
 		ts.BaseBalance -= orderResp.ExecutedQty
 		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], averagePrice, orderResp.ExecutedQty)
-		ts.Log.Printf("Profit Before Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
+		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
 		md.TotalProfitLoss += localProfitLoss
-		ts.Log.Printf("Profit After Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
+		// ts.Log.Printf("Profit After Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
 		if localProfitLoss > 0 {
 			ts.ClosedWinTrades += 2
 		}
