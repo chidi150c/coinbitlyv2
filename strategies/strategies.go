@@ -921,15 +921,14 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 	// Calculate moving averages (MA) using historical data.
 	ch := make(chan string)
 	var(
-		err1 error
-		shortEMA []float64
+		err1, err2 error
+		shortEMA, longEMA []float64
 	) 
-	cps := CandleExponentialMovingAverageV1(ts.ClosingPrices, 6)
 	go func (ch chan string)  {
-		shortEMA, err1 = CandleExponentialMovingAverageV2(cps, md.ShortPeriod)
+		longEMA, err2 = CandleExponentialMovingAverageV2(CandleExponentialMovingAverageV1(ts.ClosingPrices, 6), md.LongPeriod)
 		ch <- ""
 	}(ch)
-	longEMA, err2 := CandleExponentialMovingAverageV2(cps, md.LongPeriod)
+	shortEMA, err1 = CandleExponentialMovingAverageV2(CandleExponentialMovingAverageV1(ts.ClosingPrices, 8), md.ShortPeriod)
 	<-ch
 
 	// longEMA, period4EMA, err := CandleExponentialMovingAverage(ts.ClosingPrices, md.LongPeriod, 4)
