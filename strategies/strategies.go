@@ -127,6 +127,24 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			loadDataFrom = "DataBase"
 			ts.InitialCapital = 54.038193 + 26.47
 			ts.RiskProfitLossPercentage = 0.0008
+
+			mdTargetProfit := (54.038193 + 26.47) * 0.0008
+			mdTargetStopLoss := (54.038193 + 26.47) * 0.0008
+			if ts.TradingLevel >= 2{
+				mdTargetProfit = mdTargetProfit + ((mdTargetProfit * float64(ts.TradingLevel))/8.0)			
+			}
+			ts.EntryPrice = append(ts.EntryPrice, 206.2)
+			ts.EntryQuantity = append(ts.EntryQuantity, 0.126)
+			ts.EntryCostLoss = append(ts.EntryCostLoss, (0.00075 * 206.2 * 0.126))
+			nextProfitSeLLPrice := ((mdTargetProfit + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / 0.126) + ts.EntryPrice[len(ts.EntryPrice)-1]
+			nextInvBuYPrice := (-(mdTargetStopLoss + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / 0.126) + ts.EntryPrice[len(ts.EntryPrice)-1]
+			commissionAtProfitSeLLPrice := nextProfitSeLLPrice * 0.126 * ts.CommissionPercentage
+			commissionAtInvBuYPrice := nextInvBuYPrice * 0.126 * ts.CommissionPercentage
+			ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, nextProfitSeLLPrice+commissionAtProfitSeLLPrice)
+			ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, nextInvBuYPrice-commissionAtInvBuYPrice)
+			ts.TradingLevel = len(ts.EntryPrice)
+			ts.InTrade = true
+			ts.Signals = append(ts.Signals, "Buy")
 		}
 	}
 	fmt.Println("TS = ", ts)
@@ -719,7 +737,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		md.TotalProfitLoss -= (orderResp.Commission * averagePrice)
 		mdTargetProfit := md.TargetProfit 
 		if ts.TradingLevel >= 2{
-			mdTargetProfit = md.TargetProfit + ((md.TargetProfit * float64(md.TargetProfit))/8.0)			
+			mdTargetProfit = md.TargetProfit + ((md.TargetProfit * float64(ts.TradingLevel))/8.0)			
 		}
 		//Record entry entities for calculating profit/loss and stoploss later.
 		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
