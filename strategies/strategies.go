@@ -125,26 +125,26 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.BaseCurrency = BaseCurrency
 		} else {
 			loadDataFrom = "DataBase"
-			ts.InitialCapital = 54.038193 + 26.47
-			ts.RiskProfitLossPercentage = 0.0008
+			// ts.InitialCapital = 54.038193 + 26.47
+			// ts.RiskProfitLossPercentage = 0.0008
 
-			mdTargetProfit := (54.038193 + 26.47) * 0.0008
-			mdTargetStopLoss := (54.038193 + 26.47) * 0.0008
-			if ts.TradingLevel >= 2{
-				mdTargetProfit = mdTargetProfit + ((mdTargetProfit * float64(ts.TradingLevel))/8.0)			
-			}
-			ts.EntryPrice = append(ts.EntryPrice, 206.2)
-			ts.EntryQuantity = append(ts.EntryQuantity, 0.126)
-			ts.EntryCostLoss = append(ts.EntryCostLoss, (0.00075 * 206.2 * 0.126))
-			nextProfitSeLLPrice := ((mdTargetProfit + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / 0.126) + ts.EntryPrice[len(ts.EntryPrice)-1]
-			nextInvBuYPrice := (-(mdTargetStopLoss + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / 0.126) + ts.EntryPrice[len(ts.EntryPrice)-1]
-			commissionAtProfitSeLLPrice := nextProfitSeLLPrice * 0.126 * ts.CommissionPercentage
-			commissionAtInvBuYPrice := nextInvBuYPrice * 0.126 * ts.CommissionPercentage
-			ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, nextProfitSeLLPrice+commissionAtProfitSeLLPrice)
-			ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, nextInvBuYPrice-commissionAtInvBuYPrice)
-			ts.TradingLevel = len(ts.EntryPrice)
-			ts.InTrade = true
-			ts.Signals = append(ts.Signals, "Buy")
+			// mdTargetProfit := (54.038193 + 26.47) * 0.0008
+			// mdTargetStopLoss := (54.038193 + 26.47) * 0.0008
+			// if ts.TradingLevel >= 2{
+			// 	mdTargetProfit = mdTargetProfit + ((mdTargetProfit * float64(ts.TradingLevel))/8.0)			
+			// }
+			// ts.EntryPrice = append(ts.EntryPrice, 206.2)
+			// ts.EntryQuantity = append(ts.EntryQuantity, 0.126)
+			// ts.EntryCostLoss = append(ts.EntryCostLoss, (0.00075 * 206.2 * 0.126))
+			// nextProfitSeLLPrice := ((mdTargetProfit + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / 0.126) + ts.EntryPrice[len(ts.EntryPrice)-1]
+			// nextInvBuYPrice := (-(mdTargetStopLoss + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / 0.126) + ts.EntryPrice[len(ts.EntryPrice)-1]
+			// commissionAtProfitSeLLPrice := nextProfitSeLLPrice * 0.126 * ts.CommissionPercentage
+			// commissionAtInvBuYPrice := nextInvBuYPrice * 0.126 * ts.CommissionPercentage
+			// ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, nextProfitSeLLPrice+commissionAtProfitSeLLPrice)
+			// ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, nextInvBuYPrice-commissionAtInvBuYPrice)
+			// ts.TradingLevel = len(ts.EntryPrice)
+			// ts.InTrade = true
+			// ts.Signals = append(ts.Signals, "Buy")
 		}
 	}
 	fmt.Println("TS = ", ts)
@@ -882,20 +882,23 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	case 4:
 		ts.RiskCost += 20.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	case 6:
+	case 5:
 		ts.RiskCost += 25.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	case 7:
+	case 6:
 		ts.RiskCost += 30.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	case 8:
+	case 7:
 		ts.RiskCost += 35.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	case 9:
+	case 8:
 		ts.RiskCost += 40.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+	case 9:
+		ts.RiskCost += 45.0
+		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	default:
-		ts.RiskCost = 200.0
+		ts.RiskCost = 100.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	}
 
