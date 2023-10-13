@@ -128,6 +128,9 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			// ts.InitialCapital = 54.038193 + 26.47
 			// ts.RiskProfitLossPercentage = 0.0008
 
+			ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
+			ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
+	
 			// mdTargetProfit := (54.038193 + 26.47) * 0.0008
 			// mdTargetStopLoss := (54.038193 + 26.47) * 0.0008
 			// if ts.TradingLevel >= 2{
@@ -145,6 +148,8 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			// ts.TradingLevel = len(ts.EntryPrice)
 			// ts.InTrade = true
 			// ts.Signals = append(ts.Signals, "Buy")
+			
+			ts.TickerQueueAdjustment() //At this point you have all three
 		}
 	}
 	fmt.Println("TS = ", ts)
