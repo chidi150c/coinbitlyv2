@@ -101,7 +101,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts = &TradingSystem{}
 			ts.RiskFactor = 2.0
 			ts.CommissionPercentage = 0.00075
-			ts.RiskProfitLossPercentage = 0.00075
+			ts.RiskProfitLossPercentage = 0.0008
 			ts.EnableStoploss = true
 			ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64)
 			ts.MaxDataSize = 500
@@ -118,13 +118,15 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts = &TradingSystem{}
 			ts.RiskFactor = 2.0
 			ts.CommissionPercentage = 0.00075
-			ts.RiskProfitLossPercentage = 0.00075
+			ts.RiskProfitLossPercentage = 0.0008
 			ts.EnableStoploss = true
 			ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64)
 			ts.MaxDataSize = 500
 			ts.BaseCurrency = BaseCurrency
 		} else {
 			loadDataFrom = "DataBase"
+			ts.InitialCapital = 54.038193 + 26.47
+			ts.RiskProfitLossPercentage = 0.0008
 		}
 	}
 	fmt.Println("TS = ", ts)
@@ -277,6 +279,8 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		}else{
 			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
+			md.TargetProfit = (54.038193 + 26.47) * 0.0008
+			md.TargetStopLoss = (54.038193 + 26.47) * 0.0008
 		}
 	}
 	fmt.Println("MD = ", md)
