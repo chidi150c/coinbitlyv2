@@ -171,7 +171,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		ts.Zoom = 499			
 	}
 	ts.ShutDownCh = make(chan string)
-	ts.EpochTime = time.Second * 10
+	ts.EpochTime = time.Second * 15
 	ts.StoreAppDataChan = make(chan string, 1)
 	ts.DBStoreTicker = time.NewTicker(ts.EpochTime)
 	ts.TSDataChan = make(chan []byte)
@@ -273,8 +273,8 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md = &model.AppData{}
 			md.DataPoint = 0
 			md.Strategy = "EMA"
-			md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
-			md.LongPeriod = 55  //30 Define moving average long period for the strategy.
+			md.ShortPeriod = 10 //10 Define moving average short period for the strategy.
+			md.LongPeriod = 30  //30 Define moving average long period for the strategy.
 			md.ShortEMA = 0.0
 			md.LongEMA = 0.0
 			md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
@@ -291,8 +291,8 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md = &model.AppData{}
 			md.DataPoint = 0
 			md.Strategy = "EMA"
-			md.ShortPeriod = 15 // Define moving average short period for the strategy.
-			md.LongPeriod = 55  // Define moving average long period for the strategy.
+			md.ShortPeriod = 10 // Define moving average short period for the strategy.
+			md.LongPeriod = 30  // Define moving average long period for the strategy.
 			md.ShortEMA = 0.0
 			md.LongEMA = 0.0
 			md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
@@ -742,7 +742,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		md.TotalProfitLoss -= (orderResp.Commission * averagePrice)
 		mdTargetProfit := md.TargetProfit 
 		if ts.TradingLevel >= 2{
-			mdTargetProfit = md.TargetProfit + ((md.TargetProfit * float64(ts.TradingLevel))/8.0)			
+			mdTargetProfit = md.TargetProfit + ((md.TargetProfit * float64(ts.TradingLevel))/6.0)			
 		}
 		//Record entry entities for calculating profit/loss and stoploss later.
 		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
@@ -954,11 +954,12 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 		err1, err2 error
 		shortEMA, longEMA []float64
 	) 
+	C4EMA := CandleExponentialMovingAverageV1(ts.ClosingPrices, 4)
 	go func (ch chan string)  {
-		longEMA, err2 = CandleExponentialMovingAverageV2(CandleExponentialMovingAverageV1(ts.ClosingPrices, 6), md.LongPeriod)
+		longEMA, err2 = CandleExponentialMovingAverageV2(C4EMA, md.LongPeriod)
 		ch <- ""
 	}(ch)
-	shortEMA, err1 = CandleExponentialMovingAverageV2(CandleExponentialMovingAverageV1(ts.ClosingPrices, 8), md.ShortPeriod)
+	shortEMA, err1 = CandleExponentialMovingAverageV2(C4EMA, md.ShortPeriod)
 	<-ch
 
 	// longEMA, period4EMA, err := CandleExponentialMovingAverage(ts.ClosingPrices, md.LongPeriod, 4)
