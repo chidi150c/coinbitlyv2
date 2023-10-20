@@ -729,29 +729,30 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.Log.Println("Error placing entry order:", err)
 			return "", fmt.Errorf("Error placing entry order: %v", err)
 		}
-		//The cummulativeQuoteQty represents the total quote asset quantity (e.g., USDT) transacted. So, in the calculation for the average price:
-		averagePrice := orderResp.CumulativeQuoteQty / orderResp.ExecutedQty
-		//For a buy order:
+		if (orderResp.ExecutedQty != quantity) && (orderResp.ExecutedQty > 0.0){
+			quantity = orderResp.ExecutedQty
+		}
 		//the commission from Binance being in BaseCurrency was deducted from the executedQty
-		totalCost = (orderResp.ExecutedQty * averagePrice)
+		totalCost = (quantity * ts.CurrentPrice)
+		//Commission: 0.00000000 CumulativeQuoteQty: 0.00000000 ExecutedPrice: 29840.00000000 ExecutedQty: 0.00000000 Status: 
 		ts.Log.Printf("Entry order placed with ID: %d Commission: %.8f CumulativeQuoteQty: %.8f ExecutedPrice: %.8f ExecutedQty: %.8f Status: %s\n", orderResp.OrderID, orderResp.Commission, orderResp.CumulativeQuoteQty,
-			orderResp.ExecutedPrice, orderResp.ExecutedQty, orderResp.Status)
+			orderResp.ExecutedPrice, quantity, orderResp.Status)
 		// Update the profit, quote and base balances after the trade.
 		ts.QuoteBalance -= totalCost
-		ts.BaseBalance += orderResp.ExecutedQty
-		md.TotalProfitLoss -= (orderResp.Commission * averagePrice)
+		ts.BaseBalance += quantity
+		md.TotalProfitLoss -= (ts.CommissionPercentage * quantity * ts.CurrentPrice)
 		mdTargetProfit := md.TargetProfit 
 		if ts.TradingLevel >= 2{
 			mdTargetProfit = md.TargetProfit + ((md.TargetProfit * float64(ts.TradingLevel))/6.0)			
 		}
 		//Record entry entities for calculating profit/loss and stoploss later.
 		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
-		ts.EntryQuantity = append(ts.EntryQuantity, orderResp.ExecutedQty)
-		ts.EntryCostLoss = append(ts.EntryCostLoss, (orderResp.Commission * averagePrice))
-		nextProfitSeLLPrice := ((mdTargetProfit + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / orderResp.ExecutedQty) + ts.EntryPrice[len(ts.EntryPrice)-1]
-		nextInvBuYPrice := (-(md.TargetStopLoss + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / orderResp.ExecutedQty) + ts.EntryPrice[len(ts.EntryPrice)-1]
-		commissionAtProfitSeLLPrice := nextProfitSeLLPrice * orderResp.ExecutedQty * ts.CommissionPercentage
-		commissionAtInvBuYPrice := nextInvBuYPrice * orderResp.ExecutedQty * ts.CommissionPercentage
+		ts.EntryQuantity = append(ts.EntryQuantity, quantity)
+		ts.EntryCostLoss = append(ts.EntryCostLoss, (ts.CommissionPercentage * quantity * ts.CurrentPrice))
+		nextProfitSeLLPrice := ((mdTargetProfit + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / quantity) + ts.EntryPrice[len(ts.EntryPrice)-1]
+		nextInvBuYPrice := (-(md.TargetStopLoss + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / quantity) + ts.EntryPrice[len(ts.EntryPrice)-1]
+		commissionAtProfitSeLLPrice := nextProfitSeLLPrice * quantity * ts.CommissionPercentage
+		commissionAtInvBuYPrice := nextInvBuYPrice * quantity * ts.CommissionPercentage
 		ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, nextProfitSeLLPrice+commissionAtProfitSeLLPrice)
 		ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, nextInvBuYPrice-commissionAtInvBuYPrice)
 
@@ -761,7 +762,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.InTrade = true
 
 		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, BuyCommission: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice %.8f nextInvBuYPrice %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d, mdDataPt: %d \n",
-			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, orderResp.ExecutedQty, ts.QuoteBalance, ts.BaseBalance, orderResp.Commission, md.RiskPositionPercentage, md.TotalProfitLoss, nextProfitSeLLPrice, nextInvBuYPrice, md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
+			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, quantity, ts.QuoteBalance, ts.BaseBalance, orderResp.Commission, md.RiskPositionPercentage, md.TotalProfitLoss, nextProfitSeLLPrice, nextInvBuYPrice, md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
 		return resp, nil
 	case "Sell":
 		if !ts.InTrade {
@@ -803,25 +804,24 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.Log.Println("Error placing exit order:", err)
 			return "", fmt.Errorf("Error placing exit order: %v", err)
 		}
-		averagePrice := exitPrice
-		if orderResp.ExecutedPrice > exitPrice{
-			averagePrice = orderResp.ExecutedPrice
+		if orderResp.ExecutedPrice != exitPrice && (orderResp.ExecutedPrice > 0.0) {
+			exitPrice = orderResp.ExecutedPrice
 		}
-		if orderResp.ExecutedQty <= 0.0{
-			orderResp.ExecutedQty = quantity
+		if (orderResp.ExecutedQty != quantity) && (orderResp.ExecutedQty > 0.0){
+			quantity = orderResp.ExecutedQty
 		}
 		//For a sell order:
 		//You subtract the commission from the total cost because you are receiving less due to the commission fee. So, the formula would
-		//be something like: totalCost = (executedQty * averagePrice) - totalCommission.
+		//be something like: totalCost = (executedQty * exitPrice) - totalCommission.
 		//Confirm Binance or the Exch is deliverying commission for Sell in USDT
-		totalCost = (orderResp.ExecutedQty * averagePrice)
+		totalCost = (quantity * exitPrice)
 
 		ts.Log.Printf("Exit order placed with ID: %d Commission: %.8f CumulativeQuoteQty: %.8f ExecutedPrice: %.8f ExecutedQty: %.8f Status: %s\n", orderResp.OrderID, orderResp.Commission, orderResp.CumulativeQuoteQty,
-			orderResp.ExecutedPrice, orderResp.ExecutedQty, orderResp.Status)
+			orderResp.ExecutedPrice, quantity, orderResp.Status)
 		// Update the totalP&L, quote and base balances after the trade.
 		ts.QuoteBalance += totalCost
-		ts.BaseBalance -= orderResp.ExecutedQty
-		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], averagePrice, orderResp.ExecutedQty)
+		ts.BaseBalance -= quantity
+		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[len(ts.EntryPrice)-1], exitPrice, quantity)
 		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
 		md.TotalProfitLoss += localProfitLoss
 		// ts.Log.Printf("Profit After Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
