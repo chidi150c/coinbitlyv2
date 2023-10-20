@@ -80,13 +80,13 @@ func NewExchangeConfigs() map[string]*ExchConfig {
 	ExchConfigs := map[string]*ExchConfig{
 		"Binance": {
 			Name:            "Binance",
-			Symbols:         []string{"BNBUSDT"},
+			Symbols:         []string{"BTCUSDT"},
 			BaseURL:         "https://api.binance.com", //testnet.  https://testnet.binance.vision/api/v3/klines
 			ApiVersion:      "api/v3",
 			ApiKey:          os.Getenv("BINANCE_API_KEY"),    // Replace with your Binance API key
 			SecretKey:       os.Getenv("BINANCE_API_SECRET"), // Replace with your Binance API secret key
-			Symbol:          "BNBUSDT",
-			BaseCurrency:    "BNB",
+			Symbol:          "BTCUSDT",
+			BaseCurrency:    "BTC",
 			QuoteCurrency:   "USDT",
 			InitialCapital:  54.038193 + 26.47,
 			CandleInterval:  "1m",
@@ -95,13 +95,13 @@ func NewExchangeConfigs() map[string]*ExchConfig {
 		},
 		"BinanceTestnet": {
 			Name:            "BinanceTestnet",
-			Symbols:         []string{"BNBUSDT"},
+			Symbols:         []string{"BTCUSDT"},
 			BaseURL:         "https://testnet.binance.vision",
 			ApiVersion:      "api/v3",
 			ApiKey:          "Ob1mJrsNFb7Msfpb6eFwjc1IpQc3ivmGZdMaabxbttXwFipTlgASE6Zqjw2xqETZ", // os.Getenv("BINANCE_API_KEY"),    // Replace with your Binance API key
 			SecretKey:       "tef6clCsc4zxTVqhGsD1neE7Od5CXEhEe8l8xScnyciA79OxcHpmIqcswLWOapfk", //os.Getenv("BINANCE_API_SECRET"), // Replace with your Binance API secret key
-			Symbol:          "BNBUSDT",
-			BaseCurrency:    "BNB",
+			Symbol:          "BTCUSDT",
+			BaseCurrency:    "BTC",
 			QuoteCurrency:   "USDT",
 			InitialCapital:  54.1,
 			CandleInterval:  "1m",
@@ -110,13 +110,13 @@ func NewExchangeConfigs() map[string]*ExchConfig {
 		},
 		"BinanceTestnetWithDB": {
 			Name:            "BinanceTestnetWithDB",
-			Symbols:         []string{"BNBUSDT"},
+			Symbols:         []string{"BTCUSDT"},
 			BaseURL:         "https://testnet.binance.vision",
 			ApiVersion:      "api/v3",
 			ApiKey:          "Ob1mJrsNFb7Msfpb6eFwjc1IpQc3ivmGZdMaabxbttXwFipTlgASE6Zqjw2xqETZ", // os.Getenv("BINANCE_API_KEY"),    // Replace with your Binance API key
 			SecretKey:       "tef6clCsc4zxTVqhGsD1neE7Od5CXEhEe8l8xScnyciA79OxcHpmIqcswLWOapfk", //os.Getenv("BINANCE_API_SECRET"), // Replace with your Binance API secret key
-			Symbol:          "BNBUSDT",
-			BaseCurrency:    "BNB",
+			Symbol:          "BTCUSDT",
+			BaseCurrency:    "BTC",
 			QuoteCurrency:   "USDT",
 			InitialCapital:  54.1,
 			CandleInterval:  "1m",
@@ -125,13 +125,13 @@ func NewExchangeConfigs() map[string]*ExchConfig {
 		},
 		"BinanceTestnetWithDBRemote": {
 			Name:            "BinanceTestnetWithDBRemote",
-			Symbols:         []string{"BNBUSDT"},
+			Symbols:         []string{"BTCUSDT"},
 			BaseURL:         "https://testnet.binance.vision",
 			ApiVersion:      "api/v3",
 			ApiKey:          "Ob1mJrsNFb7Msfpb6eFwjc1IpQc3ivmGZdMaabxbttXwFipTlgASE6Zqjw2xqETZ", // os.Getenv("BINANCE_API_KEY"),    // Replace with your Binance API key
 			SecretKey:       "tef6clCsc4zxTVqhGsD1neE7Od5CXEhEe8l8xScnyciA79OxcHpmIqcswLWOapfk", //os.Getenv("BINANCE_API_SECRET"), // Replace with your Binance API secret key
-			Symbol:          "BNBUSDT",
-			BaseCurrency:    "BNB",
+			Symbol:          "BTCUSDT",
+			BaseCurrency:    "BTC",
 			QuoteCurrency:   "USDT",
 			InitialCapital:  54.1,
 			CandleInterval:  "1m",
@@ -144,8 +144,8 @@ func NewExchangeConfigs() map[string]*ExchConfig {
 			ApiVersion:      "api/3",
 			ApiKey:          os.Getenv("HITBTC_API_KEY"),    // Replace with your Binance API key
 			SecretKey:       os.Getenv("HITBTC_API_SECRET"), // Replace with your Binance API secret key
-			Symbol:          "BNBUSDT",
-			BaseCurrency:    "BNB",
+			Symbol:          "BTCUSDT",
+			BaseCurrency:    "BTC",
 			QuoteCurrency:   "USDT",
 			InitialCapital:  54.1,
 			CandleInterval:  "m30",
