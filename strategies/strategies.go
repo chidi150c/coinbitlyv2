@@ -775,8 +775,10 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		quantity := math.Floor(ts.EntryQuantity[len(ts.EntryQuantity)-1]/ts.MiniQty) * ts.MiniQty
 
 		// (localProfitLoss < transactionCost+slippageCost+md.TargetProfit)
+		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", exitPrice, md.TargetProfit)
 		if (ts.BaseBalance < quantity) || (exitPrice < ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1]) {
 			if ts.BaseBalance < quantity {
+				ts.Log.Printf("But BaseBalance %.8f is < quantity %.8f, currentPrice: %.8f", ts.BaseBalance, quantity, exitPrice)
 				quantity = math.Floor(ts.BaseBalance/ts.MiniQty) * ts.MiniQty
 				if quantity < ts.MiniQty {
 					return "", fmt.Errorf("cannot execute a sell order due to insufficient BaseBalance: %.8f miniQuantity required: %.8f", ts.QuoteBalance, ts.MiniQty)
