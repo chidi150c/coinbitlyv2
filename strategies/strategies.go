@@ -871,8 +871,12 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
 func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	// Calculate position size based on the fixed percentage of risk per trade.
-
-	ts.RiskCost = math.Floor((ts.MinNotional+1.0)/ts.StepSize) * ts.StepSize
+	asset := ts.BaseBalance * ts.CurrentPrice + ts.QuoteBalance
+	num := (ts.MinNotional+1.0)/ts.StepSize
+	if ts.InitialCapital < asset{
+		num += asset - ts.InitialCapital
+	}
+	ts.RiskCost = math.Floor(num) * ts.StepSize
  
 	switch ts.TradingLevel {
 	case 0:
