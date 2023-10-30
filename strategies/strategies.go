@@ -648,6 +648,7 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 
 func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 	// Execute the trade if entry conditions are met.
+	passed := false
 	if (!ts.InTrade) && (ts.EntryRule(md)) && (ts.CurrentPrice <= ts.StopLossRecover[len(ts.StopLossRecover)-1]) {
 		// Execute the buy order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(md, "Buy")
@@ -663,7 +664,10 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Positio
 		}
 		// Close the trade if exit conditions are met.
-	} else if ts.InTrade || (ts.StopLossTrigered && (ts.CurrentPrice > ts.StopLossRecover[len(ts.StopLossRecover)-1])) {
+		passed = true
+	}
+	
+	if ts.InTrade || (ts.StopLossTrigered && (ts.CurrentPrice > ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])) {
 		if ts.ExitRule(md) {
 			// Execute the sell order using the ExecuteStrategy function.
 			resp, err := ts.ExecuteStrategy(md, "Sell")
@@ -680,8 +684,10 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 			}
 		} else {
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Positio
-		}
-	} else {
+		}	
+		passed = true
+	} 
+	if !passed {
 		ts.EntryRule(md)
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
@@ -765,9 +771,6 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, quantity, ts.QuoteBalance, ts.BaseBalance, orderResp.Commission, md.RiskPositionPercentage, md.TotalProfitLoss, nextProfitSeLLPrice, nextInvBuYPrice, md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
 		return resp, nil
 	case "Sell":
-		if !ts.InTrade {
-			return "", fmt.Errorf("cannot execute a sell order without an existing trade")
-		}
 
 		// Calculate profit/loss for the trade.
 		exitPrice := ts.CurrentPrice
@@ -871,10 +874,10 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
 func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	// Calculate position size based on the fixed percentage of risk per trade.
-	asset := ts.BaseBalance * ts.CurrentPrice + ts.QuoteBalance
+	asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
 	num := (ts.MinNotional+1.0)/ts.StepSize
 	if ts.InitialCapital < asset{
-		num += asset - ts.InitialCapital
+		num += (asset - ts.InitialCapital)
 	}
 	ts.RiskCost = math.Floor(num) * ts.StepSize
  
