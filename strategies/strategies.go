@@ -749,7 +749,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		md.TotalProfitLoss -= (ts.CommissionPercentage * quantity * ts.CurrentPrice)
 		mdTargetProfit := md.TargetProfit 
 		if ts.TradingLevel >= 2{
-			mdTargetProfit = md.TargetProfit + ((md.TargetProfit * float64(ts.TradingLevel))/6.0)			
+			mdTargetProfit = md.TargetProfit + ((md.TargetProfit * float64(ts.TradingLevel))/4.0)			
 		}
 		//Record entry entities for calculating profit/loss and stoploss later.
 		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
@@ -894,25 +894,25 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		ts.RiskCost += 15.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 4:
-		ts.RiskCost += 20.0
+		ts.RiskCost += 20.0 + (5.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 5:
-		ts.RiskCost += 25.0
+		ts.RiskCost += 25.0 + (10.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 6:
-		ts.RiskCost += 30.0
+		ts.RiskCost += 30.0 + (15.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 7:
-		ts.RiskCost += 35.0
+		ts.RiskCost += 35.0 + (20.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 8:
-		ts.RiskCost += 40.0
+		ts.RiskCost += 40.0 + (25.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 9:
-		ts.RiskCost += 45.0
+		ts.RiskCost += 45.0 + (30.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	default:
-		ts.RiskCost = 100.0
+		ts.RiskCost = 100.0 + (35.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	}
 
