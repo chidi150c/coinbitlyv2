@@ -874,13 +874,19 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
 func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	// Calculate position size based on the fixed percentage of risk per trade.
+	md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
+	md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
+	
 	asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
 	num := (ts.MinNotional+1.0)/ts.StepSize
+	ts.RiskCost = math.Floor(num) * ts.StepSize
+	ts.Log.Printf("Risk Check1 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n",ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
 	if ts.InitialCapital < asset{
 		num += (asset - ts.InitialCapital)
 	}
 	ts.RiskCost = math.Floor(num) * ts.StepSize
- 
+	ts.Log.Printf("Risk Check2 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n",ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
+	
 	switch ts.TradingLevel {
 	case 0:
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
@@ -888,31 +894,31 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		ts.RiskCost += 5.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 2:
-		ts.RiskCost += 10.0
+		ts.RiskCost += 10.0 
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 3:
-		ts.RiskCost += 15.0
+		ts.RiskCost += 15.0 + 2.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 4:
-		ts.RiskCost += 20.0 + (5.0/2.0)
+		ts.RiskCost += 20.0 + 2.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 5:
-		ts.RiskCost += 25.0 + (10.0/2.0)
+		ts.RiskCost += 25.0 + 5.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 6:
-		ts.RiskCost += 30.0 + (15.0/2.0)
+		ts.RiskCost += 30.0 + 7.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 7:
-		ts.RiskCost += 35.0 + (20.0/2.0)
+		ts.RiskCost += 35.0 + 10.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 8:
-		ts.RiskCost += 40.0 + (25.0/2.0)
+		ts.RiskCost += 40.0 + 12.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 9:
-		ts.RiskCost += 45.0 + (30.0/2.0)
+		ts.RiskCost += 45.0 + 15.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	default:
-		ts.RiskCost = 100.0 + (35.0/2.0)
+		ts.RiskCost = 100.0 + 17.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	}
 
