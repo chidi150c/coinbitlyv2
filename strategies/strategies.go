@@ -583,7 +583,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			return
 		}
 		if (len(ts.EntryPrice) > 0) && ((ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)] > ts.CurrentPrice) || (ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)] < ts.CurrentPrice)){
-			time.Sleep(ts.EpochTime/2)
+			time.Sleep(ts.EpochTime/2.0)
 		}else{
 			time.Sleep(ts.EpochTime)
 		}
