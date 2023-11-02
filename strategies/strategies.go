@@ -582,8 +582,8 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			fmt.Println("Error Reporting Live Trade: ", err)
 			return
 		}
-		if (len(ts.EntryPrice) > 0) && ((ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)] > ts.CurrentPrice) || (ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)] < ts.CurrentPrice)){
-			time.Sleep(ts.EpochTime/time.Duration(2))
+		if (len(ts.EntryPrice) > 0) && ((ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] > ts.CurrentPrice) || (ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < ts.CurrentPrice)){
+			time.Sleep(ts.EpochTime/2)
 		}else{
 			time.Sleep(ts.EpochTime)
 		}
