@@ -302,8 +302,8 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		}else{
 			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
-			md.TargetProfit = (54.038193 + 26.47) * 0.001
-			md.TargetStopLoss = (54.038193 + 26.47) * 0.001
+			// md.TargetProfit = (54.038193 + 26.47) * 0.001
+			// md.TargetStopLoss = (54.038193 + 26.47) * 0.001
 		}
 	}
 	fmt.Println("MD = ", md)
@@ -582,8 +582,11 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			fmt.Println("Error Reporting Live Trade: ", err)
 			return
 		}
-
-		time.Sleep(ts.EpochTime)
+		if (len(ts.EntryPrice) > 0) && ((ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)] > ts.CurrentPrice) || (ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)] < ts.CurrentPrice)){
+			time.Sleep(ts.EpochTime/2)
+		}else{
+			time.Sleep(ts.EpochTime)
+		}
 		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
 		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
 		// 	log.Fatalf("Error: writing to influxDB: %v", err)
