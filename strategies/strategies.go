@@ -279,7 +279,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md.LongEMA = 0.0
 			md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
 			md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
-			md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
+			md.RiskPositionPercentage = ts.RiskProfitLossPercentage // Define risk management parameter 5% balance
 			md.TotalProfitLoss = 0.0
 		}
 	} else {
@@ -297,7 +297,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md.LongEMA = 0.0
 			md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
 			md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
-			md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
+			md.RiskPositionPercentage = ts.RiskProfitLossPercentage // Define risk management parameter 5% balance
 			md.TotalProfitLoss = 0.0
 		}else{
 			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
@@ -583,7 +583,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			return
 		}
 		if (len(ts.EntryPrice) > 0) && ((ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] > ts.CurrentPrice) || (ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < ts.CurrentPrice)){
-			time.Sleep(ts.EpochTime/2)
+			time.Sleep(ts.EpochTime/3)
 		}else{
 			time.Sleep(ts.EpochTime)
 		}
@@ -849,7 +849,6 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.StopLossRecover = ts.StopLossRecover[:len(ts.StopLossRecover)-1]
 			ts.NextProfitSeLLPrice = ts.NextProfitSeLLPrice[:len(ts.NextProfitSeLLPrice)-1]
 			ts.NextInvestBuYPrice = ts.NextInvestBuYPrice[:len(ts.NextInvestBuYPrice)-1]
-			md.RiskPositionPercentage /= ts.RiskFactor //reduce riskPosition by a factor
 			ts.InTrade = true
 			ts.StopLossTrigered = true
 			ts.TradingLevel = len(ts.EntryPrice)
@@ -944,9 +943,9 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		// Mark that stoploss is triggered.
 		ts.InTrade = false
 		ts.StopLossTrigered = true
-		md.RiskPositionPercentage *= ts.RiskFactor
+		md.RiskPositionPercentage = ts.RiskProfitLossPercentage
 		ts.TradingLevel = len(ts.EntryPrice)
-		ts.StopLossRecover = append(ts.StopLossRecover, ts.CurrentPrice) //* (1.0 - ts.RiskStopLossPercentage)
+		ts.StopLossRecover = append(ts.StopLossRecover, ts.NextInvestBuYPrice[i]) //* (1.0 - ts.RiskStopLossPercentage)
 
 		ts.Log.Printf("Stoploss Marked!!! For L%d demarc: at CurrentPrice: %.8f, of EntryPrice[%d]: %.8f, NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f",
 			len(ts.StopLossRecover), exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
