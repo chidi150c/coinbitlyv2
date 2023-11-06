@@ -898,16 +898,16 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	case 0:
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 1:
-		ts.RiskCost += 5.0
+		ts.RiskCost += 5.0 + 1.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 2:
-		ts.RiskCost += 10.0 
+		ts.RiskCost += 10.0 + 1.5 + 0.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 3:
-		ts.RiskCost += 15.0 + 2.0
+		ts.RiskCost += 15.0 + 2.0 + 1.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 4:
-		ts.RiskCost += 20.0 + 2.5
+		ts.RiskCost += 20.0 + 2.5 + 1.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 5:
 		ts.RiskCost += 25.0 + 5.0 + 2.0
