@@ -101,7 +101,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts = &TradingSystem{}
 			ts.RiskFactor = 2.0
 			ts.CommissionPercentage = 0.00075
-			ts.RiskProfitLossPercentage = 0.001
+			ts.RiskProfitLossPercentage = 0.0009
 			ts.EnableStoploss = true
 			ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64)
 			ts.MaxDataSize = 500
@@ -118,7 +118,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts = &TradingSystem{}
 			ts.RiskFactor = 2.0
 			ts.CommissionPercentage = 0.00075
-			ts.RiskProfitLossPercentage = 0.001
+			ts.RiskProfitLossPercentage = 0.0009
 			ts.EnableStoploss = true
 			ts.StopLossRecover = append(ts.StopLossRecover, math.MaxFloat64)
 			ts.MaxDataSize = 500
@@ -126,7 +126,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		} else {
 			loadDataFrom = "DataBase"
 			// ts.InitialCapital = 54.038193 + 26.47
-			// ts.RiskProfitLossPercentage = 0.001
+			ts.RiskProfitLossPercentage = 0.0009
 
 			// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 			// ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
@@ -807,7 +807,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		totalCost := quantity * exitPrice
 		// Check if the total cost meets the minNotional requirement
 		if totalCost < ts.MinNotional {
-			ts.Log.Printf("Less than MinNotional: Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, exitPrice, totalCost, ts.MinNotional)
+			ts.Log.Printf("Less thayn MinNotional: Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, exitPrice, totalCost, ts.MinNotional)
 			return "", fmt.Errorf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, exitPrice, totalCost, ts.MinNotional)
 		}
 
@@ -886,10 +886,11 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	num := (ts.MinNotional+1.0)/ts.StepSize
 	ts.RiskCost = math.Floor(num) * ts.StepSize
 	ts.Log.Printf("Risk Check1 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n",ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
+	md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
+	md.TargetProfit = md.TargetStopLoss
 	if ts.InitialCapital < asset{
 		num += (asset - ts.InitialCapital)
 		md.TargetProfit = asset * ts.RiskProfitLossPercentage
-		md.TargetStopLoss = asset * ts.RiskProfitLossPercentage
 	}
 	ts.RiskCost = math.Floor(num) * ts.StepSize
 	ts.Log.Printf("Risk Check2 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n",ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
