@@ -126,7 +126,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		} else {
 			loadDataFrom = "DataBase"
 			// ts.InitialCapital = 54.038193 + 26.47
-			//ts.RiskProfitLossPercentage = 0.0008
+			// ts.RiskProfitLossPercentage = 0.0008
 
 			// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 			// ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
@@ -279,7 +279,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md.LongEMA = 0.0
 			md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
 			md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
-			md.RiskPositionPercentage = ts.RiskProfitLossPercentage // Define risk management parameter 5% balance
+			md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
 			md.TotalProfitLoss = 0.0
 		}
 	} else {
@@ -297,13 +297,13 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md.LongEMA = 0.0
 			md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
 			md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
-			md.RiskPositionPercentage = ts.RiskProfitLossPercentage // Define risk management parameter 5% balance
+			md.RiskPositionPercentage = 0.25 // Define risk management parameter 5% balance
 			md.TotalProfitLoss = 0.0
 		}else{
 			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
-			// md.TargetProfit = (54.038193 + 26.47) * 0.001
-			// md.TargetStopLoss = (54.038193 + 26.47) * 0.001
+			// md.TargetProfit = (54.038193 + 26.47) * 0.0008
+			// md.TargetStopLoss = (54.038193 + 26.47) * 0.0008
 		}
 	}
 	fmt.Println("MD = ", md)
@@ -582,11 +582,8 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			fmt.Println("Error Reporting Live Trade: ", err)
 			return
 		}
-		if (len(ts.EntryPrice) > 0) && ((ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] > ts.CurrentPrice) || (ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < ts.CurrentPrice)){
-			time.Sleep(ts.EpochTime/4)
-		}else{
-			time.Sleep(ts.EpochTime)
-		}
+
+		time.Sleep(ts.EpochTime)
 		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
 		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
 		// 	log.Fatalf("Error: writing to influxDB: %v", err)
@@ -789,7 +786,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 				if quantity < ts.MiniQty {
 					return "", fmt.Errorf("cannot execute a sell order due to insufficient BaseBalance: %.8f miniQuantity required: %.8f", ts.QuoteBalance, ts.MiniQty)
 				} else {
-					// return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, quantity)
+					return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, quantity)
 				}
 			} else {
 				i := len(ts.NextProfitSeLLPrice) - 1
@@ -801,7 +798,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		totalCost := quantity * exitPrice
 		// Check if the total cost meets the minNotional requirement
 		if totalCost < ts.MinNotional {
-			ts.Log.Printf("Less thayn MinNotional: Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, exitPrice, totalCost, ts.MinNotional)
+			ts.Log.Printf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, exitPrice, totalCost, ts.MinNotional)
 			return "", fmt.Errorf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, exitPrice, totalCost, ts.MinNotional)
 		}
 
@@ -849,6 +846,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.StopLossRecover = ts.StopLossRecover[:len(ts.StopLossRecover)-1]
 			ts.NextProfitSeLLPrice = ts.NextProfitSeLLPrice[:len(ts.NextProfitSeLLPrice)-1]
 			ts.NextInvestBuYPrice = ts.NextInvestBuYPrice[:len(ts.NextInvestBuYPrice)-1]
+			md.RiskPositionPercentage /= ts.RiskFactor //reduce riskPosition by a factor
 			ts.InTrade = true
 			ts.StopLossTrigered = true
 			ts.TradingLevel = len(ts.EntryPrice)
@@ -875,52 +873,46 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 // It calculates the stop-loss price based on the fixed percentage of risk per trade and the position size.
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
 func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
-	// Calculate position size based on the fixed percentage of risk per trade.	
+	// Calculate position size based on the fixed percentage of risk per trade.
 	asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
 	num := (ts.MinNotional+1.0)/ts.StepSize
-	ts.RiskCost = math.Floor(num) * ts.StepSize
-	ts.Log.Printf("Risk Check1 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n",ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
-	md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
-	md.TargetProfit = md.TargetStopLoss
 	if ts.InitialCapital < asset{
 		num += (asset - ts.InitialCapital)
-		md.TargetProfit = asset * ts.RiskProfitLossPercentage
 	}
 	ts.RiskCost = math.Floor(num) * ts.StepSize
-	ts.Log.Printf("Risk Check2 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n",ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
-	
+ 
 	switch ts.TradingLevel {
 	case 0:
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 1:
-		ts.RiskCost += 5.0 + 1.0
+		ts.RiskCost += 5.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 2:
-		ts.RiskCost += 10.0 + 1.5 + 0.5
+		ts.RiskCost += 10.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 3:
-		ts.RiskCost += 15.0 + 2.0 + 1.0
+		ts.RiskCost += 15.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 4:
-		ts.RiskCost += 20.0 + 2.5 + 1.5
+		ts.RiskCost += 20.0 + (5.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 5:
-		ts.RiskCost += 25.0 + 5.0 + 2.0
+		ts.RiskCost += 25.0 + (10.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 6:
-		ts.RiskCost += 30.0 + 7.5 + 2.5
+		ts.RiskCost += 30.0 + (15.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 7:
-		ts.RiskCost += 35.0 + 10.0 + 5.0
+		ts.RiskCost += 35.0 + (20.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 8:
-		ts.RiskCost += 40.0 + 12.5 + 7.5
+		ts.RiskCost += 40.0 + (25.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 9:
-		ts.RiskCost += 45.0 + 15. + 10.0
+		ts.RiskCost += 45.0 + (30.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	default:
-		ts.RiskCost = 100.0 + 17.5 + 12.5
+		ts.RiskCost = 100.0 + (35.0/2.0)
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	}
 
@@ -944,9 +936,9 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		// Mark that stoploss is triggered.
 		ts.InTrade = false
 		ts.StopLossTrigered = true
-		md.RiskPositionPercentage = ts.RiskProfitLossPercentage
+		md.RiskPositionPercentage *= ts.RiskFactor
 		ts.TradingLevel = len(ts.EntryPrice)
-		ts.StopLossRecover = append(ts.StopLossRecover, ts.NextInvestBuYPrice[i]) //* (1.0 - ts.RiskStopLossPercentage)
+		ts.StopLossRecover = append(ts.StopLossRecover, ts.CurrentPrice) //* (1.0 - ts.RiskStopLossPercentage)
 
 		ts.Log.Printf("Stoploss Marked!!! For L%d demarc: at CurrentPrice: %.8f, of EntryPrice[%d]: %.8f, NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f",
 			len(ts.StopLossRecover), exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
