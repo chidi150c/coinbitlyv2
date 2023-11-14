@@ -22,7 +22,7 @@ import (
 	"github.com/apourchet/investment/lib/ema"
 	"github.com/pkg/errors"
 )
-
+const mainValue = 80.5
 // TradingSystem struct: The TradingSystem struct represents the main trading
 // system and holds various parameters and fields related to the strategy,
 // trading state, and performance.
@@ -125,14 +125,14 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.BaseCurrency = BaseCurrency
 		} else {
 			loadDataFrom = "DataBase"
-			// ts.InitialCapital = 54.038193 + 26.47
+			// ts.InitialCapital = 54.038193 + 26.47 + 54.2
 			//ts.RiskProfitLossPercentage = 0.0008
 
 			// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 			// ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 	
-			// mdTargetProfit := (54.038193 + 26.47) * 0.0008
-			// mdTargetStopLoss := (54.038193 + 26.47) * 0.0008
+			// mdTargetProfit := mainValue * 0.0008
+			// mdTargetStopLoss := mainValue * 0.0008
 			// if ts.TradingLevel >= 2{
 			// 	mdTargetProfit = mdTargetProfit + ((mdTargetProfit * float64(ts.TradingLevel))/8.0)			
 			// }
@@ -277,8 +277,8 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md.LongPeriod = 30  //30 Define moving average long period for the strategy.
 			md.ShortEMA = 0.0
 			md.LongEMA = 0.0
-			md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
-			md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
+			md.TargetProfit = mainValue * ts.RiskProfitLossPercentage
+			md.TargetStopLoss = mainValue * ts.RiskProfitLossPercentage
 			md.RiskPositionPercentage = ts.RiskProfitLossPercentage // Define risk management parameter 5% balance
 			md.TotalProfitLoss = 0.0
 		}
@@ -295,15 +295,15 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md.LongPeriod = 30  // Define moving average long period for the strategy.
 			md.ShortEMA = 0.0
 			md.LongEMA = 0.0
-			md.TargetProfit = ts.InitialCapital * ts.RiskProfitLossPercentage
-			md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
+			md.TargetProfit = mainValue * ts.RiskProfitLossPercentage
+			md.TargetStopLoss = mainValue * ts.RiskProfitLossPercentage
 			md.RiskPositionPercentage = ts.RiskProfitLossPercentage // Define risk management parameter 5% balance
 			md.TotalProfitLoss = 0.0
 		}else{
 			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
-			// md.TargetProfit = (54.038193 + 26.47) * 0.001
-			// md.TargetStopLoss = (54.038193 + 26.47) * 0.001
+			md.TargetProfit = mainValue * 0.0008 //to be removed
+			md.TargetStopLoss = mainValue * 0.0008
 		}
 	}
 	fmt.Println("MD = ", md)
@@ -880,11 +880,12 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	num := (ts.MinNotional+1.0)/ts.StepSize
 	ts.RiskCost = math.Floor(num) * ts.StepSize
 	ts.Log.Printf("Risk Check1 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n",ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
-	md.TargetStopLoss = ts.InitialCapital * ts.RiskProfitLossPercentage
-	md.TargetProfit = md.TargetStopLoss
+	md.TargetStopLoss = mainValue * ts.RiskProfitLossPercentage //to be removed
+	md.TargetProfit = md.TargetStopLoss //to be removed
 	if ts.InitialCapital < asset{
-		num += (asset - ts.InitialCapital)
-		md.TargetProfit = asset * ts.RiskProfitLossPercentage
+		diff := asset - ts.InitialCapital
+		num += diff
+		// md.TargetProfit = (mainValue + diff) * ts.RiskProfitLossPercentage
 	}
 	ts.RiskCost = math.Floor(num) * ts.StepSize
 	ts.Log.Printf("Risk Check2 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n",ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
