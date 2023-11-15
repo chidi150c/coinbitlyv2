@@ -125,7 +125,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.BaseCurrency = BaseCurrency
 		} else {
 			loadDataFrom = "DataBase"
-			ts.InitialCapital = 54.038193 + 26.47 + 54.2
+			// ts.InitialCapital = 54.038193 + 26.47 + 54.2
 			//ts.RiskProfitLossPercentage = 0.0008
 
 			// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
@@ -302,8 +302,8 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		}else{
 			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
-			md.TargetProfit = mainValue * 0.0008 //to be removed
-			md.TargetStopLoss = mainValue * 0.0008
+			// md.TargetProfit = mainValue * 0.0008 
+			// md.TargetStopLoss = mainValue * 0.0008
 		}
 	}
 	fmt.Println("MD = ", md)
@@ -583,7 +583,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			return
 		}
 		if (len(ts.EntryPrice) > 0) && ((ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] > ts.CurrentPrice) || (ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < ts.CurrentPrice)){
-			time.Sleep(ts.EpochTime/4)
+			time.Sleep(ts.EpochTime/5)
 		}else{
 			time.Sleep(ts.EpochTime)
 		}
@@ -752,7 +752,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		md.TotalProfitLoss -= (ts.CommissionPercentage * quantity * ts.CurrentPrice)
 		mdTargetProfit := md.TargetProfit 
 		if ts.TradingLevel >= 2{
-			mdTargetProfit = md.TargetProfit + ((md.TargetProfit * float64(ts.TradingLevel))/4.0)			
+			mdTargetProfit = md.TargetProfit + ((md.TargetProfit * float64(ts.TradingLevel))/6.0)			
 		}
 		//Record entry entities for calculating profit/loss and stoploss later.
 		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
@@ -880,8 +880,6 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	num := (ts.MinNotional+1.0)/ts.StepSize
 	ts.RiskCost = math.Floor(num) * ts.StepSize
 	ts.Log.Printf("Risk Check1 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n",ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
-	md.TargetStopLoss = mainValue * ts.RiskProfitLossPercentage //to be removed
-	md.TargetProfit = md.TargetStopLoss //to be removed
 	if ts.InitialCapital < asset{
 		diff := asset - ts.InitialCapital
 		num += diff
