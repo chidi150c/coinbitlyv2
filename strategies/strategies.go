@@ -750,15 +750,12 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.QuoteBalance -= totalCost
 		ts.BaseBalance += quantity
 		md.TotalProfitLoss -= (ts.CommissionPercentage * quantity * ts.CurrentPrice)
-		mdTargetProfit := md.TargetProfit 
-		if ts.TradingLevel >= 2{
-			mdTargetProfit = md.TargetProfit + ((md.TargetProfit * float64(ts.TradingLevel))/6.0)			
-		}
+		
 		//Record entry entities for calculating profit/loss and stoploss later.
 		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
 		ts.EntryQuantity = append(ts.EntryQuantity, quantity)
 		ts.EntryCostLoss = append(ts.EntryCostLoss, (ts.CommissionPercentage * quantity * ts.CurrentPrice))
-		nextProfitSeLLPrice := ((mdTargetProfit + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / quantity) + ts.EntryPrice[len(ts.EntryPrice)-1]
+		nextProfitSeLLPrice := ((md.TargetProfit + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / quantity) + ts.EntryPrice[len(ts.EntryPrice)-1]
 		nextInvBuYPrice := (-(md.TargetStopLoss + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / quantity) + ts.EntryPrice[len(ts.EntryPrice)-1]
 		commissionAtProfitSeLLPrice := nextProfitSeLLPrice * quantity * ts.CommissionPercentage
 		commissionAtInvBuYPrice := nextInvBuYPrice * quantity * ts.CommissionPercentage
