@@ -986,31 +986,43 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 		md.LongEMA, md.ShortEMA = longEMA[ts.DataPoint], shortEMA[ts.DataPoint]
 	}
 	// Determine the buy and sell signals based on the moving averages, RSI, MACD line, and Bollinger Bands.
-	if len(shortEMA) > 7 && len(longEMA) > 7 && ts.DataPoint >= 7 {
+	if len(shortEMA) > 13 && len(longEMA) > 13 && ts.DataPoint >= 13 {
 		if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 1 {
 			ts.Container1 = shortEMA
 			ts.Container2 = longEMA
 
-			// buySignal = (shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] >= longEMA[ts.DataPoint])
-			// sellSignal = (shortEMA[ts.DataPoint-1] >= longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
+			LEMA13, LEMA12, LEMA11,LEMA10, LEMA9,LEMA8, LEMA7,LEMA6, LEMA5,LEMA4, LEMA3,LEMA2, LEMA1 := longEMA[ts.DataPoint-13], longEMA[ts.DataPoint-12], longEMA[ts.DataPoint-11], longEMA[ts.DataPoint-10], longEMA[ts.DataPoint-9], longEMA[ts.DataPoint-8], longEMA[ts.DataPoint-7], longEMA[ts.DataPoint-6], longEMA[ts.DataPoint-5], longEMA[ts.DataPoint-4], longEMA[ts.DataPoint-3], longEMA[ts.DataPoint-2], longEMA[ts.DataPoint-1]
+			SEMA13, SEMA12, SEMA11,SEMA10, SEMA9,SEMA8, SEMA7,SEMA6, SEMA5,SEMA4, SEMA3,SEMA2, SEMA1 := shortEMA[ts.DataPoint-13], shortEMA[ts.DataPoint-12], shortEMA[ts.DataPoint-11], shortEMA[ts.DataPoint-10], shortEMA[ts.DataPoint-9], shortEMA[ts.DataPoint-8], shortEMA[ts.DataPoint-7], shortEMA[ts.DataPoint-6], shortEMA[ts.DataPoint-5], shortEMA[ts.DataPoint-4], shortEMA[ts.DataPoint-3], shortEMA[ts.DataPoint-2], shortEMA[ts.DataPoint-1]
 
-			buySignal = longEMA[ts.DataPoint-6] > shortEMA[ts.DataPoint-7] &&
-				(longEMA[ts.DataPoint-6]-shortEMA[ts.DataPoint-6] >= longEMA[ts.DataPoint-7]-shortEMA[ts.DataPoint-7]) &&
-				(longEMA[ts.DataPoint-5]-shortEMA[ts.DataPoint-5] >= longEMA[ts.DataPoint-6]-shortEMA[ts.DataPoint-6]) &&
-				(longEMA[ts.DataPoint-4]-shortEMA[ts.DataPoint-4] >= longEMA[ts.DataPoint-5]-shortEMA[ts.DataPoint-5]) &&
-				(longEMA[ts.DataPoint-3]-shortEMA[ts.DataPoint-3] >= longEMA[ts.DataPoint-4]-shortEMA[ts.DataPoint-4]) &&
-				(longEMA[ts.DataPoint-2]-shortEMA[ts.DataPoint-2] >= longEMA[ts.DataPoint-3]-shortEMA[ts.DataPoint-3]) &&
-				(longEMA[ts.DataPoint-1]-shortEMA[ts.DataPoint-1] >= longEMA[ts.DataPoint-2]-shortEMA[ts.DataPoint-2]) &&
-				(longEMA[ts.DataPoint]-shortEMA[ts.DataPoint] < longEMA[ts.DataPoint-1]-shortEMA[ts.DataPoint-1])
+			buySignal = LEMA13 > SEMA13 &&
+				(LEMA12-SEMA12 >= LEMA13-SEMA13) &&
+				(LEMA11-SEMA11 >= LEMA12-SEMA12) &&
+				(LEMA10-SEMA10 >= LEMA11-SEMA11) &&
+				(LEMA9-SEMA9 >= LEMA10-SEMA10) &&
+				(LEMA8-SEMA8 >= LEMA9-SEMA9) &&
+				(LEMA7-SEMA7 >= LEMA8-SEMA8) &&				
+				(LEMA6-SEMA6 >= LEMA7-SEMA7) &&
+				(LEMA5-SEMA5 >= LEMA6-SEMA6) &&
+				(LEMA4-SEMA4 >= LEMA5-SEMA5) &&
+				(LEMA3-SEMA3 >= LEMA4-SEMA4) &&
+				(LEMA2-SEMA2 >= LEMA3-SEMA3) &&
+				(LEMA1-SEMA1 >= LEMA2-SEMA2) &&
+				(longEMA[ts.DataPoint]-shortEMA[ts.DataPoint] < LEMA1-SEMA1)
 
-			sellSignal = shortEMA[ts.DataPoint-6] > longEMA[ts.DataPoint-7] &&
-				(shortEMA[ts.DataPoint-6]-longEMA[ts.DataPoint-6] >= shortEMA[ts.DataPoint-7]-longEMA[ts.DataPoint-7]) &&
-				(shortEMA[ts.DataPoint-5]-longEMA[ts.DataPoint-5] >= shortEMA[ts.DataPoint-6]-longEMA[ts.DataPoint-6]) &&
-				(shortEMA[ts.DataPoint-4]-longEMA[ts.DataPoint-4] >= shortEMA[ts.DataPoint-5]-longEMA[ts.DataPoint-5]) &&
-				(shortEMA[ts.DataPoint-3]-longEMA[ts.DataPoint-3] >= shortEMA[ts.DataPoint-4]-longEMA[ts.DataPoint-4]) &&
-				(shortEMA[ts.DataPoint-2]-longEMA[ts.DataPoint-2] >= shortEMA[ts.DataPoint-3]-longEMA[ts.DataPoint-3]) &&
-				(shortEMA[ts.DataPoint-1]-longEMA[ts.DataPoint-1] >= shortEMA[ts.DataPoint-2]-longEMA[ts.DataPoint-2]) &&
-				(shortEMA[ts.DataPoint]-longEMA[ts.DataPoint] < shortEMA[ts.DataPoint-1]-longEMA[ts.DataPoint-1])
+			sellSignal = SEMA13 > LEMA13 &&
+				(SEMA12-LEMA12 >= SEMA13-LEMA13) &&
+				(SEMA11-LEMA11 >= SEMA12-LEMA12) &&
+				(SEMA10-LEMA10 >= SEMA11-LEMA11) &&
+				(SEMA9-LEMA9 >= SEMA10-LEMA10) &&
+				(SEMA8-LEMA8 >= SEMA9-LEMA9) &&
+				(SEMA7-LEMA7 >= SEMA8-LEMA8) &&
+				(SEMA6-LEMA6 >= SEMA7-LEMA7) &&
+				(SEMA5-LEMA5 >= SEMA6-LEMA6) &&
+				(SEMA4-LEMA4 >= SEMA5-LEMA5) &&
+				(SEMA3-LEMA3 >= SEMA4-LEMA4) &&
+				(SEMA2-LEMA2 >= SEMA3-LEMA3) &&
+				(SEMA1-LEMA1 >= SEMA2-LEMA2) &&
+				(shortEMA[ts.DataPoint]-longEMA[ts.DataPoint] < SEMA1-LEMA1)
 
 			if buySignal && (Action == "Entry") && (len(ts.NextInvestBuYPrice) >= 1) {
 				i := len(ts.NextInvestBuYPrice) - 1
