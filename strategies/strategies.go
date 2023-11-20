@@ -22,7 +22,7 @@ import (
 	"github.com/apourchet/investment/lib/ema"
 	"github.com/pkg/errors"
 )
-const mainValue = 80.5
+const mainValue = 80.5 + 20.0
 // TradingSystem struct: The TradingSystem struct represents the main trading
 // system and holds various parameters and fields related to the strategy,
 // trading state, and performance.
@@ -125,7 +125,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.BaseCurrency = BaseCurrency
 		} else {
 			loadDataFrom = "DataBase"
-			ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5
+			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5
 			//ts.RiskProfitLossPercentage = 0.0008
 			//ts.EpochTime = time.Second * 10
 			// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
@@ -302,8 +302,8 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		}else{
 			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
-			// md.TargetProfit = mainValue * 0.0008 
-			// md.TargetStopLoss = mainValue * 0.0008
+			md.TargetProfit = mainValue * 0.0008 
+			md.TargetStopLoss = mainValue * 0.0008
 		}
 	}
 	fmt.Println("MD = ", md)
