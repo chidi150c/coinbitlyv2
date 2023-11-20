@@ -171,7 +171,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		ts.Zoom = 499			
 	}
 	ts.ShutDownCh = make(chan string)
-	ts.EpochTime = time.Second * 15
+	ts.EpochTime = time.Second * 10
 	ts.StoreAppDataChan = make(chan string, 1)
 	ts.DBStoreTicker = time.NewTicker(ts.EpochTime)
 	ts.TSDataChan = make(chan []byte)
