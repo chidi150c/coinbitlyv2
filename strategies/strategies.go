@@ -125,9 +125,9 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.BaseCurrency = BaseCurrency
 		} else {
 			loadDataFrom = "DataBase"
-			// ts.InitialCapital = 54.038193 + 26.47 + 54.2
+			ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5
 			//ts.RiskProfitLossPercentage = 0.0008
-			ts.EpochTime = time.Second * 10
+			//ts.EpochTime = time.Second * 10
 			// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 			// ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 	
