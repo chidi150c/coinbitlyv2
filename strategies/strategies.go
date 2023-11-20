@@ -887,33 +887,37 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 	
 	switch ts.TradingLevel {
 	case 0:
+		ts.RiskCost += 5.0 + 1.0 
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 1:
-		ts.RiskCost += 5.0 + 1.0
-		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	case 2:
 		ts.RiskCost += 10.0 + 1.5 + 0.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	case 3:
+	case 2:
 		ts.RiskCost += 15.0 + 2.0 + 1.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	case 4:
+	case 3:
 		ts.RiskCost += 20.0 + 2.5 + 1.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	case 5:
+	case 4:
 		ts.RiskCost += 25.0 + 5.0 + 2.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	case 6:
+	case 5:
 		ts.RiskCost += 30.0 + 7.5 + 2.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	case 7:
+	case 6:
 		ts.RiskCost += 35.0 + 10.0 + 5.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	case 8:
+	case 7:
 		ts.RiskCost += 40.0 + 12.5 + 7.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	case 9:
+	case 8:
 		ts.RiskCost += 45.0 + 15. + 10.0
+		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+	case 9:
+		ts.RiskCost = 50.0 + 17.5 + 12.5
+		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+	case 10:
+		ts.RiskCost = 55.0 + 19.5 + 14.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	default:
 		ts.RiskCost = 100.0 + 17.5 + 12.5
