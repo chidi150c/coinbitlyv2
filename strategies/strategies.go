@@ -22,7 +22,7 @@ import (
 	"github.com/apourchet/investment/lib/ema"
 	"github.com/pkg/errors"
 )
-const mainValue = 80.5 + 20.0
+const mainValue = 80.5
 // TradingSystem struct: The TradingSystem struct represents the main trading
 // system and holds various parameters and fields related to the strategy,
 // trading state, and performance.
