@@ -600,7 +600,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			}
 			time.Sleep(ts.EpochTime)
 		}
-		if (len(ts.EntryPrice) > 0) && (time.Since(ts.StartTime) > time.Hour) {
+		if (ts.EntryPrice[len(ts.EntryPrice)-1] > ts.LowestPrice) && (len(ts.EntryPrice) > 0) && (time.Since(ts.StartTime) > time.Hour) {
 			before := ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
 			ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] = ts.LowestPrice
 			ts.Log.Printf("NextInvestBuYPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1])
@@ -995,7 +995,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 		err1, err2        error
 		shortEMA, longEMA []float64
 	)
-	C4EMA := CandleExponentialMovingAverageV1(ts.ClosingPrices, 5)
+	C4EMA := CandleExponentialMovingAverageV1(ts.ClosingPrices, 4)
 	go func(ch chan string) {
 		longEMA, err2 = CandleExponentialMovingAverageV2(C4EMA, md.LongPeriod)
 		ch <- ""
