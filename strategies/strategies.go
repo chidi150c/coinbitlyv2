@@ -994,7 +994,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 		err1, err2        error
 		shortEMA, longEMA []float64
 	)
-	C4EMA := CandleExponentialMovingAverageV1(ts.ClosingPrices, 8)
+	C4EMA := CandleExponentialMovingAverageV1(ts.ClosingPrices, 5)
 	go func(ch chan string) {
 		longEMA, err2 = CandleExponentialMovingAverageV2(C4EMA, md.LongPeriod)
 		ch <- ""
