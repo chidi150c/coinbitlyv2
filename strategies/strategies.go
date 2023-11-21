@@ -22,7 +22,9 @@ import (
 	"github.com/apourchet/investment/lib/ema"
 	"github.com/pkg/errors"
 )
+
 const mainValue = 80.5
+
 // TradingSystem struct: The TradingSystem struct represents the main trading
 // system and holds various parameters and fields related to the strategy,
 // trading state, and performance.
@@ -78,6 +80,8 @@ type TradingSystem struct {
 	ADataChan                chan []byte
 	MDChan                   chan *model.AppData
 	Zoom                     int
+	StartTime                time.Time
+	LowestPrice              float64
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -130,11 +134,11 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			//ts.EpochTime = time.Second * 10
 			// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 			// ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
-	
+
 			// mdTargetProfit := mainValue * 0.0008
 			// mdTargetStopLoss := mainValue * 0.0008
 			// if ts.TradingLevel >= 2{
-			// 	mdTargetProfit = mdTargetProfit + ((mdTargetProfit * float64(ts.TradingLevel))/8.0)			
+			// 	mdTargetProfit = mdTargetProfit + ((mdTargetProfit * float64(ts.TradingLevel))/8.0)
 			// }
 			// ts.EntryPrice = append(ts.EntryPrice, 206.2)
 			// ts.EntryQuantity = append(ts.EntryQuantity, 0.126)
@@ -148,7 +152,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			// ts.TradingLevel = len(ts.EntryPrice)
 			// ts.InTrade = true
 			// ts.Signals = append(ts.Signals, "Buy")
-			
+
 			// ts.TickerQueueAdjustment()
 		}
 	}
@@ -167,11 +171,13 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	ts.RDBServices = rDBServices
 	if !strings.Contains(loadExchFrom, "Testnet") {
 		ts.Zoom = 100
-	}else{
-		ts.Zoom = 499			
+	} else {
+		ts.Zoom = 499
 	}
 	ts.ShutDownCh = make(chan string)
 	ts.EpochTime = time.Second * 10
+	ts.StartTime = time.Now()
+	ts.LowestPrice = math.MaxFloat64
 	ts.StoreAppDataChan = make(chan string, 1)
 	ts.DBStoreTicker = time.NewTicker(ts.EpochTime)
 	ts.TSDataChan = make(chan []byte)
@@ -279,7 +285,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md.LongEMA = 0.0
 			md.TargetProfit = mainValue * ts.RiskProfitLossPercentage
 			md.TargetStopLoss = mainValue * ts.RiskProfitLossPercentage
-			md.RiskPositionPercentage = ts.RiskProfitLossPercentage // Define risk management parameter 5% balance
+			md.RiskPositionPercentage = ts.LowestPrice // Define risk management parameter 5% balance
 			md.TotalProfitLoss = 0.0
 		}
 	} else {
@@ -297,13 +303,13 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			md.LongEMA = 0.0
 			md.TargetProfit = mainValue * ts.RiskProfitLossPercentage
 			md.TargetStopLoss = mainValue * ts.RiskProfitLossPercentage
-			md.RiskPositionPercentage = ts.RiskProfitLossPercentage // Define risk management parameter 5% balance
+			md.RiskPositionPercentage = ts.LowestPrice // Define risk management parameter 5% balance
 			md.TotalProfitLoss = 0.0
-		}else{
+		} else {
 			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
-			md.TargetProfit = mainValue * 0.0008 
-			md.TargetStopLoss = mainValue * 0.0008
+			// md.TargetProfit = mainValue * 0.0008
+			// md.TargetStopLoss = mainValue * 0.0008
 		}
 	}
 	fmt.Println("MD = ", md)
@@ -582,10 +588,22 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			fmt.Println("Error Reporting Live Trade: ", err)
 			return
 		}
-		if (len(ts.EntryPrice) > 0) && ((ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] > ts.CurrentPrice) || (ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < ts.CurrentPrice)){
-			time.Sleep(ts.EpochTime/5)
-		}else{
+		if (len(ts.EntryPrice) > 0) && ((ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] > ts.CurrentPrice) || (ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < ts.CurrentPrice)) {
+			time.Sleep(ts.EpochTime / 5)
+			ts.StartTime = time.Now()
+			ts.LowestPrice = math.MaxFloat64
+		} else {
+			if (len(ts.EntryPrice) > 0) && (ts.LowestPrice > ts.CurrentPrice) {
+				ts.LowestPrice = ts.CurrentPrice
+			}
 			time.Sleep(ts.EpochTime)
+		}
+		if (len(ts.EntryPrice) > 0) && (time.Since(ts.StartTime) > time.Hour) {
+			before := ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
+			ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] = ts.LowestPrice
+			ts.Log.Printf("NextInvestBuYPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1])
+			ts.StartTime = time.Now()
+			ts.LowestPrice = math.MaxFloat64
 		}
 		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
 		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
@@ -669,7 +687,7 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 		// Close the trade if exit conditions are met.
 		passed = true
 	}
-	
+
 	if ts.InTrade || (ts.StopLossTrigered && (ts.CurrentPrice > ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])) {
 		if ts.ExitRule(md) {
 			// Execute the sell order using the ExecuteStrategy function.
@@ -687,9 +705,9 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 			}
 		} else {
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Positio
-		}	
+		}
 		passed = true
-	} 
+	}
 	if !passed {
 		ts.EntryRule(md)
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
@@ -738,19 +756,19 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.Log.Println("Error placing entry order:", err)
 			return "", fmt.Errorf("Error placing entry order: %v", err)
 		}
-		if (orderResp.ExecutedQty != quantity) && (orderResp.ExecutedQty > 0.0){
+		if (orderResp.ExecutedQty != quantity) && (orderResp.ExecutedQty > 0.0) {
 			quantity = orderResp.ExecutedQty
 		}
 		//the commission from Binance being in BaseCurrency was deducted from the executedQty
 		totalCost = (quantity * ts.CurrentPrice)
-		//Commission: 0.00000000 CumulativeQuoteQty: 0.00000000 ExecutedPrice: 29840.00000000 ExecutedQty: 0.00000000 Status: 
+		//Commission: 0.00000000 CumulativeQuoteQty: 0.00000000 ExecutedPrice: 29840.00000000 ExecutedQty: 0.00000000 Status:
 		ts.Log.Printf("Entry order placed with ID: %d Commission: %.8f CumulativeQuoteQty: %.8f ExecutedPrice: %.8f ExecutedQty: %.8f Status: %s\n", orderResp.OrderID, orderResp.Commission, orderResp.CumulativeQuoteQty,
 			orderResp.ExecutedPrice, quantity, orderResp.Status)
 		// Update the profit, quote and base balances after the trade.
 		ts.QuoteBalance -= totalCost
 		ts.BaseBalance += quantity
 		md.TotalProfitLoss -= (ts.CommissionPercentage * quantity * ts.CurrentPrice)
-		
+
 		//Record entry entities for calculating profit/loss and stoploss later.
 		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
 		ts.EntryQuantity = append(ts.EntryQuantity, quantity)
@@ -763,7 +781,8 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, nextInvBuYPrice-commissionAtInvBuYPrice)
 
 		ts.TradingLevel = len(ts.EntryPrice)
-
+		ts.StartTime = time.Now()
+		ts.LowestPrice = math.MaxFloat64
 		// Mark that we are in a trade.
 		ts.InTrade = true
 
@@ -812,7 +831,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		if orderResp.ExecutedPrice != exitPrice && (orderResp.ExecutedPrice > 0.0) {
 			exitPrice = orderResp.ExecutedPrice
 		}
-		if (orderResp.ExecutedQty != quantity) && (orderResp.ExecutedQty > 0.0){
+		if (orderResp.ExecutedQty != quantity) && (orderResp.ExecutedQty > 0.0) {
 			quantity = orderResp.ExecutedQty
 		}
 		//For a sell order:
@@ -835,6 +854,8 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		}
 		// Mark that we are no longer in a trade.
 		ts.InTrade = false
+		ts.StartTime = time.Now()
+		ts.LowestPrice = math.MaxFloat64
 
 		resp := fmt.Sprintf("- SELL at ExitPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, \nGlobalP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
 			exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, orderResp.Commission, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
@@ -872,22 +893,22 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 // It calculates the stop-loss price based on the fixed percentage of risk per trade and the position size.
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
 func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
-	// Calculate position size based on the fixed percentage of risk per trade.	
+	// Calculate position size based on the fixed percentage of risk per trade.
 	asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
-	num := (ts.MinNotional+1.0)/ts.StepSize
+	num := (ts.MinNotional + 1.0) / ts.StepSize
 	ts.RiskCost = math.Floor(num) * ts.StepSize
-	ts.Log.Printf("Risk Check1 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n",ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
-	if ts.InitialCapital < asset{
+	ts.Log.Printf("Risk Check1 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n", ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
+	if ts.InitialCapital < asset {
 		diff := asset - ts.InitialCapital
 		num += diff
 		// md.TargetProfit = (mainValue + diff) * ts.RiskProfitLossPercentage
 	}
 	ts.RiskCost = math.Floor(num) * ts.StepSize
-	ts.Log.Printf("Risk Check2 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n",ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
-	
+	ts.Log.Printf("Risk Check2 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n", ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
+
 	switch ts.TradingLevel {
 	case 0:
-		ts.RiskCost += 5.0 + 1.0 
+		ts.RiskCost += 5.0 + 1.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 	case 1:
 		ts.RiskCost += 10.0 + 1.5 + 0.5
@@ -944,7 +965,7 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		// Mark that stoploss is triggered.
 		ts.InTrade = false
 		ts.StopLossTrigered = true
-		md.RiskPositionPercentage = ts.RiskProfitLossPercentage
+		md.RiskPositionPercentage = ts.LowestPrice
 		ts.TradingLevel = len(ts.EntryPrice)
 		ts.StopLossRecover = append(ts.StopLossRecover, ts.NextInvestBuYPrice[i]) //* (1.0 - ts.RiskStopLossPercentage)
 
@@ -967,12 +988,12 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (buySignal, sellSignal bool) {
 	// Calculate moving averages (MA) using historical data.
 	ch := make(chan string)
-	var(
-		err1, err2 error
+	var (
+		err1, err2        error
 		shortEMA, longEMA []float64
-	) 
+	)
 	C4EMA := CandleExponentialMovingAverageV1(ts.ClosingPrices, 8)
-	go func (ch chan string)  {
+	go func(ch chan string) {
 		longEMA, err2 = CandleExponentialMovingAverageV2(C4EMA, md.LongPeriod)
 		ch <- ""
 	}(ch)
@@ -986,17 +1007,16 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 		md.LongEMA, md.ShortEMA = longEMA[ts.DataPoint], shortEMA[ts.DataPoint]
 	}
 	// Determine the buy and sell signals based on the moving averages, RSI, MACD line, and Bollinger Bands.
-	if len(shortEMA) > 8 && len(longEMA) > 8 && ts.DataPoint >= 8 {
+	if len(shortEMA) > 7 && len(longEMA) > 7 && ts.DataPoint >= 7 {
 		if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 1 {
 			ts.Container1 = shortEMA
 			ts.Container2 = longEMA
 
-			LEMA8, LEMA7,LEMA6, LEMA5,LEMA4, LEMA3,LEMA2, LEMA1, LEMA0 := longEMA[ts.DataPoint-8], longEMA[ts.DataPoint-7], longEMA[ts.DataPoint-6], longEMA[ts.DataPoint-5], longEMA[ts.DataPoint-4], longEMA[ts.DataPoint-3], longEMA[ts.DataPoint-2], longEMA[ts.DataPoint-1], longEMA[ts.DataPoint]
-			SEMA8, SEMA7,SEMA6, SEMA5,SEMA4, SEMA3,SEMA2, SEMA1, SEMA0 := shortEMA[ts.DataPoint-8], shortEMA[ts.DataPoint-7], shortEMA[ts.DataPoint-6], shortEMA[ts.DataPoint-5], shortEMA[ts.DataPoint-4], shortEMA[ts.DataPoint-3], shortEMA[ts.DataPoint-2], shortEMA[ts.DataPoint-1], shortEMA[ts.DataPoint]
+			LEMA7, LEMA6, LEMA5, LEMA4, LEMA3, LEMA2, LEMA1, LEMA0 := longEMA[ts.DataPoint-7], longEMA[ts.DataPoint-6], longEMA[ts.DataPoint-5], longEMA[ts.DataPoint-4], longEMA[ts.DataPoint-3], longEMA[ts.DataPoint-2], longEMA[ts.DataPoint-1], longEMA[ts.DataPoint]
+			SEMA7, SEMA6, SEMA5, SEMA4, SEMA3, SEMA2, SEMA1, SEMA0 := shortEMA[ts.DataPoint-7], shortEMA[ts.DataPoint-6], shortEMA[ts.DataPoint-5], shortEMA[ts.DataPoint-4], shortEMA[ts.DataPoint-3], shortEMA[ts.DataPoint-2], shortEMA[ts.DataPoint-1], shortEMA[ts.DataPoint]
 
-			if (Action == "Entry") {
-				buySignal = LEMA8 > SEMA8 &&
-					(LEMA7-SEMA7 >= LEMA8-SEMA8) &&				
+			if Action == "Entry" {
+				buySignal = LEMA7 > SEMA7 &&
 					(LEMA6-SEMA6 >= LEMA7-SEMA7) &&
 					(LEMA5-SEMA5 >= LEMA6-SEMA6) &&
 					(LEMA4-SEMA4 >= LEMA5-SEMA5) &&
@@ -1007,13 +1027,12 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 				if buySignal && (len(ts.NextInvestBuYPrice) >= 1) {
 					i := len(ts.NextInvestBuYPrice) - 1
 					ts.Log.Printf("TA Signalled: BuY: %v at currentPrice: %.8f, will BuY below NextInvestBuYPrice[%d]: %.8f, and StopLossRecover[%d]: %.8f, Target Stoploss: %.8f", buySignal, ts.CurrentPrice, i, ts.NextInvestBuYPrice[i], i, ts.StopLossRecover[i], -md.TargetStopLoss)
-				} else if buySignal{
+				} else if buySignal {
 					ts.Log.Printf("TA Signalled: BuY, at currentPrice: %.8f", ts.CurrentPrice)
-				} 
+				}
 			}
-			if (Action == "Exit") {
-				sellSignal = SEMA8 > LEMA8 &&
-					(SEMA7-LEMA7 >= SEMA8-LEMA8) &&
+			if Action == "Exit" {
+				sellSignal = SEMA7 > LEMA7 &&
 					(SEMA6-LEMA6 >= SEMA7-LEMA7) &&
 					(SEMA5-LEMA5 >= SEMA6-LEMA6) &&
 					(SEMA4-LEMA4 >= SEMA5-LEMA5) &&
@@ -1160,7 +1179,7 @@ func CalculateMACD(SignalMACDPeriod int, closingPrices []float64, timeStamps []i
 
 //CandleExponentialMovingAverage calculates EMA from condles
 func CandleExponentialMovingAverage(closingPrices []float64, LongPeriod, ShortPeriod int) (longEMA, shortEMA []float64, err error) {
-	if LongPeriod <= 0 || len(closingPrices) < LongPeriod || closingPrices == nil{
+	if LongPeriod <= 0 || len(closingPrices) < LongPeriod || closingPrices == nil {
 		return nil, nil, fmt.Errorf("Error Calculating Candle EMA: not enoguh data for period %v", LongPeriod)
 	}
 	var ema55, ema15 *ema.Ema
@@ -1180,7 +1199,7 @@ func CandleExponentialMovingAverage(closingPrices []float64, LongPeriod, ShortPe
 
 //CandleExponentialMovingAverage calculates EMA from condles
 func CandleExponentialMovingAverageV2(closingPrices []float64, ShortPeriod int) (shortEMA []float64, err error) {
-	if ShortPeriod <= 0 || len(closingPrices) < ShortPeriod || closingPrices == nil{
+	if ShortPeriod <= 0 || len(closingPrices) < ShortPeriod || closingPrices == nil {
 		return nil, fmt.Errorf("Error Calculating Candle EMA: not enoguh data for period %v", ShortPeriod)
 	}
 	var ema15 *ema.Ema
@@ -1193,9 +1212,10 @@ func CandleExponentialMovingAverageV2(closingPrices []float64, ShortPeriod int) 
 	}
 	return shortEMA, nil
 }
+
 //CandleExponentialMovingAverage calculates EMA from condles
 func CandleExponentialMovingAverageV1(closingPrices []float64, ShortPeriod int) (shortEMA []float64) {
-	if ShortPeriod <= 0 || len(closingPrices) < ShortPeriod || closingPrices == nil{
+	if ShortPeriod <= 0 || len(closingPrices) < ShortPeriod || closingPrices == nil {
 		return nil
 	}
 	var ema15 *ema.Ema
