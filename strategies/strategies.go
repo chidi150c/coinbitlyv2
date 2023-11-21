@@ -134,8 +134,8 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			//ts.EpochTime = time.Second * 10
 			// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 			// ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
-			ts.StartTime = time.Now()
-			ts.LowestPrice = math.MaxFloat64
+			// ts.StartTime = time.Now()
+			// ts.LowestPrice = math.MaxFloat64
 
 			// mdTargetProfit := mainValue * 0.0008
 			// mdTargetStopLoss := mainValue * 0.0008
@@ -607,6 +607,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			ts.StartTime = time.Now()
 			ts.LowestPrice = math.MaxFloat64
 		}
+		md.RiskPositionPercentage = ts.LowestPrice
 		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
 		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
 		// 	log.Fatalf("Error: writing to influxDB: %v", err)
