@@ -600,7 +600,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			}
 			time.Sleep(ts.EpochTime)
 		}
-		if (ts.EntryPrice[len(ts.EntryPrice)-1] > ts.LowestPrice) && (len(ts.EntryPrice) > 0) && (time.Since(ts.StartTime) > time.Hour) {
+		if (ts.EntryPrice[len(ts.EntryPrice)-1] > ts.LowestPrice) && (len(ts.EntryPrice) > 0) && (time.Since(ts.StartTime) > time.Hour/2) {
 			before := ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
 			ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] = ts.LowestPrice
 			ts.Log.Printf("NextInvestBuYPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1])
@@ -979,8 +979,8 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) string {
 		// 	ts.CurrentPrice, quantity, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 		return resp
 	} else {
-		ts.Log.Printf("Stoploss NOT Marked at CurrentPrice: %.8f, of EntryPrice[%d]: %.8f, NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f",
-			exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
+		ts.Log.Printf("Stoploss NOT Marked at CurrentPrice: %.8f, of EntryPrice[%d]: %.8f, NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f timeSinceLBS: %.2fSec ",
+			exitPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss, time.Since(ts.StartTime).Seconds())
 	}
 	return "false"
 }
