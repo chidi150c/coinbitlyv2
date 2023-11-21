@@ -128,12 +128,14 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.MaxDataSize = 500
 			ts.BaseCurrency = BaseCurrency
 		} else {
-			loadDataFrom = "DataBase"
+			loadDataFrom = "DataBase"     
 			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5
 			//ts.RiskProfitLossPercentage = 0.0008
 			//ts.EpochTime = time.Second * 10
 			// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 			// ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
+			ts.StartTime = time.Now()
+			ts.LowestPrice = math.MaxFloat64
 
 			// mdTargetProfit := mainValue * 0.0008
 			// mdTargetStopLoss := mainValue * 0.0008
