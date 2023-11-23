@@ -602,7 +602,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			}
 			time.Sleep(ts.EpochTime)
 		}
-		if (ts.EntryPrice[len(ts.EntryPrice)-1] > ts.LowestPrice) && (len(ts.EntryPrice) > 0) && (time.Since(ts.StartTime) > time.Hour/2) {
+		if (ts.EntryPrice[len(ts.EntryPrice)-1] > ts.LowestPrice) && (len(ts.EntryPrice) > 0) && (time.Since(ts.StartTime) > elapseTime(ts.TradingLevel)) {
 			before := ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
 			ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] = ts.LowestPrice
 			ts.Log.Printf("NextInvestBuYPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1])
@@ -616,7 +616,32 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		// }
 	}
 }
-
+func elapseTime(level int) time.Duration{
+	switch level {
+	case 0:
+		return 0
+	case 1:
+		return time.Minute * 30
+	case 2:
+		return time.Minute * 38
+	case 3:
+		return time.Minute * 46
+	case 4:
+		return time.Minute * 52
+	case 5:
+		return time.Minute * 58
+	case 6:
+		return time.Minute * 64
+	case 7:
+		return time.Minute * 70
+	case 8:
+		return time.Minute * 76
+	case 9:
+		return time.Minute * 82
+	default:
+		return time.Minute * 88
+	}
+}
 // Backtest(): This function simulates the backtesting process using historical
 // price data. It iterates through the closing prices, checks for entry and exit
 // conditions, and executes trades accordingly. It also tracks trading performance
@@ -962,6 +987,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 	}
 	// Determine the buy and sell signals based on the moving averages, RSI, MACD line, and Bollinger Bands.
 	if len(shortEMA) > 7 && len(longEMA) > 7 && ts.DataPoint >= 7 {
+		
 		if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 1 {
 			ts.Container1 = shortEMA
 			ts.Container2 = longEMA
