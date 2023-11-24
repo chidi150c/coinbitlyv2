@@ -840,11 +840,17 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		quantity = math.Floor(ts.PositionSize/ts.MiniQty) * ts.MiniQty
 		// Calculate the total cost of the trade
 		totalCost = quantity * ts.CurrentPrice
+		i :=  len(ts.NextInvestBuYPrice)
+		before := ts.NextInvestBuYPrice[i-2] 
 		if ts.QuoteBalance < totalCost {
-			ts.Log.Printf("NextSell Re-Adjusting Switched ON for %s: as Balance = %.8f is Less than NextRiskCost = %.8f \n", ts.Symbol, ts.QuoteBalance, totalCost)
 			ts.InTrade = true
 			ts.HighestPrice = ts.CurrentPrice	
-			ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-2] = ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
+			for k,_ := range ts.NextInvestBuYPrice{
+				if k >= 1 {
+					ts.NextInvestBuYPrice[k-1] = ts.NextInvestBuYPrice[k]
+				}
+			}
+			ts.Log.Printf("NextSell Re-Adjusting Switched ON for %s: as Balance = %.8f is Less than NextRiskCost = %.8f and NextInvestBuYPrice[%d] updated with [%d] from %.8f to %.8f \n", ts.Symbol, ts.QuoteBalance, totalCost, i-2, i-1, before, ts.NextInvestBuYPrice[i-1])
 		} else {
 			ts.HighestPrice = 0.0
 			ts.InTrade = false
