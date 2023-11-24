@@ -619,18 +619,18 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			}
 			time.Sleep(ts.EpochTime)
 		}
-		if ts.InTrade {
+		if ts.InTrade && (len(ts.EntryPrice) > 0){
 			//NextSell Re-Adjustment
-			if (ts.EntryPrice[len(ts.EntryPrice)-1] < ts.HighestPrice) && (len(ts.EntryPrice) > 0) && (time.Since(ts.StartTime) > elapseTime(ts.TradingLevel)) {
+			if (ts.EntryPrice[len(ts.EntryPrice)-1] < ts.HighestPrice) && (time.Since(ts.StartTime) > elapseTime(ts.TradingLevel)) {
 				before := ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1]
 				ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.HighestPrice
 				ts.Log.Printf("NextProfitSeLLPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
 				ts.StartTime = time.Now()
 				ts.HighestPrice = 0.0
 			}
-		} else {
+		} else if (len(ts.EntryPrice) > 0) {
 			//NextBuy Re-Adjustment
-			if (ts.EntryPrice[len(ts.EntryPrice)-1] > ts.LowestPrice) && (len(ts.EntryPrice) > 0) && (time.Since(ts.StartTime) > elapseTime(ts.TradingLevel)) {
+			if (ts.EntryPrice[len(ts.EntryPrice)-1] > ts.LowestPrice) && (time.Since(ts.StartTime) > elapseTime(ts.TradingLevel)) {
 				before := ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
 				ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] = ts.LowestPrice
 				ts.Log.Printf("NextInvestBuYPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1])
