@@ -843,8 +843,8 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		if ts.QuoteBalance < totalCost {
 			ts.Log.Printf("NextSell Re-Adjusting Switched ON for %s: as Balance = %.8f is Less than NextRiskCost = %.8f \n", ts.Symbol, ts.QuoteBalance, totalCost)
 			ts.InTrade = true
-			ts.HighestPrice = ts.CurrentPrice			
-			ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2] = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1]
+			ts.HighestPrice = ts.CurrentPrice	
+			ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-2] = ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
 		} else {
 			ts.HighestPrice = 0.0
 			ts.InTrade = false
