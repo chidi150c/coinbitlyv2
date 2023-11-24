@@ -157,7 +157,8 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			// ts.TradingLevel = len(ts.EntryPrice)
 			// ts.InTrade = true
 			// ts.Signals = append(ts.Signals, "Buy")
-			ts.StopLossRecover = []float64{}
+			ts.NextInvestBuYPrice[0] = 37535.9
+			// ts.StopLossRecover = []float64{}
 			// ts.TickerQueueAdjustment()
 		}
 	}
@@ -652,7 +653,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 func elapseTime(level int) time.Duration{
 	switch level {
 	case 0:
-		return time.Minute * 20
+		return time.Minute * 25
 	case 1:
 		return time.Minute * 30
 	case 2:
