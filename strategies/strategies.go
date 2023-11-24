@@ -652,7 +652,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 func elapseTime(level int) time.Duration{
 	switch level {
 	case 0:
-		return 0
+		return time.Minute * 20
 	case 1:
 		return time.Minute * 30
 	case 2:
