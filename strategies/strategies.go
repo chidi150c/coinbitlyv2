@@ -106,7 +106,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts = &TradingSystem{}
 			ts.RiskFactor = 2.0
 			ts.CommissionPercentage = 0.00075
-			ts.RiskProfitLossPercentage = 0.0008
+			ts.RiskProfitLossPercentage = 0.001
 			ts.EnableStoploss = true
 			ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, math.MaxFloat64)
 			ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, math.MaxFloat64)
@@ -124,7 +124,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts = &TradingSystem{}
 			ts.RiskFactor = 2.0
 			ts.CommissionPercentage = 0.00075
-			ts.RiskProfitLossPercentage = 0.0008
+			ts.RiskProfitLossPercentage = 0.001
 			ts.EnableStoploss = true
 			ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, math.MaxFloat64)
 			ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, math.MaxFloat64)
@@ -133,15 +133,15 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		} else {
 			loadDataFrom = "DataBase"
 			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5
-			//ts.RiskProfitLossPercentage = 0.0008
+			//ts.RiskProfitLossPercentage = 0.001
 			//ts.EpochTime = time.Second * 10
 			// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 			// ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 			// ts.StartTime = time.Now()
 			// ts.LowestPrice = math.MaxFloat64
 
-			// mdTargetProfit := mainValue * 0.0008
-			// mdTargetStopLoss := mainValue * 0.0008
+			// mdTargetProfit := mainValue * 0.001
+			// mdTargetStopLoss := mainValue * 0.001
 			// if ts.TradingLevel >= 2{
 			// 	mdTargetProfit = mdTargetProfit + ((mdTargetProfit * float64(ts.TradingLevel))/8.0)
 			// }
@@ -321,8 +321,8 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		} else {
 			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
-			// md.TargetProfit = mainValue * 0.0008
-			// md.TargetStopLoss = mainValue * 0.0008
+			md.TargetProfit = mainValue * 0.001
+			md.TargetStopLoss = mainValue * 0.001
 		}
 	}
 	fmt.Println("MD = ", md)
