@@ -130,7 +130,16 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, math.MaxFloat64)
 			ts.MaxDataSize = 500
 			ts.BaseCurrency = BaseCurrency		
-			ts.TradeCount =  281
+
+			//Image rebuilding
+			ts.EntryPrice = []float64{37764.34000000,37736.57000000,37733.61000000,37728.90000000,37687.06000000,37641.88000000} 
+			ts.EntryQuantity = []float64{0.00047000,0.00063000,0.00079000,0.00100000,0.00122000,0.00148000}
+			ts.EntryCostLoss = []float64{0.013311,0.017830,0.022357,0.0282966,0.0344836599,0.0417824}
+			ts.NextProfitSeLLPrice = []float64{38052.34067435,37936.14902324,37889.68798528,37859.09540918,37795.82529500,37736.09501656}
+			ts.NextInvestBuYPrice = []float64{37476.33932565,37536.99097676,37577.532014,37598.70459082,37578.29470500,37547.66498344}
+			ts.TradingLevel = 6
+			ts.TradeCount =  287 
+			ts.ClosedWinTrades = 281
 		} else {
 			loadDataFrom = "DataBase"			
 			// ts.TradeCount =  281
@@ -320,7 +329,9 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			} else {
 				md.RiskPositionPercentage = ts.HighestPrice // Define risk management parameter 5% balance
 			}
-			md.TotalProfitLoss = 14.897252
+
+			//Image Rebuilding
+			md.TotalProfitLoss = 14.772279
 		} else {
 			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
@@ -862,8 +873,8 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.HighestPrice = 0.0
 			ts.InTrade = false
 		}
-		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, BuyCommission: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice %.8f nextInvBuYPrice %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d, mdDataPt: %d \n",
-			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, quantity, ts.QuoteBalance, ts.BaseBalance, orderResp.Commission, md.RiskPositionPercentage, md.TotalProfitLoss, nextProfitSeLLPrice, nextInvBuYPrice, md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
+		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, EntryCostLoss[%d]: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice %.8f nextInvBuYPrice %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d, mdDataPt: %d \n",
+			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, quantity, ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], md.RiskPositionPercentage, md.TotalProfitLoss, nextProfitSeLLPrice, nextInvBuYPrice, md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
 		return resp, nil
 	case "Sell":
 
