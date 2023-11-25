@@ -132,14 +132,14 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.BaseCurrency = BaseCurrency		
 
 			//Image rebuilding
-			ts.EntryPrice = []float64{37764.34000000,37736.57000000,37733.61000000,37728.90000000,37687.06000000,37641.88000000} 
-			ts.EntryQuantity = []float64{0.00047000,0.00063000,0.00079000,0.00100000,0.00122000,0.00148000}
-			ts.EntryCostLoss = []float64{0.013311,0.017830,0.022357,0.0282966,0.0344836599,0.0417824}
-			ts.NextProfitSeLLPrice = []float64{38052.34067435,37936.14902324,37889.68798528,37859.09540918,37795.82529500,37736.09501656}
-			ts.NextInvestBuYPrice = []float64{37476.33932565,37536.99097676,37577.532014,37598.70459082,37578.29470500,37547.66498344}
-			ts.TradingLevel = 6
-			ts.TradeCount =  287 
-			ts.ClosedWinTrades = 281
+			// ts.EntryPrice = []float64{37764.34000000,37736.57000000,37733.61000000,37728.90000000,37687.06000000,37641.88000000} 
+			// ts.EntryQuantity = []float64{0.00047000,0.00063000,0.00079000,0.00100000,0.00122000,0.00148000}
+			// ts.EntryCostLoss = []float64{0.013311,0.017830,0.022357,0.0282966,0.0344836599,0.0417824}
+			// ts.NextProfitSeLLPrice = []float64{38052.34067435,37936.14902324,37889.68798528,37859.09540918,37795.82529500,37736.09501656}
+			// ts.NextInvestBuYPrice = []float64{37476.33932565,37536.99097676,37577.532014,37598.70459082,37578.29470500,37547.66498344}
+			// ts.TradingLevel = 6
+			// ts.TradeCount =  287 
+			// ts.ClosedWinTrades = 281
 		} else {
 			loadDataFrom = "DataBase"			
 			// ts.TradeCount =  281
@@ -331,7 +331,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			}
 
 			//Image Rebuilding
-			md.TotalProfitLoss = 14.772279
+			// md.TotalProfitLoss = 14.772279
 		} else {
 			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
