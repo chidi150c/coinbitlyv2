@@ -129,9 +129,11 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, math.MaxFloat64)
 			ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, math.MaxFloat64)
 			ts.MaxDataSize = 500
-			ts.BaseCurrency = BaseCurrency
+			ts.BaseCurrency = BaseCurrency		
+			ts.TradeCount =  281
 		} else {
-			loadDataFrom = "DataBase"
+			loadDataFrom = "DataBase"			
+			ts.TradeCount =  281
 			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5
 			//ts.RiskProfitLossPercentage = 0.001
 			//ts.EpochTime = time.Second * 10
@@ -157,7 +159,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			// ts.TradingLevel = len(ts.EntryPrice)
 			// ts.InTrade = true
 			// ts.Signals = append(ts.Signals, "Buy")
-			ts.NextInvestBuYPrice[0] = 37535.9
+			// ts.NextInvestBuYPrice[0] = 37535.9
 			// ts.StopLossRecover = []float64{}
 			// ts.TickerQueueAdjustment()
 		}
@@ -318,12 +320,13 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			} else {
 				md.RiskPositionPercentage = ts.HighestPrice // Define risk management parameter 5% balance
 			}
-			md.TotalProfitLoss = 0.0
+			md.TotalProfitLoss = 14.897252
 		} else {
 			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
 			md.TargetProfit = mainValue * 0.001
 			md.TargetStopLoss = mainValue * 0.001
+			md.TotalProfitLoss = 14.897252
 		}
 	}
 	fmt.Println("MD = ", md)
