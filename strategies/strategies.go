@@ -636,7 +636,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		}
 		if ts.InTrade && (len(ts.EntryPrice) > 0){
 			//NextSell Re-Adjustment			
-			nextProfitSeLLPrice := ((ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)]) + ts.EntryPrice[len(ts.EntryPrice)-1]
+			nextProfitSeLLPrice := ((ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
 			commissionAtProfitSeLLPrice := nextProfitSeLLPrice * ts.EntryQuantity[len(ts.EntryQuantity)] * ts.CommissionPercentage
 			if ((nextProfitSeLLPrice+commissionAtProfitSeLLPrice) < ts.HighestPrice) && (time.Since(ts.StartTime) > elapseTime(ts.TradingLevel)) {
 				before := ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1]
@@ -647,7 +647,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			}
 		} else if (len(ts.EntryPrice) > 0) {
 			//NextBuy Re-Adjustment
-			nextInvBuYPrice := (-(ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)]) + ts.EntryPrice[len(ts.EntryPrice)-1]
+			nextInvBuYPrice := (-(ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
 			if ((nextInvBuYPrice) > ts.LowestPrice) && (time.Since(ts.StartTime) > elapseTime(ts.TradingLevel)) {
 				before := ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
 				ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] = ts.LowestPrice
