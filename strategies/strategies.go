@@ -142,8 +142,8 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			// ts.ClosedWinTrades = 281
 		} else {
 			loadDataFrom = "DataBase"		
-			ts.TradeCount =  287 
-			ts.ClosedWinTrades = 281
+			// ts.TradeCount =  287 
+			// ts.ClosedWinTrades = 281
 			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5
 			//ts.RiskProfitLossPercentage = 0.001
 			//ts.EpochTime = time.Second * 10
@@ -151,7 +151,6 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			// ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 			// ts.StartTime = time.Now()
 			// ts.LowestPrice = math.MaxFloat64
-
 			// mdTargetProfit := mainValue * 0.001
 			// mdTargetStopLoss := mainValue * 0.001
 			// if ts.TradingLevel >= 2{
@@ -339,7 +338,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
 			// md.TargetProfit = mainValue * 0.001
 			// md.TargetStopLoss = mainValue * 0.001
-			md.TotalProfitLoss = 14.81
+			// md.TotalProfitLoss = 14.81
 		}
 	}
 	fmt.Println("MD = ", md)
@@ -639,7 +638,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		if ts.InTrade && (len(ts.EntryPrice) > 0){
 			//NextSell Re-Adjustment			
 			nextProfitSeLLPrice := ((ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
-			commissionAtProfitSeLLPrice := nextProfitSeLLPrice * ts.EntryQuantity[len(ts.EntryQuantity)] * ts.CommissionPercentage
+			commissionAtProfitSeLLPrice := nextProfitSeLLPrice * ts.EntryQuantity[len(ts.EntryQuantity)-1] * ts.CommissionPercentage
 			if ((nextProfitSeLLPrice+commissionAtProfitSeLLPrice) < ts.HighestPrice) && (time.Since(ts.StartTime) > elapseTime(ts.TradingLevel)) {
 				before := ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1]
 				ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.HighestPrice
@@ -808,18 +807,23 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		// Calculate the total cost of the trade
 		totalCost := quantity * ts.CurrentPrice
 		//check if there is enough Quote (USDT) for the buy transaction
-		if ts.QuoteBalance < totalCost {
+		if (ts.QuoteBalance < totalCost) {
 			ts.Log.Printf("Unable to buY!!!! Insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice)
-			quantity = ts.QuoteBalance / ts.CurrentPrice
-			quantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
-			if quantity < ts.MiniQty {
+			// quantity = ts.QuoteBalance / ts.CurrentPrice
+			// quantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
+			// if quantity < ts.MiniQty {
 				return "", fmt.Errorf("cannot execute a buy order due to insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice)
-			}
+			// }
 		}
 		// Check if the total cost meets the minNotional requirement
 		if totalCost < ts.MinNotional {
 			ts.Log.Printf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, ts.CurrentPrice, totalCost, ts.MinNotional)
 			return "", fmt.Errorf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, ts.CurrentPrice, totalCost, ts.MinNotional)
+		}
+		if (!ts.InTrade) && (ts.StopLossTrigered){
+			quantity = ts.QuoteBalance / ts.CurrentPrice
+			quantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
+			ts.Log.Printf("Quantity topped up to the Maximum Possible !!! \n")
 		}
 		//Placing a Buy order
 		orderResp, err = ts.APIServices.PlaceLimitOrder(ts.Symbol, "BUY", ts.CurrentPrice, quantity)
@@ -862,12 +866,16 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		totalCost = quantity * ts.CurrentPrice
 		i :=  len(ts.NextInvestBuYPrice)
 		before := ts.NextInvestBuYPrice[i-2] 
+		if !ts.InTrade {
+			ts.StopLossTrigered = false
+		}
 		if ts.QuoteBalance < totalCost {
 			ts.InTrade = true
+			ts.StopLossTrigered = true
 			ts.HighestPrice = ts.CurrentPrice	
 			for k,_ := range ts.NextInvestBuYPrice{
 				if k >= 1 {
-					ts.NextInvestBuYPrice[k-1] = ts.NextInvestBuYPrice[k]
+					ts.NextInvestBuYPrice[k-1] = ts.NextInvestBuYPrice[i-1]
 				}
 			}
 			ts.Log.Printf("NextSell Re-Adjusting Switched ON for %s: as Balance = %.8f is Less than NextRiskCost = %.8f and NextInvestBuYPrice[%d] updated with [%d] from %.8f to %.8f \n", ts.Symbol, ts.QuoteBalance, totalCost, i-2, i-1, before, ts.NextInvestBuYPrice[i-1])
@@ -942,6 +950,9 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.ClosedWinTrades += 2
 		}
 		// Mark that we are no longer in a trade.
+		if !ts.InTrade {
+			ts.StopLossTrigered = false
+		}
 		ts.InTrade = false
 		ts.StartTime = time.Now()
 		ts.LowestPrice = math.MaxFloat64
@@ -1176,7 +1187,6 @@ func (ts *TradingSystem) ShutDown(md *model.AppData, sigchnl chan os.Signal) {
 					ts.QuoteBalance += (ts.BaseBalance * exitPrice) - transactionCost
 					ts.BaseBalance -= ts.BaseBalance
 					ts.Signals = append(ts.Signals, "Sell")
-					// ts.InTrade = false
 					ts.TradeCount++
 					ts.Mu.Unlock()
 					log.Printf("- SELL-OFF at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L %.2f LocalP&L: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
