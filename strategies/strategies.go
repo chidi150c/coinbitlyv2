@@ -648,7 +648,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			} //else if ((nextProfitSeLLPrice+commissionAtProfitSeLLPrice) >= ts.HighestPrice) && (time.Since(ts.StartTime) > elapseTime(ts.TradingLevel)){
 			// 	ts.Log.Printf("NextProfitSeLLPrice Not adjusted!!! since Target: %.8f NOT CROSSED at HighestPrice: %.8f", nextProfitSeLLPrice+commissionAtProfitSeLLPrice, ts.HighestPrice)
 			// }
-		} else if (len(ts.EntryPrice) > 0) {
+		} else if (len(ts.EntryPrice) > 0) && (!ts.StopLossTrigered){
 			//NextBuy Re-Adjustment
 			nextInvBuYPrice := (-(ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
 			if ((nextInvBuYPrice) > ts.LowestPrice) && (time.Since(ts.StartTime) > elapseTime(ts.TradingLevel)) {
