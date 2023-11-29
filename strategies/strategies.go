@@ -338,7 +338,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
 			// md.TargetProfit = mainValue * 0.001
 			// md.TargetStopLoss = mainValue * 0.001
-			// md.TotalProfitLoss = 14.81
+			md.TotalProfitLoss += 13.0
 		}
 	}
 	fmt.Println("MD = ", md)
