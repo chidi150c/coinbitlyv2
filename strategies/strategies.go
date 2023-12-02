@@ -792,6 +792,8 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 		if ts.CurrentPrice > v {
 			targetCrossed = true
 			break
+		}else if ts.Index == len(ts.EntryPrice) - 1{
+			break
 		}
 	}
 	ts.RiskFactor = float64(ts.Index)
@@ -993,7 +995,6 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, ts.Index)
 			ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, ts.Index)
 			ts.TradingLevel = len(ts.EntryPrice)
-			ts.Index = len(ts.EntryPrice) - 1
 		} else if len(ts.EntryPrice) <= 1 {
 			// Mark that we are no longer in a trade.
 			ts.EntryPrice = []float64{}
@@ -1002,9 +1003,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.NextProfitSeLLPrice = []float64{math.MaxFloat64}
 			ts.NextInvestBuYPrice = []float64{math.MaxFloat64}
 			ts.TradingLevel = 0
-			ts.Index = 0
 		}
-
 		return resp, nil
 	default:
 		return "", fmt.Errorf("invalid trade action: %s", tradeAction)
