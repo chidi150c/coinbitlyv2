@@ -792,7 +792,8 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 		if ts.CurrentPrice > v {
 			targetCrossed = true
 			break
-		}else if ts.Index == len(ts.EntryPrice) - 1{
+		}
+		if ts.Index == len(ts.EntryPrice) - 1{
 			break
 		}
 	}
