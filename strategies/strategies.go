@@ -339,7 +339,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
 			// md.TargetProfit = mainValue * 0.001
 			// md.TargetStopLoss = mainValue * 0.001
-			md.TotalProfitLoss += 14.99
+			md.TotalProfitLoss += 0.06
 		}
 	}
 	fmt.Println("MD = ", md)
@@ -1140,7 +1140,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 					(LEMA0-SEMA0 < LEMA1-SEMA1)
 				if buySignal && (len(ts.NextInvestBuYPrice) >= 1) {
 					i := len(ts.NextInvestBuYPrice) - 1
-					ts.Log.Printf("TA Signalled: BuY: %v at currentPrice: %.8f, will BuY below NextInvestBuYPrice[%d]: %.8f, and Target Stoploss: %.8f", buySignal, ts.CurrentPrice, i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss)
+					ts.Log.Printf("TA Signalled: BuY: %v at currentPrice: %.8f, will BuY below NextInvestBuYPrice[%d]: %.8f, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", buySignal, ts.CurrentPrice, i, ts.NextInvestBuYPrice[i], time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
 				} else if buySignal {
 					ts.Log.Printf("TA Signalled: BuY, at currentPrice: %.8f", ts.CurrentPrice)
 				}
