@@ -790,7 +790,6 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 	v := 0.0
 	ts.Log.Printf("ts.NextProfitSeLLPrice %v  \n",  ts.NextProfitSeLLPrice)
 	for ts.Index, v = range ts.NextProfitSeLLPrice {
-		ts.Log.Printf("ts.CurrentPrice %v ts.Index %v targetCrossed %v \n",  ts.CurrentPrice, ts.Index, v)
 		if ts.CurrentPrice > v {
 			targetCrossed = true
 			break
@@ -917,15 +916,13 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, quantity, ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], md.RiskPositionPercentage, md.TotalProfitLoss, nextProfitSeLLPrice, nextInvBuYPrice, md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
 		return resp, nil
 	case "Sell":
-
 		// Calculate profit/loss for the trade.
 		exitPrice := ts.CurrentPrice
 		// adjustedPrice := math.Floor(price/lotSizeStep) * lotSizeStep
 		quantity := math.Floor(ts.EntryQuantity[ts.Index]/ts.MiniQty) * ts.MiniQty
-
 		// (localProfitLoss < transactionCost+slippageCost+md.TargetProfit)
 		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", exitPrice, md.TargetProfit)
-
+		
 		if ts.BaseBalance < quantity {
 			if ts.BaseBalance < quantity {
 				ts.Log.Printf("But BaseBalance %.8f is < quantity %.8f, currentPrice: %.8f", ts.BaseBalance, quantity, exitPrice)
@@ -987,26 +984,14 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.StartTime = time.Now()
 		ts.LowestPrice = math.MaxFloat64
 		ts.HighestPrice = 0.0
-
 		resp := fmt.Sprintf("- SELL at ExitPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, \nGlobalP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
 			exitPrice, ts.Index, ts.EntryPrice[ts.Index], ts.Index, ts.EntryQuantity[ts.Index], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, orderResp.Commission, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
-
-		if len(ts.EntryPrice) > 1 {
-			ts.EntryPrice = deleteElement(ts.EntryPrice, ts.Index)
-			ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, ts.Index)
-			ts.EntryQuantity = deleteElement(ts.EntryQuantity, ts.Index)
-			ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, ts.Index)
-			ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, ts.Index)
-			ts.TradingLevel = len(ts.EntryPrice)
-		} else if len(ts.EntryPrice) <= 1 {
-			// Mark that we are no longer in a trade.
-			ts.EntryPrice = []float64{}
-			ts.EntryCostLoss = []float64{}
-			ts.EntryQuantity = []float64{}
-			ts.NextProfitSeLLPrice = []float64{math.MaxFloat64}
-			ts.NextInvestBuYPrice = []float64{math.MaxFloat64}
-			ts.TradingLevel = 0
-		}
+		ts.EntryPrice = deleteElement(ts.EntryPrice, ts.Index)
+		ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, ts.Index)
+		ts.EntryQuantity = deleteElement(ts.EntryQuantity, ts.Index)
+		ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, ts.Index)
+		ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, ts.Index)
+		ts.TradingLevel = len(ts.EntryPrice)
 		return resp, nil
 	default:
 		return "", fmt.Errorf("invalid trade action: %s", tradeAction)
