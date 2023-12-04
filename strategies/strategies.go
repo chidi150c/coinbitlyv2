@@ -235,7 +235,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 				MinNotional:              ts.MinNotional,
 				StepSize:                 ts.StepSize,
 			}
-			if len(ts.EntryPrice) >= 1 {
+			if len(ts.EntryPrice) > 0 {
 				trade.EntryCostLoss = ts.EntryCostLoss
 				trade.EntryQuantity = ts.EntryQuantity
 				trade.EntryPrice = ts.EntryPrice
@@ -895,7 +895,10 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		// Calculate the total cost of the trade
 		totalCost = quantity * ts.CurrentPrice
 		i := len(ts.NextInvestBuYPrice)
-		before := ts.NextInvestBuYPrice[i-2]
+		before := 0.0
+		if i > 1 {
+			before = ts.NextInvestBuYPrice[i-2]
+		}
 		if !ts.InTrade {
 			ts.StopLossTrigered = false
 		}
