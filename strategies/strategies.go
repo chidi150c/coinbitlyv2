@@ -790,7 +790,7 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 	v := 0.0
 	ts.Log.Printf("ts.NextProfitSeLLPrice %v  \n",  ts.NextProfitSeLLPrice)
 	for ts.Index, v = range ts.NextProfitSeLLPrice {
-		ts.Log.Printf("ts.CurrentPrice %v  && targetCrossed %v \n",  ts.CurrentPrice, v)
+		ts.Log.Printf("ts.CurrentPrice %v ts.Index %v targetCrossed %v \n",  ts.CurrentPrice, ts.Index, v)
 		if ts.CurrentPrice > v {
 			targetCrossed = true
 			break
