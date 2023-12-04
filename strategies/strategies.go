@@ -264,7 +264,6 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 				select {
 				case <-time.After(time.Second * 900):
 					if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil {
-						log.Printf("Creating TradingSystem happening now!!! where %v", err)
 						ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
 						if err != nil {
 							log.Printf("Error Creating TradingSystem: %v", err)
@@ -928,9 +927,26 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		
 		if ts.BaseBalance < quantity {
 			if ts.BaseBalance < quantity {
-				ts.Log.Printf("But BaseBalance %.8f is < quantity %.8f, currentPrice: %.8f", ts.BaseBalance, quantity, exitPrice)
+				ts.Log.Printf("But BaseBalance %.8f is < quantity %.8f", ts.BaseBalance, quantity)
 				quantity = math.Floor(ts.BaseBalance/ts.MiniQty) * ts.MiniQty
 				if quantity < ts.MiniQty {
+					//Delete or Reset entry
+					if len(ts.EntryPrice) == 1{
+						ts.Log.Printf("So Deleting and Resetting entry as quantity %.8f is < MiniQty %.8f", quantity, ts.MiniQty)
+						if !ts.InTrade {
+							ts.StopLossTrigered = false
+						}
+						ts.InTrade = false
+						ts.StartTime = time.Now()
+						ts.LowestPrice = math.MaxFloat64
+						ts.HighestPrice = 0.0
+						ts.EntryPrice = deleteElement(ts.EntryPrice, ts.Index)
+						ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, ts.Index)
+						ts.EntryQuantity = deleteElement(ts.EntryQuantity, ts.Index)
+						ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, ts.Index)
+						ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, ts.Index)
+						ts.TradingLevel = len(ts.EntryPrice)						
+					}
 					return "", fmt.Errorf("cannot execute a sell order due to insufficient BaseBalance: %.8f miniQuantity required: %.8f", ts.QuoteBalance, ts.MiniQty)
 				} else {
 					// return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, quantity)
@@ -979,7 +995,6 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		if localProfitLoss > 0 {
 			ts.ClosedWinTrades += 2
 		}
-		// Mark that we are no longer in a trade.
 		if !ts.InTrade {
 			ts.StopLossTrigered = false
 		}
