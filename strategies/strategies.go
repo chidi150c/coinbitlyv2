@@ -109,8 +109,6 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.CommissionPercentage = 0.00075
 			ts.RiskProfitLossPercentage = 0.001
 			ts.EnableStoploss = true
-			ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, math.MaxFloat64)
-			ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, math.MaxFloat64)
 			ts.MaxDataSize = 500
 			ts.BaseCurrency = BaseCurrency
 			ts.QuoteBalance = 100.0
@@ -127,8 +125,6 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.CommissionPercentage = 0.00075
 			ts.RiskProfitLossPercentage = 0.001
 			ts.EnableStoploss = true
-			ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, math.MaxFloat64)
-			ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, math.MaxFloat64)
 			ts.MaxDataSize = 500
 			ts.BaseCurrency = BaseCurrency
 
@@ -769,7 +765,16 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 	// Execute the trade if entry conditions are met.
 	passed := false
-	if (ts.EntryRule(md)) && (ts.CurrentPrice <= ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]) {
+	v := 0.0
+	targetCrossed := false
+	if len(ts.NextInvestBuYPrice) > 0{
+		if ts.CurrentPrice <= ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]{
+			targetCrossed = true			
+		}
+	}else{
+		targetCrossed = true
+	}
+	if (ts.EntryRule(md)) && targetCrossed {
 		// Execute the buy order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(md, "Buy")
 		if err != nil {
@@ -786,15 +791,11 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 		// Close the trade if exit conditions are met.
 		passed = true
 	}
-	targetCrossed := false
-	v := 0.0
+	targetCrossed = false
 	ts.Log.Printf("ts.NextProfitSeLLPrice %v  ts.EntryRule %v\n",  ts.NextProfitSeLLPrice, ts.EntryPrice)
 	for ts.Index, v = range ts.NextProfitSeLLPrice {
 		if ts.CurrentPrice > v {
 			targetCrossed = true
-			break
-		}
-		if ts.Index == len(ts.EntryPrice) - 1{
 			break
 		}
 	}
