@@ -798,7 +798,9 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 		}
 	}
 	ts.RiskFactor = float64(ts.Index)
-	if ts.ExitRule(md) && targetCrossed {
+	ab := ts.ExitRule(md)
+	ts.Log.Printf("ts.ExitRule(md) %v && targetCrossed %v\n",  ab, targetCrossed)
+	if ab && targetCrossed {
 		panic("yessssssssssssssssssssssssssssss")
 		// Execute the sell order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(md, "Sell")
