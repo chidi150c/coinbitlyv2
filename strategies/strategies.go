@@ -788,7 +788,9 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 	}
 	targetCrossed := false
 	v := 0.0
+	ts.Log.Printf("ts.NextProfitSeLLPrice %v  \n",  ts.NextProfitSeLLPrice)
 	for ts.Index, v = range ts.NextProfitSeLLPrice {
+		ts.Log.Printf("ts.CurrentPrice %v  && targetCrossed %v \n",  ts.CurrentPrice, v)
 		if ts.CurrentPrice > v {
 			targetCrossed = true
 			break
@@ -798,10 +800,7 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 		}
 	}
 	ts.RiskFactor = float64(ts.Index)
-	ab := ts.ExitRule(md)
-	ts.Log.Printf("ts.ExitRule(md) %v && targetCrossed %v\n",  ab, targetCrossed)
-	if ab && targetCrossed {
-		panic("yessssssssssssssssssssssssssssss")
+	if ts.ExitRule(md) && targetCrossed {
 		// Execute the sell order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(md, "Sell")
 		if err != nil {
