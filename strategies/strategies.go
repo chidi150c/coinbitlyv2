@@ -141,7 +141,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			loadDataFrom = "DataBase"
 			// ts.TradeCount =  287
 			// ts.ClosedWinTrades = 281
-			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5
+			ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0
 			//ts.RiskProfitLossPercentage = 0.001
 			//ts.EpochTime = time.Second * 10
 			// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
@@ -334,7 +334,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
 			// md.TargetProfit = mainValue * 0.001
 			// md.TargetStopLoss = mainValue * 0.001
-			md.TotalProfitLoss = 16.0
+			// md.TotalProfitLoss = 16.0
 		}
 	}
 	fmt.Println("MD = ", md)
