@@ -931,22 +931,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 				quantity = math.Floor(ts.BaseBalance/ts.MiniQty) * ts.MiniQty
 				if quantity < ts.MiniQty {
 					//Delete or Reset entry
-					if len(ts.EntryPrice) == 1{
-						ts.Log.Printf("So Deleting and Resetting entry as quantity %.8f is < MiniQty %.8f", quantity, ts.MiniQty)
-						if !ts.InTrade {
-							ts.StopLossTrigered = false
-						}
-						ts.InTrade = false
-						ts.StartTime = time.Now()
-						ts.LowestPrice = math.MaxFloat64
-						ts.HighestPrice = 0.0
-						ts.EntryPrice = deleteElement(ts.EntryPrice, ts.Index)
-						ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, ts.Index)
-						ts.EntryQuantity = deleteElement(ts.EntryQuantity, ts.Index)
-						ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, ts.Index)
-						ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, ts.Index)
-						ts.TradingLevel = len(ts.EntryPrice)						
-					}
+					ts.DeleteOrResetEntry("floor BaseBalance", quantity, "MiniQty", ts.MiniQty)
 					return "", fmt.Errorf("cannot execute a sell order due to insufficient BaseBalance: %.8f miniQuantity required: %.8f", ts.QuoteBalance, ts.MiniQty)
 				} else {
 					// return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, quantity)
@@ -959,8 +944,10 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		// Calculate the total cost of the trade
 		totalCost := quantity * exitPrice
 		// Check if the total cost meets the minNotional requirement
-		if totalCost < ts.MinNotional {
-			ts.Log.Printf("Less thayn MinNotional: Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, exitPrice, totalCost, ts.MinNotional)
+		if totalCost < ts.MinNotional {			
+			//Delete or Reset entry
+			ts.DeleteOrResetEntry("totalCost", totalCost, "MinNotional", ts.MinNotional)
+			ts.Log.Printf("Less than MinNotional: Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, exitPrice, totalCost, ts.MinNotional)
 			return "", fmt.Errorf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, exitPrice, totalCost, ts.MinNotional)
 		}
 
@@ -1015,7 +1002,24 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		return "", fmt.Errorf("invalid trade action: %s", tradeAction)
 	}
 }
-
+func (ts *TradingSystem) DeleteOrResetEntry(have string, quantity float64, expected string, target float64){
+	if len(ts.EntryPrice) == 1{
+		ts.Log.Printf("So Deleting and Resetting entry as %s %.8f is < %s %.8f", have, quantity, expected, target)
+		if !ts.InTrade {
+			ts.StopLossTrigered = false
+		}
+		ts.InTrade = false
+		ts.StartTime = time.Now()
+		ts.LowestPrice = math.MaxFloat64
+		ts.HighestPrice = 0.0
+		ts.EntryPrice = deleteElement(ts.EntryPrice, ts.Index)
+		ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, ts.Index)
+		ts.EntryQuantity = deleteElement(ts.EntryQuantity, ts.Index)
+		ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, ts.Index)
+		ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, ts.Index)
+		ts.TradingLevel = len(ts.EntryPrice)						
+	}
+}
 // RiskManagement applies risk management rules to limit potential losses.
 // It calculates the stop-loss price based on the fixed percentage of risk per trade and the position size.
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
