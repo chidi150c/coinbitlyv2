@@ -1043,63 +1043,63 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 	case 0:
 		ts.RiskCost += 5.0 + 1.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.001
-		md.TargetStopLoss = mainValue * 0.001
+		md.TargetProfit = mainValue * 0.0006
+		md.TargetStopLoss = mainValue * 0.0006
 	case 1:
 		ts.RiskCost += 10.0 + 1.5 + 0.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.00095
-		md.TargetStopLoss = mainValue * 0.00095
+		md.TargetProfit = mainValue * 0.000625
+		md.TargetStopLoss = mainValue * 0.000625
 	case 2:
 		ts.RiskCost += 15.0 + 2.0 + 1.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.0009
-		md.TargetStopLoss = mainValue * 0.0009
+		md.TargetProfit = mainValue * 0.00065
+		md.TargetStopLoss = mainValue * 0.00065
 	case 3:
 		ts.RiskCost += 20.0 + 2.5 + 1.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.00085
-		md.TargetStopLoss = mainValue * 0.00085
+		md.TargetProfit = mainValue * 0.000675
+		md.TargetStopLoss = mainValue * 0.000675
 	case 4:
 		ts.RiskCost += 25.0 + 5.0 + 2.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.0008
-		md.TargetStopLoss = mainValue * 0.0008
+		md.TargetProfit = mainValue * 0.0007
+		md.TargetStopLoss = mainValue * 0.0007
 	case 5:
 		ts.RiskCost += 30.0 + 7.5 + 2.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.00075
-		md.TargetStopLoss = mainValue * 0.00075
+		md.TargetProfit = mainValue * 0.000725
+		md.TargetStopLoss = mainValue * 0.000725
 	case 6:
 		ts.RiskCost += 35.0 + 10.0 + 5.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.000725
-		md.TargetStopLoss = mainValue * 0.000725
+		md.TargetProfit = mainValue * 0.00075
+		md.TargetStopLoss = mainValue * 0.00075
 	case 7:
 		ts.RiskCost += 40.0 + 12.5 + 7.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.0007
-		md.TargetStopLoss = mainValue * 0.0007
+		md.TargetProfit = mainValue * 0.0008
+		md.TargetStopLoss = mainValue * 0.0008
 	case 8:
 		ts.RiskCost += 45.0 + 15. + 10.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.000675
-		md.TargetStopLoss = mainValue * 0.000675
+		md.TargetProfit = mainValue * 0.00085
+		md.TargetStopLoss = mainValue * 0.00085
 	case 9:
 		ts.RiskCost = 50.0 + 17.5 + 12.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.00065
-		md.TargetStopLoss = mainValue * 0.00065
+		md.TargetProfit = mainValue * 0.0009
+		md.TargetStopLoss = mainValue * 0.0009
 	case 10:
 		ts.RiskCost = 55.0 + 19.5 + 14.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.000625
-		md.TargetStopLoss = mainValue * 0.000625
+		md.TargetProfit = mainValue * 0.00095
+		md.TargetStopLoss = mainValue * 0.00095
 	default:
 		ts.RiskCost = 100.0 + 17.5 + 12.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.0006
-		md.TargetStopLoss = mainValue * 0.0006
+		md.TargetProfit = mainValue * 0.001
+		md.TargetStopLoss = mainValue * 0.001
 	}
 	// i := len(ts.NextInvestBuYPrice) - 1
 	// ts.Log.Printf("Stoploss NOT Marked at CurrentPrice: %.8f, of EntryPrice[%d]: %.8f, NextInvestBuYPrice[%d]: %.8f Target StopLoss: %.8f timeSinceLBS: %.2fSec ", ts.CurrentPrice, len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], i, ts.NextInvestBuYPrice[i], -md.TargetStopLoss, time.Since(ts.StartTime).Seconds())
