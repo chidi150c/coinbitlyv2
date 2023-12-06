@@ -84,6 +84,8 @@ type TradingSystem struct {
 	LowestPrice              float64
 	HighestPrice             float64
 	Index                    int
+	TLevelValue 			 int
+	TLevelAdjust 			 bool
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -882,6 +884,10 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		commissionAtProfitSeLLPrice := nextProfitSeLLPrice * quantity * ts.CommissionPercentage
 		commissionAtInvBuYPrice := nextInvBuYPrice * quantity * ts.CommissionPercentage
 		ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, nextProfitSeLLPrice+commissionAtProfitSeLLPrice)
+		if ts.TLevelAdjust{
+			ts.Log.Printf("Replenished bursted:[%d] !!! \n", ts.TLevelValue)
+			ts.TLevelAdjust = false
+		}
 		if (!ts.InTrade) && (ts.StopLossTrigered) {
 			for k, v := range ts.NextProfitSeLLPrice{
 				if ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < v{
@@ -997,8 +1003,13 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.StartTime = time.Now()
 		ts.LowestPrice = math.MaxFloat64
 		ts.HighestPrice = 0.0
-		resp := fmt.Sprintf("- SELL at ExitPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, SuposedIndex: %d, QBal: %.8f, BBal: %.8f, \nGlobalP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
+		resp := fmt.Sprintf("- SELL at ExitPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, SupposedIndex: [%d], QBal: %.8f, BBal: %.8f, \nGlobalP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
 			exitPrice, ts.Index, ts.EntryPrice[ts.Index], ts.Index, ts.EntryQuantity[ts.Index], len(ts.EntryPrice)-1, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, orderResp.Commission, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
+		if (len(ts.EntryPrice)-1) > ts.Index{
+			ts.Log.Printf("Bursted:[%d] !!! at [%d]\n", ts.Index, len(ts.EntryPrice)-1)
+			ts.TLevelValue = ts.Index
+			ts.TLevelAdjust = true
+		}
 		ts.EntryPrice = deleteElement(ts.EntryPrice, ts.Index)
 		ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, ts.Index)
 		ts.EntryQuantity = deleteElement(ts.EntryQuantity, ts.Index)
@@ -1043,11 +1054,10 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 	}
 	ts.RiskCost = math.Floor(num) * ts.StepSize
 	ts.Log.Printf("Risk Check2 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n", ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
-	tsTradingLevel := ts.TradingLevel
-	if ts.Index < ts.TradingLevel-1{
-		tsTradingLevel = ts.Index
+	if !ts.TLevelAdjust {
+		ts.TLevelValue = ts.TradingLevel
 	}
-	switch tsTradingLevel {
+	switch ts.TLevelValue {
 	case 0:
 		ts.RiskCost += 10.0 + 1.5 + 0.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
