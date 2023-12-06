@@ -682,27 +682,27 @@ func deleteElement(slice []float64, index int) []float64 {
 func elapseTime(level int) time.Duration {
 	switch level {
 	case 0:
-		return time.Minute * 25
+		return time.Minute * 20
 	case 1:
-		return time.Minute * 30
+		return time.Minute * 25
 	case 2:
-		return time.Minute * 38
+		return time.Minute * 30
 	case 3:
-		return time.Minute * 46
+		return time.Minute * 38
 	case 4:
-		return time.Minute * 52
+		return time.Minute * 46
 	case 5:
-		return time.Minute * 58
+		return time.Minute * 52
 	case 6:
-		return time.Minute * 64
+		return time.Minute * 58
 	case 7:
-		return time.Minute * 70
+		return time.Minute * 64
 	case 8:
-		return time.Minute * 76
+		return time.Minute * 70
 	case 9:
-		return time.Minute * 82
+		return time.Minute * 76
 	default:
-		return time.Minute * 88
+		return time.Minute * 82
 	}
 }
 
@@ -882,6 +882,14 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		commissionAtProfitSeLLPrice := nextProfitSeLLPrice * quantity * ts.CommissionPercentage
 		commissionAtInvBuYPrice := nextInvBuYPrice * quantity * ts.CommissionPercentage
 		ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, nextProfitSeLLPrice+commissionAtProfitSeLLPrice)
+		if (!ts.InTrade) && (ts.StopLossTrigered) {
+			for k, v := range ts.NextProfitSeLLPrice{
+				if ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < v{
+					ts.Log.Printf("LongActivated!!! Next Sell of index[%d] replaced with that of index[%d] from %.8f to %.8f", len(ts.NextProfitSeLLPrice)-1, k, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], v)
+					ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = v
+				}
+			}
+		}
 		ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, nextInvBuYPrice-commissionAtInvBuYPrice)
 
 		ts.TradingLevel = len(ts.EntryPrice)
