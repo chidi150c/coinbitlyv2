@@ -635,9 +635,10 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		}
 		if ts.InTrade && (len(ts.EntryPrice) > 0) {
 			//NextSell Re-Adjustment
-			nextProfitSeLLPrice := ((ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
-			commissionAtProfitSeLLPrice := nextProfitSeLLPrice * ts.EntryQuantity[len(ts.EntryQuantity)-1] * ts.CommissionPercentage
-			if ((nextProfitSeLLPrice + commissionAtProfitSeLLPrice) < ts.HighestPrice) && (time.Since(ts.StartTime) > elapseTime(ts.TradingLevel)) {
+			// nextProfitSeLLPrice := ((ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
+			// commissionAtProfitSeLLPrice := nextProfitSeLLPrice * ts.EntryQuantity[len(ts.EntryQuantity)-1] * ts.CommissionPercentage
+			//((nextProfitSeLLPrice + commissionAtProfitSeLLPrice) < ts.HighestPrice) &&
+			if time.Since(ts.StartTime) > elapseTime(ts.TradingLevel) {
 				before := ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1]
 				ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.HighestPrice
 				ts.Log.Printf("NextProfitSeLLPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
