@@ -933,12 +933,13 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.TLevelAdjust = false
 		}
 		if (!ts.InTrade) && (ts.StopLossTrigered) {
-			for k, v := range ts.NextProfitSeLLPrice {
-				if ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < v {
-					ts.Log.Printf("LongActivated!!! Next Sell of index[%d] replaced with that of index[%d] from %.8f to %.8f", len(ts.NextProfitSeLLPrice)-1, k, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], v)
-					ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = v
-				}
-			}
+			ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2]
+			// for k, v := range ts.NextProfitSeLLPrice {
+			// 	if ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < v {
+			// 		ts.Log.Printf("LongActivated!!! Next Sell of index[%d] replaced with that of index[%d] from %.8f to %.8f", len(ts.NextProfitSeLLPrice)-1, k, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], v)
+			// 		ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2]
+			// 	}
+			// }
 		}
 		ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, nextInvBuYPrice-commissionAtInvBuYPrice)
 
