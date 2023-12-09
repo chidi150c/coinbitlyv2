@@ -142,6 +142,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			// ts.ClosedWinTrades = 281
 		} else {
 			loadDataFrom = "DataBase"
+			ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = 44080.36000000
 			// ts.TradeCount =  287
 			// ts.ClosedWinTrades = 281
 			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0
