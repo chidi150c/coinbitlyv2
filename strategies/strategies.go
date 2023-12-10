@@ -145,7 +145,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			// ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = 44080.36000000
 			// ts.TradeCount =  287
 			// ts.ClosedWinTrades = 281
-			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0
+			ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0 + 16.6
 			//ts.RiskProfitLossPercentage = 0.001
 			//ts.EpochTime = time.Second * 10
 			// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
