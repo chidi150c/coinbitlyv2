@@ -142,7 +142,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			// ts.ClosedWinTrades = 281
 		} else {
 			loadDataFrom = "DataBase"
-			ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = 44080.36000000
+			// ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = 44080.36000000
 			// ts.TradeCount =  287
 			// ts.ClosedWinTrades = 281
 			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0
@@ -935,9 +935,9 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		}
 		if (!ts.InTrade) && (ts.StopLossTrigered) {
 			ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2]
+			ts.Log.Printf("LongActivated!!! Next Sell of index[%d] replaced with that of index[%d] from %.8f to %.8f", len(ts.NextProfitSeLLPrice)-1, len(ts.NextProfitSeLLPrice)-2, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2])
 			// for k, v := range ts.NextProfitSeLLPrice {
-			// 	if ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < v {
-			// 		ts.Log.Printf("LongActivated!!! Next Sell of index[%d] replaced with that of index[%d] from %.8f to %.8f", len(ts.NextProfitSeLLPrice)-1, k, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], v)
+			// 	if ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < v { 
 			// 		ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2]
 			// 	}
 			// }
@@ -960,11 +960,19 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.FreeFall = false
 		if ts.QuoteBalance < totalCost {
 			if (!ts.InTrade) && ts.StopLossTrigered {
+				//we just bought the final LongActivated Max buy  
 				ts.StopLossTrigered = false
+				
+				ts.EntryPrice = swapElements(ts.EntryPrice, len(ts.EntryPrice)-1, len(ts.EntryPrice)-2)
+				ts.EntryCostLoss = swapElements(ts.EntryCostLoss, len(ts.EntryCostLoss)-1, len(ts.EntryCostLoss)-2)
+				ts.EntryQuantity = swapElements(ts.EntryQuantity, len(ts.EntryQuantity)-1, len(ts.EntryQuantity)-2)
+				ts.NextProfitSeLLPrice = swapElements(ts.NextProfitSeLLPrice, len(ts.NextProfitSeLLPrice)-1, len(ts.NextProfitSeLLPrice)-2)
+				ts.NextInvestBuYPrice = swapElements(ts.NextInvestBuYPrice, len(ts.NextInvestBuYPrice)-1, len(ts.NextInvestBuYPrice)-2)
 			} else {
 				ts.InTrade = true
 				ts.StopLossTrigered = true
 				ts.HighestPrice = ts.CurrentPrice
+				//so that is goes down the full next buy original target without adjustment
 				for k, _ := range ts.NextInvestBuYPrice {
 					if k >= 1 {
 						ts.NextInvestBuYPrice[k-1] = ts.NextInvestBuYPrice[i-1]
@@ -1072,6 +1080,18 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 	default:
 		return "", fmt.Errorf("invalid trade action: %s", tradeAction)
 	}
+}
+
+func swapElements(slice []float64, index1, index2 int) []float64{
+	// Check if the indices are valid
+	if index1 < 0 || index1 >= len(slice) || index2 < 0 || index2 >= len(slice) {
+		fmt.Println("Invalid indices")
+		return slice
+	}
+
+	// Swap the values at the specified indices
+	slice[index1], slice[index2] = slice[index2], slice[index1]
+	return slice
 }
 func (ts *TradingSystem) DeleteOrResetEntry(have string, quantity float64, expected string, target float64) {
 	if len(ts.EntryPrice) == 1 {
