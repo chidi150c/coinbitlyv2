@@ -145,7 +145,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			// ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = 44080.36000000
 			// ts.TradeCount =  287
 			// ts.ClosedWinTrades = 281
-			ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0 + 16.6 + 58.0
+			ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0 + 16.6 + 58.0 + 56.72
 			//ts.RiskProfitLossPercentage = 0.001
 			//ts.EpochTime = time.Second * 10
 			// ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
@@ -702,20 +702,20 @@ func elapseTime(level int) time.Duration {
 		return time.Minute * 30
 	case 3:
 		return time.Minute * 38
-	// case 4:
-	// 	return time.Minute * 46
-	// case 5:
-	// 	return time.Minute * 52
-	// case 6:
-	// 	return time.Minute * 58
-	// case 7:
-	// 	return time.Minute * 64
-	// case 8:
-	// 	return time.Minute * 70
-	// case 9:
-	// 	return time.Minute * 76
-	default:
+	case 4:
+		return time.Minute * 60 * 1
+	case 5:
 		return time.Minute * 60 * 2
+	case 6:
+		return time.Minute * 60 * 3
+	case 7:
+		return time.Minute * 60 * 4
+	case 8:
+		return time.Minute * 60 * 5
+	case 9:
+		return time.Minute * 60 * 6
+	default:
+		return time.Minute * 60 * 10
 	}
 }
 func elapseTimeSeLL(level int) time.Duration {
@@ -877,10 +877,11 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		//check if there is enough Quote (USDT) for the buy transaction
 		if ts.QuoteBalance < totalCost {
 			//if we have hit bottom earlier and expecting to sell but rather hit buy target
+			ts.Log.Printf("Unable to buY!!!! Insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice)
 			if ts.InTrade && ts.StopLossTrigered {
+				ts.Log.Printf("FreeFall of SeLL-Target Activated!!! at NextProfitSeLLPrice: %.8f", ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
 				ts.FreeFall = true
 			}
-			ts.Log.Printf("Unable to buY!!!! Insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice)
 			// quantity = ts.QuoteBalance / ts.CurrentPrice
 			// quantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
 			// if quantity < ts.MiniQty {
@@ -1155,27 +1156,27 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 		ts.RiskCost += 30.0 + 7.5 + 2.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.0007 
-		md.TargetStopLoss = mainValue * 0.00085
+		md.TargetStopLoss = mainValue * 0.001
 	case 5:
 		ts.RiskCost += 35.0 + 10.0 + 5.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.000725
-		md.TargetStopLoss = mainValue * 0.0009
+		md.TargetStopLoss = mainValue * 0.0015
 	case 6:
 		ts.RiskCost += 40.0 + 12.5 + 7.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.00075
-		md.TargetStopLoss = mainValue * 0.001
+		md.TargetStopLoss = mainValue * 0.002
 	case 7:
 		ts.RiskCost += 45.0 + 15. + 10.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.0008
-		md.TargetStopLoss = mainValue * 0.002
+		md.TargetStopLoss = mainValue * 0.0025
 	case 8:
 		ts.RiskCost += 50.0 + 17.5 + 12.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.00085
-		md.TargetStopLoss = mainValue * 0.003
+		md.TargetStopLoss = mainValue * 0.00325
 	case 9:
 		ts.RiskCost = 55.0 + 19.5 + 14.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
