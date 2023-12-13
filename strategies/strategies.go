@@ -660,6 +660,10 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
 		// 	log.Fatalf("Error: writing to influxDB: %v", err)
 		// }
+		
+		tsID, err := ts.RDBServices.CreateDBTradingSystem(ts)
+		fmt.Println("old id:", ts.ID, "new id:", tsID, "error:", err)
+		panic("dffffffffffffffffff")
 	}
 }
 func deleteElement(slice []float64, index int) []float64 {
@@ -838,9 +842,6 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 		ts.EntryRule(md)                        //To takecare of EMA Calculation and Grphing
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
-	// <-ts.UpgdChan
-	// <-ts.UpgdChan
-	// panic("ddddddddddddddddddddddddf")
 }
 
 // ExecuteStrategy executes the trade based on the provided trade action and current price.
@@ -901,9 +902,15 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 
 		if (!ts.InTrade) && (ts.StopLossTrigered) {
 			//upgrade to next stage
-			<-ts.UpgdChan
-			<-ts.UpgdChan
-			ts.StopLossRecover = append(ts.StopLossRecover, 1.0)
+			tsID, err := ts.RDBServices.CreateDBTradingSystem(ts)
+			if err != nil {
+				panic(fmt.Sprintf("Error Creating TradingSystem: %v", err))
+			}else{
+				ts.Log.Printf("Upgrade done with  New Ts ID: %d", tsID)
+				ts.StopLossRecover = append(ts.StopLossRecover, float64(tsID))
+				<-ts.UpgdChan
+				<-ts.UpgdChan			
+			}
 			ts.ID = uint(len(ts.StopLossRecover))
 		}
 
