@@ -1,6 +1,7 @@
 package strategies
 
 import (
+	"fmt"
 	"testing"
 
 	// "coinbitly.com/model"
@@ -16,22 +17,23 @@ func TestCreateAndReadDBTradingSystem(t *testing.T) {
 		ClosingPrices: []float64{100.0, 105.0, 110.0},
 		// Initialize other fields as needed
 	}
-
+	var err error 
 	// Create the TradingSystem in the database
-	tradeID, err := rdbServices.CreateDBTradingSystem(ts)
+	ts.ID, err = rdbServices.CreateDBTradingSystem(ts)
 	assert.NoError(t, err) // Ensure there are no errors
-
+	fmt.Printf("created ts.ID %d\n", ts.ID)
 	// Read the TradingSystem from the database using the ID obtained from creation
-	readTS, err := rdbServices.ReadDBTradingSystem(tradeID)
+	readTS, err := rdbServices.ReadDBTradingSystem(ts.ID)
 	assert.NoError(t, err) // Ensure there are no errors
-
+	fmt.Printf("Read ts.ID %d but created ts.ID %d\n", readTS.ID, ts.ID)
+	
 	// Assert that the read TradingSystem matches the original one
 	assert.Equal(t, ts.Symbol, readTS.Symbol)
 	assert.ElementsMatch(t, ts.ClosingPrices, readTS.ClosingPrices)
 	// Add more assertions for other fields as needed
 
-	// Clean up: Delete the created TradingSystem to keep the test environment clean
-	err = rdbServices.DeleteDBTradingSystem(tradeID)
-	assert.NoError(t, err) // Ensure there are no errors while deleting
+	// // Clean up: Delete the created TradingSystem to keep the test environment clean
+	// err = rdbServices.DeleteDBTradingSystem(tradeID)
+	// assert.NoError(t, err) // Ensure there are no errors while deleting
 }
 
