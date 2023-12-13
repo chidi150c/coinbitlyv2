@@ -662,11 +662,12 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		// }
 		tsID, err := ts.RDBServices.CreateDBTradingSystem(ts)
 		fmt.Println("old id:", ts.ID, "new id:", tsID, "error:", err)
-		ts.RDBServices.DeleteDBTradingSystem(1)
-		ts.RDBServices.DeleteDBTradingSystem(2)
-		ts.RDBServices.DeleteDBTradingSystem(3)
+		fmt.Println("d1", ts.RDBServices.DeleteDBTradingSystem(1))
+		fmt.Println("d2", ts.RDBServices.DeleteDBTradingSystem(2))
+		fmt.Println("d3", ts.RDBServices.DeleteDBTradingSystem(3))
 		ts.ID = 1
-		tsID, err = ts.RDBServices.CreateDBTradingSystem(ts)
+		err = ts.RDBServices.UpdateDBTradingSystem(ts)
+		ts, _ = ts.RDBServices.ReadDBTradingSystem(ts.ID)
 		fmt.Println("old id:", ts.ID, "new id:", tsID, "error:", err)
 		panic("dffffffffffffffffff")
 	}
