@@ -840,7 +840,7 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 	}
 	// <-ts.UpgdChan
 	// <-ts.UpgdChan
-	panic("ddddddddddddddddddddddddf")
+	// panic("ddddddddddddddddddddddddf")
 }
 
 // ExecuteStrategy executes the trade based on the provided trade action and current price.
