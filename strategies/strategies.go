@@ -660,8 +660,12 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
 		// 	log.Fatalf("Error: writing to influxDB: %v", err)
 		// }
-		
 		tsID, err := ts.RDBServices.CreateDBTradingSystem(ts)
+		fmt.Println("old id:", ts.ID, "new id:", tsID, "error:", err)
+		ts.RDBServices.DeleteDBTradingSystem(1)
+		ts.RDBServices.DeleteDBTradingSystem(2)
+		ts.RDBServices.DeleteDBTradingSystem(3)
+		tsID, err = ts.RDBServices.CreateDBTradingSystem(ts)
 		fmt.Println("old id:", ts.ID, "new id:", tsID, "error:", err)
 		panic("dffffffffffffffffff")
 	}
