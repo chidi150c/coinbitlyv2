@@ -665,7 +665,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			if err != nil {
 				panic(fmt.Sprintf("Error Creating TradingSystem: %v", err))
 			}else{
-				ts.Log.Printf("Upgrade done with  New Ts ID: %d", tsID)
+				log.Printf("Upgrade done with  New Ts ID: %d", tsID)
 				ts.StopLossRecover = append(ts.StopLossRecover, float64(tsID))
 				<-ts.UpgdChan
 				<-ts.UpgdChan			
