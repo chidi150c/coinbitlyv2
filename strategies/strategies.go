@@ -57,7 +57,7 @@ type TradingSystem struct {
 	TradingLevel             int
 	ClosedWinTrades          int
 	EnableStoploss           bool
-	StopLossTrigered         bool      
+	StopLossTrigered         bool
 	StopLossRecover          []float64 //Redundant
 	RiskFactor               float64
 	MaxDataSize              int
@@ -87,6 +87,7 @@ type TradingSystem struct {
 	TLevelValue              int
 	TLevelAdjust             bool
 	FreeFall                 bool
+	UpgdChan                 chan bool
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -138,10 +139,11 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 				} else {
 					ts = tsUS
 				}
-			}else{
+			} else {
 				log.Printf("No Upper Stages!!")
 			}
-			loadDataFrom = "DataBase"
+			loadDataFrom = "DataBase"			
+			ts.UpgdChan = make(chan bool)
 			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0 + 16.6 + 58.0 + 56.72
 		}
 	}
@@ -171,6 +173,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	ts.DBStoreTicker = time.NewTicker(ts.EpochTime)
 	ts.TSDataChan = make(chan []byte)
 	ts.ADataChan = make(chan []byte)
+	ts.UpgdChan = make(chan bool)
 	ts.MDChan = make(chan *model.AppData)
 	//Sending TS to Frontend UI
 	go func() { //Goroutine to feed the front end React UI
@@ -237,6 +240,12 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			log.Printf("Ready to send TS to Database")
 			for {
 				select {
+				case ts.UpgdChan <- true:
+					if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil {
+						panic(fmt.Sprintf("Error Upgrade Updating TradingSystem: %v", err))
+					}
+					ts.Log.Printf("Updating TradingSystem due to Upgrade happening now!!! where %v", err)
+					ts.UpgdChan <- true
 				case <-time.After(time.Second * 900):
 					if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil {
 						ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
@@ -829,6 +838,9 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 		ts.EntryRule(md)                        //To takecare of EMA Calculation and Grphing
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
+	<-ts.UpgdChan
+	<-ts.UpgdChan
+	panic("ddddddddddddddddddddddddf")
 }
 
 // ExecuteStrategy executes the trade based on the provided trade action and current price.
@@ -887,9 +899,10 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.BaseBalance += quantity
 		md.TotalProfitLoss -= (ts.CommissionPercentage * quantity * ts.CurrentPrice)
 
-		
 		if (!ts.InTrade) && (ts.StopLossTrigered) {
 			//upgrade to next stage
+			<-ts.UpgdChan
+			<-ts.UpgdChan
 			ts.StopLossRecover = append(ts.StopLossRecover, 1.0)
 			ts.ID = uint(len(ts.StopLossRecover))
 		}
@@ -911,7 +924,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2]
 			ts.Log.Printf("LongActivated!!! Next Sell of index[%d] replaced with that of index[%d] from %.8f to %.8f", len(ts.NextProfitSeLLPrice)-1, len(ts.NextProfitSeLLPrice)-2, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2])
 			// for k, v := range ts.NextProfitSeLLPrice {
-			// 	if ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < v { 
+			// 	if ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < v {
 			// 		ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2]
 			// 	}
 			// }
@@ -933,11 +946,11 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		}
 		ts.FreeFall = false
 		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, EntryCostLoss[%d]: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice[%d]: %.8f nextInvBuYPrice[%d]: %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d, mdDataPt: %d \n",
-		len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], md.RiskPositionPercentage, md.TotalProfitLoss, len(ts.NextProfitSeLLPrice)-1, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], len(ts.NextInvestBuYPrice)-1, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
+			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], md.RiskPositionPercentage, md.TotalProfitLoss, len(ts.NextProfitSeLLPrice)-1, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], len(ts.NextInvestBuYPrice)-1, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
 		if ts.QuoteBalance < totalCost {
 			if (!ts.InTrade) && ts.StopLossTrigered {
-				//we just bought the final LongActivated Max buy  
-				ts.StopLossTrigered = false				
+				//we just bought the final LongActivated Max buy
+				ts.StopLossTrigered = false
 				ts.EntryPrice = swapElements(ts.EntryPrice, len(ts.EntryPrice)-1, len(ts.EntryPrice)-2)
 				ts.EntryCostLoss = swapElements(ts.EntryCostLoss, len(ts.EntryCostLoss)-1, len(ts.EntryCostLoss)-2)
 				ts.EntryQuantity = swapElements(ts.EntryQuantity, len(ts.EntryQuantity)-1, len(ts.EntryQuantity)-2)
@@ -956,7 +969,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 				}
 				ts.Log.Printf("NextSell Re-Adjusting Switched ON for %s: as Balance = %.8f is Less than NextRiskCost = %.8f and NextInvestBuYPrice[%d] updated with [%d] from %.8f to %.8f \n", ts.Symbol, ts.QuoteBalance, totalCost, i-2, i-1, before, ts.NextInvestBuYPrice[i-1])
 				resp = fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, EntryCostLoss[%d]: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice[%d]: %.8f nextInvBuYPrice[%d]: %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d, mdDataPt: %d \n",
-				len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], md.RiskPositionPercentage, md.TotalProfitLoss, len(ts.NextProfitSeLLPrice)-1, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], len(ts.NextInvestBuYPrice)-1, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
+					len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], md.RiskPositionPercentage, md.TotalProfitLoss, len(ts.NextProfitSeLLPrice)-1, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], len(ts.NextInvestBuYPrice)-1, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
 			}
 		} else {
 			if !ts.InTrade {
@@ -1058,7 +1071,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 	}
 }
 
-func swapElements(slice []float64, index1, index2 int) []float64{
+func swapElements(slice []float64, index1, index2 int) []float64 {
 	// Check if the indices are valid
 	if index1 < 0 || index1 >= len(slice) || index2 < 0 || index2 >= len(slice) {
 		fmt.Println("Invalid indices")
@@ -1133,7 +1146,7 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 	case 4:
 		ts.RiskCost += 30.0 + 7.5 + 2.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.0007 
+		md.TargetProfit = mainValue * 0.0007
 		md.TargetStopLoss = mainValue * 0.001
 	case 5:
 		ts.RiskCost += 35.0 + 10.0 + 5.0
