@@ -36,6 +36,7 @@ func (dbs *RDBServices) CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, 
 	}
 	defer conn.Close()
 	trade := model.TradingSystemData{
+		ID:                       ts.ID,
 		Symbol:                   ts.Symbol,
 		ClosingPrices:            ts.ClosingPrices,
 		Timestamps:               ts.Timestamps,
@@ -252,7 +253,7 @@ func (dbs *RDBServices) UpdateDBTradingSystem(ts *TradingSystem) (err error) {
 		MaxDataSize:              ts.MaxDataSize,
 		RiskProfitLossPercentage: ts.RiskProfitLossPercentage,
 		BaseCurrency:             ts.BaseCurrency,
-		QuoteCurrency:            ts.QuoteCurrency, 
+		QuoteCurrency:            ts.QuoteCurrency,
 		MiniQty:                  ts.MiniQty,
 		MaxQty:                   ts.MaxQty,
 		MinNotional:              ts.MinNotional,
@@ -466,12 +467,12 @@ func (dbs *RDBServices) ReadDBAppData(dataID uint) (dbts *model.AppData, err err
 	if !strings.Contains(ms, "successfully") {
 		return nil, fmt.Errorf("Something AppData went wrong: %v", ms)
 	}
-    dbts = &model.AppData{}
+	dbts = &model.AppData{}
 	dataByte, _ := json.Marshal(response["data"])
 	// Deserialize the WebSocket message directly into the struct
 	if err := json.Unmarshal(dataByte, dbts); err != nil {
 		return nil, fmt.Errorf("Error1 parsing WebSocket message: %v", err)
-	}	
+	}
 	fmt.Printf("%v with id: %v\n", ms, dbts.ID)
 	return dbts, err
 }
