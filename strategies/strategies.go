@@ -142,7 +142,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 				}
 			} else {
 				log.Printf("No Upper Stages!!")
-				ts.ID = 1
+				// ts.ID = 1
 			}
 			loadDataFrom = "DataBase"			
 			ts.UpgdChan = make(chan bool)
@@ -661,31 +661,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
 		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
 		// 	log.Fatalf("Error: writing to influxDB: %v", err)
-		// }
-		//upgrade to next stage
-			tsID, err := ts.RDBServices.CreateDBTradingSystem(ts)
-			if err != nil {
-				panic(fmt.Sprintf("Error Creating TradingSystem: %v", err))
-			}else{
-				ts.StopLossRecover = append(ts.StopLossRecover, float64(tsID))
-				<-ts.UpgdChan
-				<-ts.UpgdChan			
-				ts, err = ts.RDBServices.ReadDBTradingSystem(tsID)
-				if err != nil {
-					panic(fmt.Sprintf("Upgrade Error Reading Created TradingSystem: with id: %d %v", ts.ID, err))
-				}else if ts.ID != tsID{
-					panic(fmt.Sprintf("Upgrade Error2 Reading Created TradingSystem: with incorrect id: %d %v", ts.ID, err))
-				}else {
-					log.Printf("Upgrade done with New Ts ID: %d\n", tsID)
-					ts.EntryPrice = []float64{}
-					ts.EntryCostLoss = []float64{}
-					ts.EntryQuantity = []float64{}
-					ts.NextProfitSeLLPrice = []float64{}
-					ts.NextInvestBuYPrice = []float64{}
-				}
-			}
-		
-			panic("ffffffffffffffffffffffffffffff")
+		// }		
 	}
 }
 func deleteElement(slice []float64, index int) []float64 {
