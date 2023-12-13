@@ -230,6 +230,7 @@ func (dbs *RDBServices) UpdateDBTradingSystem(ts *TradingSystem) (err error) {
 	}
 	defer conn.Close()
 	trade := model.TradingSystemData{
+		ID:                       ts.ID,
 		Symbol:                   ts.Symbol,
 		ClosingPrices:            ts.ClosingPrices,
 		Timestamps:               ts.Timestamps,

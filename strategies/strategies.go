@@ -120,7 +120,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			loadDataFrom = "DataBase"
 		}
 	} else {
-		ts, err = rDBServices.ReadDBTradingSystem(0)
+		ts, err = rDBServices.ReadDBTradingSystem(1)
 		if err != nil {
 			fmt.Println("TS = ", ts)
 			log.Printf("\n%v: But going ahead to initialize empty TS struct\n", err)
@@ -242,7 +242,6 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			for {
 				select {
 				case ts.UpgdChan <- true:
-					fmt.Printf("update via chan ts.ID: %d",ts.ID)
 					if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil {
 						panic(fmt.Sprintf("Error Upgrade Updating TradingSystem: %v", err))
 					}
@@ -294,7 +293,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		}
 	} else {
 		rDBServices := NewRDBServices(loadExchFrom)
-		md, err = rDBServices.ReadDBAppData(0)
+		md, err = rDBServices.ReadDBAppData(1)
 		if err != nil {
 			fmt.Println("MD = ", md)
 			log.Printf("\n%v: But going ahead to initialize empty AppData struct\n", err)
