@@ -244,7 +244,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 					if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil {
 						panic(fmt.Sprintf("Error Upgrade Updating TradingSystem: %v", err))
 					}
-					ts.Log.Printf("Updating TradingSystem due to Upgrade happening now!!! where %v", err)
+					log.Printf("Updating TradingSystem due to Upgrade happening now!!! where %v", err)
 					ts.UpgdChan <- true
 				case <-time.After(time.Second * 900):
 					if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil {
@@ -838,8 +838,8 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 		ts.EntryRule(md)                        //To takecare of EMA Calculation and Grphing
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
-	<-ts.UpgdChan
-	<-ts.UpgdChan
+	// <-ts.UpgdChan
+	// <-ts.UpgdChan
 	panic("ddddddddddddddddddddddddf")
 }
 
