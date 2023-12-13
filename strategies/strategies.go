@@ -134,12 +134,12 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			if len(ts.StopLossRecover) > 0 {
 				tsUS, err := rDBServices.ReadDBTradingSystem(uint(len(ts.StopLossRecover)))
 				if err != nil {
-					ts.Log.Printf("%v: No Upper Stages!!!", err)
+					log.Printf("%v: No Upper Stages!!!", err)
 				} else {
 					ts = tsUS
 				}
 			}else{
-				ts.Log.Printf("No Upper Stages!!")
+				log.Printf("No Upper Stages!!")
 			}
 			loadDataFrom = "DataBase"
 			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0 + 16.6 + 58.0 + 56.72
