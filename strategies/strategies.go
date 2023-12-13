@@ -120,7 +120,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			loadDataFrom = "DataBase"
 		}
 	} else {
-		ts, err = rDBServices.ReadDBTradingSystem(0)
+		ts, err = rDBServices.ReadDBTradingSystem(1)
 		if err != nil {
 			fmt.Println("TS = ", ts)
 			log.Printf("\n%v: But going ahead to initialize empty TS struct\n", err)
@@ -142,7 +142,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 				}
 			} else {
 				log.Printf("No Upper Stages!!")
-				// ts.ID = 1
+				ts.ID = 1
 			}
 			loadDataFrom = "DataBase"			
 			ts.UpgdChan = make(chan bool)
