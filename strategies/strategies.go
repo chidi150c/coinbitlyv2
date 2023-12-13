@@ -665,6 +665,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		ts.RDBServices.DeleteDBTradingSystem(1)
 		ts.RDBServices.DeleteDBTradingSystem(2)
 		ts.RDBServices.DeleteDBTradingSystem(3)
+		ts.ID = 1
 		tsID, err = ts.RDBServices.CreateDBTradingSystem(ts)
 		fmt.Println("old id:", ts.ID, "new id:", tsID, "error:", err)
 		panic("dffffffffffffffffff")

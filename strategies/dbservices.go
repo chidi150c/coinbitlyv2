@@ -252,7 +252,7 @@ func (dbs *RDBServices) UpdateDBTradingSystem(ts *TradingSystem) (err error) {
 		MaxDataSize:              ts.MaxDataSize,
 		RiskProfitLossPercentage: ts.RiskProfitLossPercentage,
 		BaseCurrency:             ts.BaseCurrency,
-		QuoteCurrency:            ts.QuoteCurrency,
+		QuoteCurrency:            ts.QuoteCurrency, 
 		MiniQty:                  ts.MiniQty,
 		MaxQty:                   ts.MaxQty,
 		MinNotional:              ts.MinNotional,
