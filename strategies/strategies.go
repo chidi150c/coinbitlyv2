@@ -662,17 +662,29 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
 		// 	log.Fatalf("Error: writing to influxDB: %v", err)
 		// }
-			// ts.RDBServices.DeleteDBTradingSystem(1)
-			// ts.RDBServices.DeleteDBTradingSystem(2)
+		//upgrade to next stage
 			tsID, err := ts.RDBServices.CreateDBTradingSystem(ts)
 			if err != nil {
 				panic(fmt.Sprintf("Error Creating TradingSystem: %v", err))
 			}else{
-				log.Printf("Upgrade done with  New Ts ID: %d", tsID)
 				ts.StopLossRecover = append(ts.StopLossRecover, float64(tsID))
 				<-ts.UpgdChan
 				<-ts.UpgdChan			
+				ts, err = ts.RDBServices.ReadDBTradingSystem(tsID)
+				if err != nil {
+					panic(fmt.Sprintf("Upgrade Error Reading Created TradingSystem: with id: %d %v", ts.ID, err))
+				}else if ts.ID != tsID{
+					panic(fmt.Sprintf("Upgrade Error2 Reading Created TradingSystem: with incorrect id: %d %v", ts.ID, err))
+				}else {
+					log.Printf("Upgrade done with New Ts ID: %d\n", tsID)
+					ts.EntryPrice = []float64{}
+					ts.EntryCostLoss = []float64{}
+					ts.EntryQuantity = []float64{}
+					ts.NextProfitSeLLPrice = []float64{}
+					ts.NextInvestBuYPrice = []float64{}
+				}
 			}
+		
 			panic("ffffffffffffffffffffffffffffff")
 	}
 }
@@ -916,12 +928,23 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			if err != nil {
 				panic(fmt.Sprintf("Error Creating TradingSystem: %v", err))
 			}else{
-				ts.Log.Printf("Upgrade done with  New Ts ID: %d", tsID)
 				ts.StopLossRecover = append(ts.StopLossRecover, float64(tsID))
 				<-ts.UpgdChan
 				<-ts.UpgdChan			
+				ts, err = ts.RDBServices.ReadDBTradingSystem(tsID)
+				if err != nil {
+					panic(fmt.Sprintf("Upgrade Error Reading Created TradingSystem: with id: %d %v", ts.ID, err))
+				}else if ts.ID != tsID{
+					panic(fmt.Sprintf("Upgrade Error2 Reading Created TradingSystem: with incorrect id: %d %v", ts.ID, err))
+				}else {
+					log.Printf("Upgrade done with New Ts ID: %d\n", tsID)
+					ts.EntryPrice = []float64{}
+					ts.EntryCostLoss = []float64{}
+					ts.EntryQuantity = []float64{}
+					ts.NextProfitSeLLPrice = []float64{}
+					ts.NextInvestBuYPrice = []float64{}
+				}
 			}
-			ts.ID = uint(len(ts.StopLossRecover))
 		}
 
 		//Record entry entities for calculating profit/loss and stoploss later.
