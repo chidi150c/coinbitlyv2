@@ -244,7 +244,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 				select {
 				case ts.UpgdChan <- true:
 					if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil {
-						panic(fmt.Sprintf("Error Upgrade Updating TradingSystem: %v", err))
+						panic(fmt.Sprintf("Error Upgrade Updating TradingSystem: with id: %d %v", ts.ID, err))
 					}
 					log.Printf("Updating TradingSystem due to Upgrade happening now!!! where ts.ID: %d errpr: %v ",ts.ID, err)
 					ts.UpgdChan <- true
