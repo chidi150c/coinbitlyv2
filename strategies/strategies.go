@@ -142,6 +142,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 				}
 			} else {
 				log.Printf("No Upper Stages!!")
+				ts.ID = 1
 			}
 			loadDataFrom = "DataBase"			
 			ts.UpgdChan = make(chan bool)
@@ -661,8 +662,8 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
 		// 	log.Fatalf("Error: writing to influxDB: %v", err)
 		// }
-			ts.RDBServices.DeleteDBTradingSystem(1)
-			ts.RDBServices.DeleteDBTradingSystem(2)
+			// ts.RDBServices.DeleteDBTradingSystem(1)
+			// ts.RDBServices.DeleteDBTradingSystem(2)
 			tsID, err := ts.RDBServices.CreateDBTradingSystem(ts)
 			if err != nil {
 				panic(fmt.Sprintf("Error Creating TradingSystem: %v", err))
