@@ -663,7 +663,6 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		// }
 			ts.RDBServices.DeleteDBTradingSystem(1)
 			ts.RDBServices.DeleteDBTradingSystem(2)
-			ts.RDBServices.DeleteDBTradingSystem(3)
 			tsID, err := ts.RDBServices.CreateDBTradingSystem(ts)
 			if err != nil {
 				panic(fmt.Sprintf("Error Creating TradingSystem: %v", err))
