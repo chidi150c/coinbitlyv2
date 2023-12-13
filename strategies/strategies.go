@@ -134,12 +134,12 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			if len(ts.StopLossRecover) > 0 {
 				tsUS, err := rDBServices.ReadDBTradingSystem(uint(len(ts.StopLossRecover)))
 				if err != nil {
-					ts.Log.Printf("\n%v: No Upper Stages!!!\n", err)
+					ts.Log.Printf("%v: No Upper Stages!!!", err)
 				} else {
 					ts = tsUS
 				}
 			}else{
-				ts.Log.Printf("\n No Upper Stages!!\n")
+				ts.Log.Printf("No Upper Stages!!")
 			}
 			loadDataFrom = "DataBase"
 			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0 + 16.6 + 58.0 + 56.72
@@ -864,11 +864,6 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.Log.Printf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, ts.CurrentPrice, totalCost, ts.MinNotional)
 			return "", fmt.Errorf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, ts.CurrentPrice, totalCost, ts.MinNotional)
 		}
-		if (!ts.InTrade) && (ts.StopLossTrigered) {
-			quantity = ts.QuoteBalance / ts.CurrentPrice
-			quantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
-			ts.Log.Printf("Quantity topped up to the Maximum Possible !!! \n")
-		}
 
 		//Placing a Buy order
 		//////////////////////////////////////////////////////////////////
@@ -891,6 +886,13 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.QuoteBalance -= totalCost
 		ts.BaseBalance += quantity
 		md.TotalProfitLoss -= (ts.CommissionPercentage * quantity * ts.CurrentPrice)
+
+		
+		if (!ts.InTrade) && (ts.StopLossTrigered) {
+			//upgrade to next stage
+			ts.StopLossRecover = append(ts.StopLossRecover, 1.0)
+			ts.ID = uint(len(ts.StopLossRecover))
+		}
 
 		//Record entry entities for calculating profit/loss and stoploss later.
 		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
@@ -1103,6 +1105,9 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 	ts.Log.Printf("Risk Check2 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n", ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
 	if !ts.TLevelAdjust {
 		ts.TLevelValue = ts.TradingLevel
+	}
+	if (!ts.InTrade) && (ts.StopLossTrigered) {
+		ts.TLevelValue = 0
 	}
 	switch ts.TLevelValue {
 	case 0:
