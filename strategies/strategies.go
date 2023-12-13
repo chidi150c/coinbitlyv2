@@ -133,11 +133,12 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.BaseCurrency = BaseCurrency
 		} else {
 			if len(ts.StopLossRecover) > 0 {
-				tsUS, err := rDBServices.ReadDBTradingSystem(uint(len(ts.StopLossRecover)))
+				tsUS, err := rDBServices.ReadDBTradingSystem(uint(ts.StopLossRecover[len(ts.StopLossRecover)-1]))
 				if err != nil {
 					log.Printf("%v: No Upper Stages!!!", err)
 				} else {
 					ts = tsUS
+					log.Printf("Loaded Upper Stage with ID: %d", ts.ID)
 				}
 			} else {
 				log.Printf("No Upper Stages!!")
@@ -660,16 +661,16 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
 		// 	log.Fatalf("Error: writing to influxDB: %v", err)
 		// }
-		tsID, err := ts.RDBServices.CreateDBTradingSystem(ts)
-		fmt.Println("old id:", ts.ID, "new id:", tsID, "error:", err)
-		fmt.Println("d1", ts.RDBServices.DeleteDBTradingSystem(1))
-		fmt.Println("d2", ts.RDBServices.DeleteDBTradingSystem(2))
-		fmt.Println("d3", ts.RDBServices.DeleteDBTradingSystem(3))
-		ts.ID = 1
-		err = ts.RDBServices.UpdateDBTradingSystem(ts)
-		ts, _ = ts.RDBServices.ReadDBTradingSystem(1)
-		fmt.Println("old id:", ts.ID, "new id:", tsID, "error:", err)
-		panic("dffffffffffffffffff")
+			tsID, err := ts.RDBServices.CreateDBTradingSystem(ts)
+			if err != nil {
+				panic(fmt.Sprintf("Error Creating TradingSystem: %v", err))
+			}else{
+				ts.Log.Printf("Upgrade done with  New Ts ID: %d", tsID)
+				ts.StopLossRecover = append(ts.StopLossRecover, float64(tsID))
+				<-ts.UpgdChan
+				<-ts.UpgdChan			
+			}
+			panic("ffffffffffffffffffffffffffffff")
 	}
 }
 func deleteElement(slice []float64, index int) []float64 {
