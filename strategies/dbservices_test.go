@@ -33,7 +33,13 @@ func TestCreateAndReadDBTradingSystem(t *testing.T) {
 	// Add more assertions for other fields as needed
 
 	// // Clean up: Delete the created TradingSystem to keep the test environment clean
-	// err = rdbServices.DeleteDBTradingSystem(tradeID)
-	// assert.NoError(t, err) // Ensure there are no errors while deleting
+	err = rdbServices.DeleteDBTradingSystem(ts.ID)
+	assert.NoError(t, err) // Ensure there are no errors while deleting
+	
+	// Read the TradingSystem from the database using the ID obtained from creation
+	// readTS, err = rdbServices.ReadDBTradingSystem(0)
+	// assert.NoError(t, err) // Ensure there are no errors
+	// fmt.Printf("Read ts.ID %d but created ts.ID %d\n", readTS.ID, ts.ID)
+	// panic("")
 }
 

@@ -120,7 +120,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			loadDataFrom = "DataBase"
 		}
 	} else {
-		ts, err = rDBServices.ReadDBTradingSystem(1)  //this
+		ts, err = rDBServices.ReadDBTradingSystem(0)  //this
 		if err != nil {
 			fmt.Println("TS = ", ts)
 			log.Printf("\n%v: But going ahead to initialize empty TS struct\n", err)
@@ -132,23 +132,14 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.MaxDataSize = 500
 			ts.BaseCurrency = BaseCurrency
 		} else {
-			if len(ts.StopLossRecover) > 0 {
-				tsUS, err := rDBServices.ReadDBTradingSystem(uint(ts.StopLossRecover[len(ts.StopLossRecover)-1]))
-				if err != nil {
-					log.Printf("%v: No Upper Stages!!!", err)
-				} else {
-					ts = tsUS
-					log.Printf("Loaded Upper Stage with ID: %d", ts.ID)
-				}
-			} else {
-				log.Printf("No Upper Stages!!")
-				// ts.ID = 1 //and this
-			}
 			loadDataFrom = "DataBase"			
 			ts.UpgdChan = make(chan bool)
 			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0 + 16.6 + 58.0 + 56.72
 		}
 	}
+	if len(ts.StopLossRecover) == 0{
+		ts.StopLossRecover = append(ts.StopLossRecover, float64(ts.ID))					
+	}	
 	fmt.Println("TS = ", ts)
 	if liveTrading {
 		err = ts.LiveUpdate(loadExchFrom, loadDBFrom, loadDataFrom)
@@ -248,6 +239,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 					}
 					log.Printf("Updating TradingSystem due to Upgrade happening now!!! where ts.ID: %d errpr: %v ",ts.ID, err)
 					ts.UpgdChan <- true
+					ts.UpgdChan <- true
 				case <-time.After(time.Second * 900):
 					if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil {
 						ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
@@ -294,7 +286,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 		}
 	} else {
 		rDBServices := NewRDBServices(loadExchFrom)
-		md, err = rDBServices.ReadDBAppData(1)
+		md, err = rDBServices.ReadDBAppData(0)
 		if err != nil {
 			fmt.Println("MD = ", md)
 			log.Printf("\n%v: But going ahead to initialize empty AppData struct\n", err)
@@ -898,15 +890,15 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.BaseBalance += quantity
 		md.TotalProfitLoss -= (ts.CommissionPercentage * quantity * ts.CurrentPrice)
 
+		<-ts.UpgdChan
+		<-ts.UpgdChan	
 		if (!ts.InTrade) && (ts.StopLossTrigered) {
 			//upgrade to next stage
 			tsID, err := ts.RDBServices.CreateDBTradingSystem(ts)
+			<-ts.UpgdChan
 			if err != nil {
 				panic(fmt.Sprintf("Error Creating TradingSystem: %v", err))
-			}else{
-				ts.StopLossRecover = append(ts.StopLossRecover, float64(tsID))
-				<-ts.UpgdChan
-				<-ts.UpgdChan			
+			}else{			
 				ts, err = ts.RDBServices.ReadDBTradingSystem(tsID)
 				if err != nil {
 					panic(fmt.Sprintf("Upgrade Error Reading Created TradingSystem: with id: %d %v", ts.ID, err))
@@ -919,10 +911,14 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 					ts.EntryQuantity = []float64{}
 					ts.NextProfitSeLLPrice = []float64{}
 					ts.NextInvestBuYPrice = []float64{}
+					ts.StopLossRecover = append(ts.StopLossRecover, float64(ts.ID))
+					ts.InTrade = false
+					ts.StopLossTrigered = false
 				}
 			}
+		}else{
+			<-ts.UpgdChan	
 		}
-
 		//Record entry entities for calculating profit/loss and stoploss later.
 		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
 		ts.EntryQuantity = append(ts.EntryQuantity, quantity)
@@ -936,15 +932,15 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.Log.Printf("Replenished bursted:[%d] !!! \n", ts.TLevelValue)
 			ts.TLevelAdjust = false
 		}
-		if (!ts.InTrade) && (ts.StopLossTrigered) {
-			ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2]
-			ts.Log.Printf("LongActivated!!! Next Sell of index[%d] replaced with that of index[%d] from %.8f to %.8f", len(ts.NextProfitSeLLPrice)-1, len(ts.NextProfitSeLLPrice)-2, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2])
-			// for k, v := range ts.NextProfitSeLLPrice {
-			// 	if ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < v {
-			// 		ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2]
-			// 	}
-			// }
-		}
+		// if (!ts.InTrade) && (ts.StopLossTrigered) {
+		// 	ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2]
+		// 	ts.Log.Printf("LongActivated!!! Next Sell of index[%d] replaced with that of index[%d] from %.8f to %.8f", len(ts.NextProfitSeLLPrice)-1, len(ts.NextProfitSeLLPrice)-2, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2])
+		// 	// for k, v := range ts.NextProfitSeLLPrice {
+		// 	// 	if ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < v {
+		// 	// 		ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2]
+		// 	// 	}
+		// 	// }
+		// }
 		ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, nextInvBuYPrice-commissionAtInvBuYPrice)
 
 		ts.TradingLevel = len(ts.EntryPrice)
@@ -963,30 +959,19 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.FreeFall = false
 		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, EntryCostLoss[%d]: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice[%d]: %.8f nextInvBuYPrice[%d]: %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d, mdDataPt: %d \n",
 			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], md.RiskPositionPercentage, md.TotalProfitLoss, len(ts.NextProfitSeLLPrice)-1, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], len(ts.NextInvestBuYPrice)-1, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
-		if ts.QuoteBalance < totalCost {
-			if (!ts.InTrade) && ts.StopLossTrigered {
-				//we just bought the final LongActivated Max buy
-				ts.StopLossTrigered = false
-				ts.EntryPrice = swapElements(ts.EntryPrice, len(ts.EntryPrice)-1, len(ts.EntryPrice)-2)
-				ts.EntryCostLoss = swapElements(ts.EntryCostLoss, len(ts.EntryCostLoss)-1, len(ts.EntryCostLoss)-2)
-				ts.EntryQuantity = swapElements(ts.EntryQuantity, len(ts.EntryQuantity)-1, len(ts.EntryQuantity)-2)
-				ts.NextProfitSeLLPrice = swapElements(ts.NextProfitSeLLPrice, len(ts.NextProfitSeLLPrice)-1, len(ts.NextProfitSeLLPrice)-2)
-				ts.NextInvestBuYPrice = swapElements(ts.NextInvestBuYPrice, len(ts.NextInvestBuYPrice)-1, len(ts.NextInvestBuYPrice)-2)
-				ts.Log.Printf("With vector swapped between last and 2nd to last !!!")
-			} else {
-				ts.InTrade = true
-				ts.StopLossTrigered = true
-				ts.HighestPrice = ts.CurrentPrice
-				//so that is goes down the full next buy original target without adjustment
-				for k, _ := range ts.NextInvestBuYPrice {
-					if k >= 1 {
-						ts.NextInvestBuYPrice[k-1] = ts.NextInvestBuYPrice[i-1]
-					}
+		if ts.QuoteBalance < totalCost {			
+			ts.InTrade = true
+			ts.StopLossTrigered = true
+			ts.HighestPrice = ts.CurrentPrice
+			//so that is goes down the full next buy original target without adjustment
+			for k, _ := range ts.NextInvestBuYPrice {
+				if k >= 1 {
+					ts.NextInvestBuYPrice[k-1] = ts.NextInvestBuYPrice[i-1]
 				}
-				ts.Log.Printf("NextSell Re-Adjusting Switched ON for %s: as Balance = %.8f is Less than NextRiskCost = %.8f and NextInvestBuYPrice[%d] updated with [%d] from %.8f to %.8f \n", ts.Symbol, ts.QuoteBalance, totalCost, i-2, i-1, before, ts.NextInvestBuYPrice[i-1])
-				resp = fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, EntryCostLoss[%d]: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice[%d]: %.8f nextInvBuYPrice[%d]: %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d, mdDataPt: %d \n",
-					len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], md.RiskPositionPercentage, md.TotalProfitLoss, len(ts.NextProfitSeLLPrice)-1, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], len(ts.NextInvestBuYPrice)-1, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
 			}
+			ts.Log.Printf("NextSell Re-Adjusting Switched ON for %s: as Balance = %.8f is Less than NextRiskCost = %.8f and NextInvestBuYPrice[%d] updated with [%d] from %.8f to %.8f \n", ts.Symbol, ts.QuoteBalance, totalCost, i-2, i-1, before, ts.NextInvestBuYPrice[i-1])
+			resp = fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, EntryCostLoss[%d]: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice[%d]: %.8f nextInvBuYPrice[%d]: %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d, mdDataPt: %d \n",
+				len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], md.RiskPositionPercentage, md.TotalProfitLoss, len(ts.NextProfitSeLLPrice)-1, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], len(ts.NextInvestBuYPrice)-1, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)			
 		} else {
 			if !ts.InTrade {
 				ts.StopLossTrigered = false
@@ -1081,6 +1066,26 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, ts.Index)
 		ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, ts.Index)
 		ts.TradingLevel = len(ts.EntryPrice)
+
+		<-ts.UpgdChan
+		<-ts.UpgdChan	
+		if len(ts.EntryPrice) == 0 && len(ts.StopLossRecover) > 1{
+			log.Printf("Down Staging: Deleting Current TS with ID: %d", ts.ID)
+			ts.Log.Printf("Down Staging: Deleting Current TS with ID: %d", ts.ID)
+			err = ts.RDBServices.DeleteDBTradingSystem(ts.ID)
+			if err != nil {
+				panic(fmt.Sprintf("Error Deleting TS during down staging ts.ID: %d", ts.ID))
+			}
+			ts, err = ts.RDBServices.ReadDBTradingSystem(uint(ts.StopLossRecover[len(ts.StopLossRecover)-2]))
+			if err != nil {
+				panic(fmt.Sprintf("Error Reading next TS during down staging ts.ID: %d", ts.ID))
+			}
+			<-ts.UpgdChan	
+			log.Printf("Down Staged Successfully!!!")
+			ts.Log.Printf("Down Staged Successfully!!!")
+		}else{
+			<-ts.UpgdChan
+		}
 		return resp, nil
 	default:
 		return "", fmt.Errorf("invalid trade action: %s", tradeAction)
