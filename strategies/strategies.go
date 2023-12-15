@@ -120,8 +120,8 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			loadDataFrom = "DataBase"
 		}
 	} else {
-		ts.RDBServices.DeleteDBTradingSystem(2)
-		ts, err = rDBServices.ReadDBTradingSystem(0)  //this
+		rDBServices.DeleteDBTradingSystem(2)
+		ts, err = rDBServices.ReadDBTradingSystem(0) 
 		if err != nil {
 			fmt.Println("TS = ", ts)
 			log.Printf("\n%v: But going ahead to initialize empty TS struct\n", err)
@@ -1010,7 +1010,9 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			return "", fmt.Errorf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, exitPrice, totalCost, ts.MinNotional)
 		}
 
-		//Placing Order
+		//Placing Sell Order
+		/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////
 		orderResp, err := ts.APIServices.PlaceLimitOrder(ts.Symbol, "SELL", exitPrice, quantity)
 		if err != nil {
 			fmt.Println("Error placing exit order:", err)
