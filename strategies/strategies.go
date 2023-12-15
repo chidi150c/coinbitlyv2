@@ -132,8 +132,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.MaxDataSize = 500
 			ts.BaseCurrency = BaseCurrency
 		} else {
-			loadDataFrom = "DataBase"			
-			ts.UpgdChan = make(chan bool)
+			loadDataFrom = "DataBase"		
 			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0 + 16.6 + 58.0 + 56.72
 		}
 	}
@@ -894,27 +893,20 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		<-ts.UpgdChan	
 		if (!ts.InTrade) && (ts.StopLossTrigered) {
 			//upgrade to next stage
-			tsID, err := ts.RDBServices.CreateDBTradingSystem(ts)
+			ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
 			<-ts.UpgdChan
 			if err != nil {
 				panic(fmt.Sprintf("Error Creating TradingSystem: %v", err))
-			}else{			
-				ts, err = ts.RDBServices.ReadDBTradingSystem(tsID)
-				if err != nil {
-					panic(fmt.Sprintf("Upgrade Error Reading Created TradingSystem: with id: %d %v", ts.ID, err))
-				}else if ts.ID != tsID{
-					panic(fmt.Sprintf("Upgrade Error2 Reading Created TradingSystem: with incorrect id: %d %v", ts.ID, err))
-				}else {
-					log.Printf("Upgrade done with New Ts ID: %d\n", tsID)
-					ts.EntryPrice = []float64{}
-					ts.EntryCostLoss = []float64{}
-					ts.EntryQuantity = []float64{}
-					ts.NextProfitSeLLPrice = []float64{}
-					ts.NextInvestBuYPrice = []float64{}
-					ts.StopLossRecover = append(ts.StopLossRecover, float64(ts.ID))
-					ts.InTrade = false
-					ts.StopLossTrigered = false
-				}
+			}else{		
+				log.Printf("Upgrade done with New Ts ID: %d\n", ts.ID)
+				ts.EntryPrice = []float64{}
+				ts.EntryCostLoss = []float64{}
+				ts.EntryQuantity = []float64{}
+				ts.NextProfitSeLLPrice = []float64{}
+				ts.NextInvestBuYPrice = []float64{}
+				ts.StopLossRecover = append(ts.StopLossRecover, float64(ts.ID))
+				ts.InTrade = false
+				ts.StopLossTrigered = false			
 			}
 		}else{
 			<-ts.UpgdChan	
