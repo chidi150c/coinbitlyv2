@@ -120,6 +120,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			loadDataFrom = "DataBase"
 		}
 	} else {
+		ts.RDBServices.DeleteDBTradingSystem(2)
 		ts, err = rDBServices.ReadDBTradingSystem(0)  //this
 		if err != nil {
 			fmt.Println("TS = ", ts)
@@ -236,7 +237,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 					if err = ts.RDBServices.UpdateDBTradingSystem(ts); err != nil {
 						panic(fmt.Sprintf("Error Upgrade Updating TradingSystem: with id: %d %v", ts.ID, err))
 					}
-					log.Printf("Updating TradingSystem due to Upgrade happening now!!! where ts.ID: %d errpr: %v ",ts.ID, err)
+					log.Printf("Updating TradingSystem due to Upgrade happening now!!! where ts.ID: %d error: %v ",ts.ID, err)
 					ts.UpgdChan <- true
 					ts.UpgdChan <- true
 				case <-time.After(time.Second * 900):
@@ -246,7 +247,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 							log.Printf("Error Creating TradingSystem: %v", err)
 						}
 					}
-					ts.Log.Printf("Creating TradingSystem happening now!!! with Id: %d and Stage: %d where %v", ts.ID, len(ts.StopLossRecover), err)
+					ts.Log.Printf("Creating TradingSystem happening with Id: %d and Stage: %d where %v", ts.ID, len(ts.StopLossRecover), err)
 					ts.StoreAppDataChan <- ""
 					time.Sleep(time.Second * 10)
 				}
