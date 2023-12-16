@@ -1318,8 +1318,10 @@ func (ts *TradingSystem) Reporting(md *model.AppData, from string) error {
 	} else if len(ts.Container1) <= ts.Zoom {
 		err = ts.CreateLineChartWithSignalsV3(md, ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
 	} else {
-		if len(ts.Timestamps) != len(ts.Container1) && len(ts.Container2) != len(ts.Signals) && len(ts.Signals) != len(ts.ClosingPrices){
+		if len(ts.Signals) < len(ts.ClosingPrices){
 			log.Printf("Lengths of ts.Timestamps %d, ts.Container1 %d, ts.Container2 %d, ts.Signals %d, ts.ClosingPrices %d\n", len(ts.Timestamps), len(ts.Container1), len(ts.Container2), len(ts.Signals), len(ts.ClosingPrices))
+			ts.Log.Printf("Lengths of ts.Timestamps %d, ts.Container1 %d, ts.Container2 %d, ts.Signals %d, ts.ClosingPrices %d\n", len(ts.Timestamps), len(ts.Container1), len(ts.Container2), len(ts.Signals), len(ts.ClosingPrices))
+			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 		}
 		b := len(ts.ClosingPrices) - 1
 		a := len(ts.ClosingPrices) - ts.Zoom
