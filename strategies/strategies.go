@@ -133,7 +133,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.BaseCurrency = BaseCurrency
 		} else {
 			loadDataFrom = "DataBase"		
-			// ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0 + 16.6 + 58.0 + 56.72
+			ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0 + 16.6 + 58.0 + 56.72 + 18.0
 		}
 	}
 	if len(ts.StopLossRecover) == 0{
@@ -1073,13 +1073,23 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			if err != nil {
 				panic(fmt.Sprintf("Error Deleting TS during down staging ts.ID: %d", ts.ID))
 			}
-			ts, err = ts.RDBServices.ReadDBTradingSystem(uint(ts.StopLossRecover[len(ts.StopLossRecover)-2]))
+			tsn, err := ts.RDBServices.ReadDBTradingSystem(uint(ts.StopLossRecover[len(ts.StopLossRecover)-2]))
 			if err != nil {
 				panic(fmt.Sprintf("Error Reading next TS during down staging ts.ID: %d", ts.ID))
 			}
+			log.Printf("Upgrade done with New Ts ID: %d\n", ts.ID)
+			ts.ID = tsn.ID
+			ts.EntryPrice = tsn.EntryPrice
+			ts.EntryCostLoss = tsn.EntryCostLoss
+			ts.EntryQuantity = tsn.EntryQuantity
+			ts.NextProfitSeLLPrice = tsn.NextProfitSeLLPrice
+			ts.NextInvestBuYPrice = tsn.NextInvestBuYPrice
+			ts.StopLossRecover = tsn.StopLossRecover
+			ts.StopLossTrigered = tsn.StopLossTrigered
+			ts.InTrade = tsn.InTrade
 			<-ts.UpgdChan	
-			log.Printf("Down Staged Successfully!!!")
-			ts.Log.Printf("Down Staged Successfully!!!")
+			log.Printf("Down Staged Successfully!!! to ID: %d\n", ts.ID)
+			ts.Log.Printf("Down Staged Successfully!!! to ID: %d\n", ts.ID)
 		}else{
 			<-ts.UpgdChan
 		}

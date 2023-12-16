@@ -88,7 +88,7 @@ func NewExchangeConfigs() map[string]*ExchConfig {
 			Symbol:          "BTCUSDT",
 			BaseCurrency:    "BTC",
 			QuoteCurrency:   "USDT",
-			InitialCapital:  54.038193 + 26.47 + 54.2 + 86.5 + 100.0 + 16.6 + 58.0 + 56.72,
+			InitialCapital:  54.038193 + 26.47 + 54.2 + 86.5 + 100.0 + 16.6 + 58.0 + 56.72 + 18.0,
 			CandleInterval:  "1m",
 			CandleStartTime: time.Now().Add(time.Duration(-1) * 20 * time.Hour).Unix(), // 3 days ago
 			CandleEndTime:   time.Now().Add(time.Duration(-1) * 0 * time.Hour).Unix(),  // 3 days ago
