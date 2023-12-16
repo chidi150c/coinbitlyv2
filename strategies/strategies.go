@@ -982,7 +982,13 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		quantity := math.Floor(ts.EntryQuantity[ts.Index]/ts.MiniQty) * ts.MiniQty
 		// (localProfitLoss < transactionCost+slippageCost+md.TargetProfit)
 		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", exitPrice, md.TargetProfit)
-
+		suplemented := false
+		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 6){
+			if ts.BaseBalance > (quantity + ts.EntryQuantity[0]){
+				quantity += ts.EntryQuantity[0]
+				suplemented = true
+			}
+		}
 		if ts.BaseBalance < quantity {
 			if ts.BaseBalance < quantity {
 				ts.Log.Printf("But BaseBalance %.8f is < quantity %.8f", ts.BaseBalance, quantity)
@@ -1035,7 +1041,19 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		// Update the totalP&L, quote and base balances after the trade.
 		ts.QuoteBalance += totalCost
 		ts.BaseBalance -= quantity
-		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], exitPrice, quantity)
+		lp := 0.0
+		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 6) && suplemented {
+			lp = CalculateProfitLoss(ts.EntryPrice[0], exitPrice, ts.EntryQuantity[0])
+			quantity -= ts.EntryQuantity[0] 
+			ts.EntryPrice = deleteElement(ts.EntryPrice, 0)
+			ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, 0)
+			ts.EntryQuantity = deleteElement(ts.EntryQuantity, 0)
+			ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, 0)
+			ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, 0)
+			ts.TradingLevel = len(ts.EntryPrice)
+			ts.Log.Printf("STOPLOST!!! Suplemented and Bursted Entry [0] !!! for an expected upgrade to next stage: expecting a long fall...")
+		}
+		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], exitPrice, quantity) + lp
 		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
 		md.TotalProfitLoss += localProfitLoss
 		// ts.Log.Printf("Profit After Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
@@ -1050,8 +1068,8 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.StartTime = time.Now()
 		ts.LowestPrice = math.MaxFloat64
 		ts.HighestPrice = 0.0
-		resp := fmt.Sprintf("- SELL at ExitPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, SupposedIndex: [%d], QBal: %.8f, BBal: %.8f, \nGlobalP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
-			exitPrice, ts.Index, ts.EntryPrice[ts.Index], ts.Index, ts.EntryQuantity[ts.Index], len(ts.EntryPrice)-1, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, orderResp.Commission, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
+		resp := fmt.Sprintf("- SELL at ExitPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, SupposedIndex: [%d], QBal: %.8f, BBal: %.8f, \nGlobalP&L: %.2f localP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
+			exitPrice, ts.Index, ts.EntryPrice[ts.Index], ts.Index, ts.EntryQuantity[ts.Index], len(ts.EntryPrice)-1, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, orderResp.Commission, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
 		if (len(ts.EntryPrice) - 1) > ts.Index {
 			ts.Log.Printf("Bursted:[%d] !!! at [%d]\n", ts.Index, len(ts.EntryPrice)-1)
 			ts.TLevelValue = ts.Index
