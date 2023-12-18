@@ -1045,15 +1045,18 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 6) && suplemented {
 			lp = CalculateProfitLoss(ts.EntryPrice[0], exitPrice, ts.EntryQuantity[0])
 			quantity -= ts.EntryQuantity[0] 
+		}
+		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], exitPrice, quantity) + lp
+	
+		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 6) && suplemented {
 			ts.EntryPrice = deleteElement(ts.EntryPrice, 0)
 			ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, 0)
 			ts.EntryQuantity = deleteElement(ts.EntryQuantity, 0)
 			ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, 0)
 			ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, 0)
 			ts.TradingLevel = len(ts.EntryPrice)
-			ts.Log.Printf("STOPLOST!!! Suplemented and Bursted Entry [0] !!! for an expected upgrade to next stage: expecting a long fall...")
+			ts.Log.Printf("STOPLOST!!! Suplemented and Bursted Entry [0] for an expected upgrade to next stage: expecting a long fall...")
 		}
-		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], exitPrice, quantity) + lp
 		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
 		md.TotalProfitLoss += localProfitLoss
 		// ts.Log.Printf("Profit After Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
