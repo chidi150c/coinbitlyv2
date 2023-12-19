@@ -1054,6 +1054,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.EntryQuantity = deleteElement(ts.EntryQuantity, 0)
 			ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, 0)
 			ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, 0)
+			ts.Index -= 1
 			ts.TradingLevel = len(ts.EntryPrice)
 			ts.Log.Printf("STOPLOST!!! Suplemented and Bursted Entry [0] for an expected upgrade to next stage: expecting a long fall...")
 		}
