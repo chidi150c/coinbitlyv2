@@ -629,7 +629,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			//NextBuy Re-Adjustment
 			nextInvBuYPrice := (-(ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
 			if time.Since(ts.StartTime) > elapseTime(ts.TradingLevel) {
-				if len(ts.EntryPrice) < 6 {
+				if len(ts.EntryPrice) < 4 {
 					before := ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
 					ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] = ts.LowestPrice
 					ts.Log.Printf("NextInvestBuYPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1])
@@ -1176,63 +1176,63 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 	case 0:
 		ts.RiskCost += (10.0 + 1.5 + 0.5) / float64(len(ts.StopLossRecover))
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = (mainValue * 0.0006) / float64(len(ts.StopLossRecover))
-		md.TargetStopLoss = (mainValue * 0.0006) / float64(len(ts.StopLossRecover))
+		md.TargetProfit = (mainValue * 0.0007) / float64(len(ts.StopLossRecover))
+		md.TargetStopLoss = (mainValue * 0.001) / float64(len(ts.StopLossRecover))
 	case 1:
 		ts.RiskCost += (15.0 + 2.0 + 1.0) / float64(len(ts.StopLossRecover))
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = (mainValue * 0.000625) / float64(len(ts.StopLossRecover))
-		md.TargetStopLoss = (mainValue * 0.000625) / float64(len(ts.StopLossRecover))
+		md.TargetProfit = (mainValue * 0.000725) / float64(len(ts.StopLossRecover))
+		md.TargetStopLoss = (mainValue * 0.0015) / float64(len(ts.StopLossRecover))
 	case 2:
 		ts.RiskCost += (20.0 + 2.5 + 1.5) / float64(len(ts.StopLossRecover))
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = (mainValue * 0.00065) / float64(len(ts.StopLossRecover))
-		md.TargetStopLoss = (mainValue * 0.00065) / float64(len(ts.StopLossRecover))
+		md.TargetProfit = (mainValue * 0.00075) / float64(len(ts.StopLossRecover))
+		md.TargetStopLoss = (mainValue * 0.002) / float64(len(ts.StopLossRecover))
 	case 3:
 		ts.RiskCost += (25.0 + 5.0 + 2.0) / float64(len(ts.StopLossRecover))
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = (mainValue * 0.000675) / float64(len(ts.StopLossRecover))
-		md.TargetStopLoss = (mainValue * 0.000675) / float64(len(ts.StopLossRecover))
+		md.TargetProfit = (mainValue * 0.0008) / float64(len(ts.StopLossRecover))
+		md.TargetStopLoss = (mainValue * 0.0025) / float64(len(ts.StopLossRecover))
 	case 4:
 		ts.RiskCost += (30.0 + 7.5 + 2.5) / float64(len(ts.StopLossRecover))
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = (mainValue * 0.0007) / float64(len(ts.StopLossRecover))
-		md.TargetStopLoss = (mainValue * 0.001) / float64(len(ts.StopLossRecover))
+		md.TargetProfit = (mainValue * 0.00085) / float64(len(ts.StopLossRecover))
+		md.TargetStopLoss = (mainValue * 0.00325) / float64(len(ts.StopLossRecover))
 	case 5:
 		ts.RiskCost += (35.0 + 10.0 + 5.0) / float64(len(ts.StopLossRecover))
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = (mainValue * 0.000725) / float64(len(ts.StopLossRecover))
-		md.TargetStopLoss = (mainValue * 0.0015) / float64(len(ts.StopLossRecover))
+		md.TargetProfit = (mainValue * 0.0009) / float64(len(ts.StopLossRecover))
+		md.TargetStopLoss = (mainValue * 0.0045) / float64(len(ts.StopLossRecover))
 	case 6:
 		ts.RiskCost += (40.0 + 12.5 + 7.5) / float64(len(ts.StopLossRecover))
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = (mainValue * 0.00075) / float64(len(ts.StopLossRecover))
-		md.TargetStopLoss = (mainValue * 0.002) / float64(len(ts.StopLossRecover))
+		md.TargetProfit = (mainValue * 0.00095) / float64(len(ts.StopLossRecover))
+		md.TargetStopLoss = (mainValue * 0.005) / float64(len(ts.StopLossRecover))
 	case 7:
 		ts.RiskCost += (45.0 + 15. + 10.0) / float64(len(ts.StopLossRecover))
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = (mainValue * 0.0008) / float64(len(ts.StopLossRecover))
-		md.TargetStopLoss = (mainValue * 0.0025) / float64(len(ts.StopLossRecover))
+		md.TargetProfit = (mainValue * 0.001) / float64(len(ts.StopLossRecover))
+		md.TargetStopLoss = (mainValue * 0.0055) / float64(len(ts.StopLossRecover))
 	case 8:
 		ts.RiskCost += (50.0 + 17.5 + 12.5) / float64(len(ts.StopLossRecover))
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = (mainValue * 0.00085) / float64(len(ts.StopLossRecover))
-		md.TargetStopLoss = (mainValue * 0.00325) / float64(len(ts.StopLossRecover))
+		md.TargetProfit = (mainValue * 0.0015) / float64(len(ts.StopLossRecover))
+		md.TargetStopLoss = (mainValue * 0.006) / float64(len(ts.StopLossRecover))
 	case 9:
 		ts.RiskCost += (55.0 + 19.5 + 14.5) / float64(len(ts.StopLossRecover))
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = (mainValue * 0.0009) / float64(len(ts.StopLossRecover))
-		md.TargetStopLoss = (mainValue * 0.0045) / float64(len(ts.StopLossRecover))
+		md.TargetProfit = (mainValue * 0.002) / float64(len(ts.StopLossRecover))
+		md.TargetStopLoss = (mainValue * 0.0065) / float64(len(ts.StopLossRecover))
 	case 10:
 		ts.RiskCost += (60.0 + 22.0 + 16.5) / float64(len(ts.StopLossRecover))
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = (mainValue * 0.00095) / float64(len(ts.StopLossRecover))
-		md.TargetStopLoss = (mainValue * 0.005) / float64(len(ts.StopLossRecover))
+		md.TargetProfit = (mainValue * 0.0025) / float64(len(ts.StopLossRecover))
+		md.TargetStopLoss = (mainValue * 0.007) / float64(len(ts.StopLossRecover))
 	default:
 		ts.RiskCost += (100.0 + 24.5 + 18.5) / float64(len(ts.StopLossRecover))
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = (mainValue * 0.001) / float64(len(ts.StopLossRecover))
-		md.TargetStopLoss = (mainValue * 0.0055) / float64(len(ts.StopLossRecover))
+		md.TargetProfit = (mainValue * 0.003) / float64(len(ts.StopLossRecover))
+		md.TargetStopLoss = (mainValue * 0.0075) / float64(len(ts.StopLossRecover))
 	}
 }
 
