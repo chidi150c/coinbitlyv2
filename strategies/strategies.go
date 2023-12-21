@@ -977,7 +977,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		// (localProfitLoss < transactionCost+slippageCost+md.TargetProfit)
 		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", exitPrice, md.TargetProfit)
 		suplemented := false
-		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 6){
+		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 2){
 			if ts.BaseBalance > (quantity + ts.EntryQuantity[0]){
 				quantity += ts.EntryQuantity[0]
 				suplemented = true
@@ -1036,13 +1036,13 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.QuoteBalance += totalCost
 		ts.BaseBalance -= quantity
 		lp := 0.0
-		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 6) && suplemented {
+		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 2) && suplemented {
 			lp = CalculateProfitLoss(ts.EntryPrice[0], exitPrice, ts.EntryQuantity[0])
 			quantity -= ts.EntryQuantity[0] 
 		}
 		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], exitPrice, quantity) + lp
 	
-		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 6) && suplemented {
+		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 2) && suplemented {
 			ts.EntryPrice = deleteElement(ts.EntryPrice, 0)
 			ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, 0)
 			ts.EntryQuantity = deleteElement(ts.EntryQuantity, 0)
