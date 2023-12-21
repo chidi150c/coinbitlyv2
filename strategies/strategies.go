@@ -668,16 +668,18 @@ func deleteElement(slice []float64, index int) []float64 {
 func elapseTime(level int) time.Duration {
 	switch level {
 	case 0:
-		return time.Minute * 30
+		return time.Minute * 20
 	case 1:
-		return time.Minute * 40
+		return time.Minute * 30
 	case 2:
-		return time.Minute * 60 * 1
+		return time.Minute * 40
 	case 3:
-		return time.Minute * 60 * 2
+		return time.Minute * 60 
 	case 4:
-		return time.Minute * 60 * 3
+		return time.Minute * 60 * 2
 	case 5:
+		return time.Minute * 60 * 3
+	case 6:
 		return time.Minute * 60 * 4
 	default:
 		return time.Minute * 60 * 5
