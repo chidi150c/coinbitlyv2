@@ -976,7 +976,17 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		quantity := math.Floor(ts.EntryQuantity[ts.Index]/ts.MiniQty) * ts.MiniQty
 		// (localProfitLoss < transactionCost+slippageCost+md.TargetProfit)
 		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", exitPrice, md.TargetProfit)
-		
+		suplemented := false
+		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 3){
+			if ts.BaseBalance > (quantity + ts.EntryQuantity[0]){
+				lp := CalculateProfitLoss(ts.EntryPrice[0], exitPrice, ts.EntryQuantity[0])
+				localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], exitPrice, quantity) + lp
+				if localProfitLoss > -0.08{
+					quantity += ts.EntryQuantity[0]
+					suplemented = true
+				}
+			}
+		}
 		if ts.BaseBalance < quantity {
 			if ts.BaseBalance < quantity {
 				ts.Log.Printf("But BaseBalance %.8f is < quantity %.8f", ts.BaseBalance, quantity)
@@ -1029,7 +1039,23 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		// Update the totalP&L, quote and base balances after the trade.
 		ts.QuoteBalance += totalCost
 		ts.BaseBalance -= quantity
-		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], exitPrice, quantity)
+		lp := 0.0
+		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 3) && suplemented {
+			lp = CalculateProfitLoss(ts.EntryPrice[0], exitPrice, ts.EntryQuantity[0])
+			quantity -= ts.EntryQuantity[0] 
+		}
+		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], exitPrice, quantity) + lp
+	
+		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 3) && suplemented {
+			ts.EntryPrice = deleteElement(ts.EntryPrice, 0)
+			ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, 0)
+			ts.EntryQuantity = deleteElement(ts.EntryQuantity, 0)
+			ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, 0)
+			ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, 0)
+			ts.Index -= 1
+			ts.TradingLevel = len(ts.EntryPrice)
+			ts.Log.Printf("STOPLOST!!! Suplemented and Bursted Entry [0] for an expected upgrade to next stage: expecting a long fall...")
+		}
 		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
 		md.TotalProfitLoss += localProfitLoss
 		// ts.Log.Printf("Profit After Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
@@ -1131,7 +1157,6 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 	asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
 	num := (ts.MinNotional + 1.0) / ts.StepSize
 	ts.RiskCost = math.Floor(num) * ts.StepSize
-	lenStopLossRecover := len(ts.StopLossRecover)
 	ts.Log.Printf("Risk Check1 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n", ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
 	if ts.InitialCapital < asset {
 		diff := asset - ts.InitialCapital
@@ -1142,6 +1167,7 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 	if !ts.TLevelAdjust {
 		ts.TLevelValue = ts.TradingLevel
 	}
+	lenStopLossRecover := len(ts.StopLossRecover)
 	if (!ts.InTrade) && (ts.StopLossTrigered) {
 		ts.TLevelValue = 0
 		lenStopLossRecover += 1
