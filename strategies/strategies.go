@@ -979,7 +979,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		suplemented := false
 		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 3){
 			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], exitPrice, quantity) 
-			k, v, := 0, 0.0
+			k, v := 0, 0.0
 			for k,v = range ts.EntryQuantity{
 				if k >= ts.Index {
 					break
