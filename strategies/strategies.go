@@ -978,12 +978,19 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", exitPrice, md.TargetProfit)
 		suplemented := false
 		if (ts.InTrade && ts.StopLossTrigered) && (len(ts.EntryPrice) >= 3){
-			if ts.BaseBalance > (quantity + ts.EntryQuantity[0]){
-				lp := CalculateProfitLoss(ts.EntryPrice[0], exitPrice, ts.EntryQuantity[0])
-				localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], exitPrice, quantity) + lp
-				if localProfitLoss > -0.08{
-					quantity += ts.EntryQuantity[0]
-					suplemented = true
+			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], exitPrice, quantity) 
+			k, v, := 0, 0.0
+			for k,v = range ts.EntryQuantity{
+				if k >= ts.Index {
+					break
+				}
+				if ts.BaseBalance > (quantity + v){
+					localProfitLoss += CalculateProfitLoss(ts.EntryPrice[k], exitPrice, v)
+					if localProfitLoss > -0.08{
+						quantity += v
+						suplemented = true
+						break
+					}
 				}
 			}
 		}
