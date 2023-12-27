@@ -629,7 +629,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			//NextBuy Re-Adjustment
 			nextInvBuYPrice := (-(ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
 			if time.Since(ts.StartTime) > elapseTime(ts.TradingLevel) {
-				if len(ts.EntryPrice) < 4 {
+				if len(ts.EntryPrice) <= 2{
 					before := ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
 					ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] = ts.LowestPrice
 					ts.Log.Printf("NextInvestBuYPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1])
@@ -981,10 +981,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], exitPrice, quantity) 
 			k, v := 0, 0.0
 			for k,v = range ts.EntryQuantity{
-				if k >= ts.Index {
-					break
-				}
-				if ts.BaseBalance > (quantity + v){
+				if k != ts.Index {
 					localProfitLoss += CalculateProfitLoss(ts.EntryPrice[k], exitPrice, v)
 					if localProfitLoss > -0.08{
 						quantity += v
@@ -995,19 +992,14 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			}
 		}
 		if ts.BaseBalance < quantity {
-			if ts.BaseBalance < quantity {
-				ts.Log.Printf("But BaseBalance %.8f is < quantity %.8f", ts.BaseBalance, quantity)
-				quantity = math.Floor(ts.BaseBalance/ts.MiniQty) * ts.MiniQty
-				if quantity < ts.MiniQty {
-					//Delete or Reset entry
-					ts.DeleteOrResetEntry("floor BaseBalance", quantity, "MiniQty", ts.MiniQty)
-					return "", fmt.Errorf("cannot execute a sell order due to insufficient BaseBalance: %.8f miniQuantity required: %.8f", ts.QuoteBalance, ts.MiniQty)
-				} else {
-					// return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, quantity)
-				}
+			ts.Log.Printf("But BaseBalance %.8f is < quantity %.8f", ts.BaseBalance, quantity)
+			quantity = math.Floor(ts.BaseBalance/ts.MiniQty) * ts.MiniQty
+			if quantity < ts.MiniQty {
+				//Delete or Reset entry
+				ts.DeleteOrResetEntry("floor BaseBalance", quantity, "MiniQty", ts.MiniQty)
+				return "", fmt.Errorf("cannot execute a sell order due to insufficient BaseBalance: %.8f miniQuantity required: %.8f", ts.QuoteBalance, ts.MiniQty)
 			} else {
-				ts.Log.Printf("TA Signalled: SeLL, currentPrice: %.8f, NextProfitSeLLPrice[%d]: %.8f, Target Profit: %.8f", exitPrice, ts.Index, ts.NextProfitSeLLPrice[ts.Index], md.TargetProfit)
-				return "", fmt.Errorf("cannot execute a sell order at: %.8f, expecting NextProfitSeLLPrice[%d]: %.8f, target profit: %.8f", exitPrice, ts.Index, ts.NextProfitSeLLPrice[ts.Index], md.TargetProfit)
+				// return "", fmt.Errorf("cannot execute a sell order insufficient BaseBalance: %.8f needed up to: %.8f", ts.BaseBalance, quantity)
 			}
 		}
 		// Calculate the total cost of the trade
