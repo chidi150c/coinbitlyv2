@@ -975,7 +975,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", ts.CurrentPrice, md.TargetProfit)
 		suplemented := false
 		asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
-		if (((ts.QuoteBalance/asset) * 100.0) < 20.0) && (len(ts.EntryPrice) >= 3) {
+		if (((ts.QuoteBalance/asset) * 100.0) < 20.0) && (len(ts.EntryPrice) >= 2) {
 			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
 			v := 0.0
 			for ts.SupIndex, v = range ts.EntryQuantity {
