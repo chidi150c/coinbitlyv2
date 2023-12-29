@@ -967,7 +967,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		quantity := ts.EntryQuantity[ts.Index]
 		if ( qpcent < 20.0) && (len(ts.EntryPrice) >= 2) {
 			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
-			v := 0.0
+			v := 0.0 
 			ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f Index [%d] MiniQty %.8f", asset, qpcent, ts.Index, ts.MiniQty)
 			for ts.SupIndex, v = range ts.EntryQuantity {
 				if ts.SupIndex != ts.Index {
