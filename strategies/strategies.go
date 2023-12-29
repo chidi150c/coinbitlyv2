@@ -624,20 +624,12 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 				ts.Log.Printf("NextProfitSeLLPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
 				ts.StartTime = time.Now()
 				ts.HighestPrice = 0.0
-			} //else if ((nextProfitSeLLPrice+commissionAtProfitSeLLPrice) >= ts.HighestPrice) && (time.Since(ts.StartTime) > elapseTime(ts.TradingLevel)){
-			// 	ts.Log.Printf("NextProfitSeLLPrice Not adjusted!!! since Target: %.8f NOT CROSSED at HighestPrice: %.8f", nextProfitSeLLPrice+commissionAtProfitSeLLPrice, ts.HighestPrice)
-			// }
-		} else if len(ts.EntryPrice) > 0 { //&& (!ts.StopLossTrigered)
+			} 
+		} else if len(ts.EntryPrice) > 0 { 
 			//NextBuy Re-Adjustment
 			nextInvBuYPrice := (-(ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
 			if time.Since(ts.StartTime) > elapseTime(ts.TradingLevel) {
-				if len(ts.EntryPrice) <= 2 {
-					before := ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
-					ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] = ts.LowestPrice
-					ts.Log.Printf("NextInvestBuYPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1])
-					ts.StartTime = time.Now()
-					ts.LowestPrice = math.MaxFloat64
-				} else if (nextInvBuYPrice) > ts.LowestPrice {
+				if (nextInvBuYPrice) > ts.LowestPrice {
 					before := ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
 					ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] = ts.LowestPrice
 					ts.Log.Printf("NextInvestBuYPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1])
@@ -968,31 +960,34 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		}
 		return resp, nil
 	case "Sell":
-		// Calculate profit/loss for the trade.
-		// adjustedPrice := math.Floor(price/lotSizeStep) * lotSizeStep
-		quantity := math.Floor(ts.EntryQuantity[ts.Index]/ts.MiniQty) * ts.MiniQty
-		// (localProfitLoss < transactionCost+slippageCost+md.TargetProfit) num :=
 		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", ts.CurrentPrice, md.TargetProfit)
 		suplemented := false
 		asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
-		qpcent := (ts.QuoteBalance/asset) * 100.0
+		qpcent := (ts.QuoteBalance/asset) * 100.0		
+		quantity := ts.EntryQuantity[ts.Index]
 		if ( qpcent < 20.0) && (len(ts.EntryPrice) >= 2) {
 			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
 			v := 0.0
-			ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f SupIndex [%d] Index [%d]", asset, qpcent, ts.SupIndex, ts.Index)
+			ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f Index [%d] MiniQty %.8f", asset, qpcent, ts.Index, ts.MiniQty)
 			for ts.SupIndex, v = range ts.EntryQuantity {
 				if ts.SupIndex != ts.Index {
-					ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss)
-					if (ts.SupQuantity > ts.MiniQty) && (v > ts.SupQuantity) { 
-						qpcent = quantity
-						quantity += ts.SupQuantity
-						suplemented = true
-						ts.Log.Printf("Before Suplemented Quantity Defficiency!!! from %.8f to %.8f SupIndex [%d] Index [%d]", qpcent, quantity, ts.SupIndex, ts.Index)
-						break	
+					ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss - 0.05)
+					ts.Log.Printf("SupIndex[%d] SupQuantity: %.8f", ts.SupIndex, ts.SupQuantity)
+					if v > ts.SupQuantity{ 
+						qpcent = quantity + ts.SupQuantity
+						asset = math.Floor(qpcent/ts.MiniQty) * ts.MiniQty
+						if ts.SupQuantity > (qpcent - asset){
+							ts.SupQuantity -= qpcent - asset
+							quantity += ts.SupQuantity
+							suplemented = true
+							ts.Log.Printf("Finally Suplemented SupIndex[%d] SupQuantity: %.8f ", ts.SupIndex, ts.SupQuantity)
+							break	
+						}
 					}
 				}
 			}
 		}
+		quantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
 		if ts.BaseBalance < quantity {
 			ts.Log.Printf("But BaseBalance %.8f is < quantity %.8f", ts.BaseBalance, quantity)
 			quantity = math.Floor(ts.BaseBalance/ts.MiniQty) * ts.MiniQty
@@ -1012,7 +1007,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			if ts.BaseBalance >= (reqQuantity + ts.MiniQty){
 				d := quantity
 				quantity = math.Floor((reqQuantity + ts.MiniQty)/ts.MiniQty) * ts.MiniQty
-				ts.Log.Printf("After Suplemented Quantity Defficiency!!! from %.8f to %.8f", d, quantity)
+				ts.Log.Printf("Suplemented Quantity Defficiency!!! from %.8f to %.8f", d, quantity)
 			}else{
 				//Delete or Reset entry
 				ts.DeleteOrResetEntry("totalCost", totalCost, "MinNotional", ts.MinNotional)
