@@ -975,15 +975,19 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", ts.CurrentPrice, md.TargetProfit)
 		suplemented := false
 		asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
-		if (((ts.QuoteBalance/asset) * 100.0) < 20.0) && (len(ts.EntryPrice) >= 2) {
+		qpcent := (ts.QuoteBalance/asset) * 100.0
+		if ( qpcent < 20.0) && (len(ts.EntryPrice) >= 2) {
 			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
 			v := 0.0
+			ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f SupIndex [%d] Index [%d]", asset, qpcent, ts.SupIndex, ts.Index)
 			for ts.SupIndex, v = range ts.EntryQuantity {
 				if ts.SupIndex != ts.Index {
 					ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss)
 					if (ts.SupQuantity > ts.MiniQty) && (v > ts.SupQuantity) { 
+						qpcent = quantity
 						quantity += ts.SupQuantity
 						suplemented = true
+						ts.Log.Printf("Before Suplemented Quantity Defficiency!!! from %.8f to %.8f SupIndex [%d] Index [%d]", qpcent, quantity, ts.SupIndex, ts.Index)
 						break	
 					}
 				}
@@ -1008,7 +1012,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			if ts.BaseBalance >= (reqQuantity + ts.MiniQty){
 				d := quantity
 				quantity = math.Floor((reqQuantity + ts.MiniQty)/ts.MiniQty) * ts.MiniQty
-				ts.Log.Printf("Suplemented Quantity Defficiency!!! from %.8f to %.8f", d, quantity)
+				ts.Log.Printf("After Suplemented Quantity Defficiency!!! from %.8f to %.8f", d, quantity)
 			}else{
 				//Delete or Reset entry
 				ts.DeleteOrResetEntry("totalCost", totalCost, "MinNotional", ts.MinNotional)
