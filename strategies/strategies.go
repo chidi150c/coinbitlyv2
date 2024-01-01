@@ -1048,7 +1048,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			lp = CalculateProfitLoss(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, ts.SupQuantity)
 			quantity -= ts.SupQuantity
 			ts.EntryQuantity[ts.SupIndex] -= ts.SupQuantity
-			ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity [%.8f] for Asset Balance ratio:", ts.SupIndex, ts.SupQuantity)
+			ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity: %.8f to Remain %.8f for Asset Balance ratio 80:20", ts.SupIndex, ts.SupQuantity, ts.EntryQuantity[ts.SupIndex])
 		}
 		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity) + lp
 		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
