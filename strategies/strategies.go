@@ -965,13 +965,14 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
 		qpcent := (ts.QuoteBalance/asset) * 100.0		
 		quantity := ts.EntryQuantity[ts.Index]
+		//Deciding whether to execute a supplemental sell if quote percentage falls below the 20% threshold.
 		if ( qpcent < 20.0) && (len(ts.EntryPrice) >= 2) {
 			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
 			v := 0.0 
 			ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f Index [%d] MiniQty %.8f", asset, qpcent, ts.Index, ts.MiniQty)
 			for ts.SupIndex, v = range ts.EntryQuantity {
 				if ts.SupIndex != ts.Index {
-					ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss - 0.05)
+					ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss - (localProfitLoss/2.0))
 					ts.Log.Printf("SupIndex[%d] SupQuantity: %.8f", ts.SupIndex, ts.SupQuantity)
 					if v > ts.SupQuantity{ 
 						qpcent = quantity + ts.SupQuantity
@@ -1149,13 +1150,11 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 	asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
 	num := (ts.MinNotional + 1.0) / ts.StepSize
 	ts.RiskCost = math.Floor(num) * ts.StepSize
-	ts.Log.Printf("Risk Check1 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n", ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
 	if ts.InitialCapital < asset {
 		diff := asset - ts.InitialCapital
 		num += diff
 	}
 	ts.RiskCost = math.Floor(num) * ts.StepSize
-	ts.Log.Printf("Risk Check2 For L%d, RiskCost %.8f, InitialCapital %.8f < asset %.8f \n", ts.TradingLevel, ts.RiskCost, ts.InitialCapital, asset)
 	if !ts.TLevelAdjust {
 		ts.TLevelValue = ts.TradingLevel
 	}
