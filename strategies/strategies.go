@@ -966,7 +966,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		qpcent := (ts.QuoteBalance/asset) * 100.0		
 		quantity := ts.EntryQuantity[ts.Index]
 		//Deciding whether to execute a supplemental sell if quote percentage falls below the 20% threshold.
-		if ( qpcent < 60.0) && (len(ts.EntryPrice) >= 2) {
+		if ( qpcent < 50.0) && (len(ts.EntryPrice) >= 2) {
 			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
 			v := 0.0 
 			ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f Index [%d] Pre-LocalProfitLoss %.8f", asset, qpcent, ts.Index, localProfitLoss)
@@ -1005,7 +1005,11 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		// Check if the total cost meets the minNotional requirement
 		if totalCost < ts.MinNotional {
 			reqQuantity := ts.MinNotional / ts.CurrentPrice
-			if ts.BaseBalance >= (reqQuantity + ts.MiniQty){
+			if (len(ts.EntryPrice) > 1) && (ts.Index > 0){
+				agg := ts.AggregateEntries()
+				ts.Log.Printf(agg)
+				return "", fmt.Errorf(agg)
+			}else if ts.BaseBalance >= (reqQuantity + ts.MiniQty){
 				d := quantity
 				quantity = math.Floor((reqQuantity + ts.MiniQty)/ts.MiniQty) * ts.MiniQty
 				ts.Log.Printf("Suplemented Quantity Defficiency!!! from %.8f to %.8f", d, quantity)
@@ -1013,6 +1017,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 				//Delete or Reset entry
 				ts.DeleteOrResetEntry("totalCost", totalCost, "MinNotional", ts.MinNotional)
 				ts.Log.Printf("Less than MinNotional: Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, ts.CurrentPrice, totalCost, ts.MinNotional)
+			
 				return "", fmt.Errorf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, ts.CurrentPrice, totalCost, ts.MinNotional)
 			}
 		}
@@ -1048,7 +1053,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			lp = CalculateProfitLoss(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, ts.SupQuantity)
 			quantity -= ts.SupQuantity
 			ts.EntryQuantity[ts.SupIndex] -= ts.SupQuantity
-			ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity: %.8f to Remain %.8f for Asset Balance ratio 60:40", ts.SupIndex, ts.SupQuantity, ts.EntryQuantity[ts.SupIndex])
+			ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity: %.8f to Remain %.8f for Asset Balance ratio 50:50", ts.SupIndex, ts.SupQuantity, ts.EntryQuantity[ts.SupIndex])
 		}
 		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity) + lp
 		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
@@ -1142,6 +1147,32 @@ func (ts *TradingSystem) DeleteOrResetEntry(have string, quantity float64, expec
 	ts.TradingLevel = len(ts.EntryPrice)
 }
 
+func (ts *TradingSystem) AggregateEntries() string {
+	AggResult := fmt.Sprintf("Aggregate Required !!! for [%d] of %.8f quantity", ts.Index, ts.EntryQuantity[ts.Index])
+	if (len(ts.EntryPrice) > 1) && (ts.Index > 0) { //ts.Index 
+		for k, _ := range ts.EntryPrice{
+			if k < ts.Index{
+				ts.EntryQuantity[k] += ts.EntryQuantity[ts.Index]				
+				AggResult = fmt.Sprintf("Aggregated [%d] of X and [%d] of %.8f to be %.8f ", k, ts.Index, ts.EntryQuantity[ts.Index], ts.EntryQuantity[k])
+				if !ts.InTrade {
+					ts.StopLossTrigered = false
+				}
+				ts.InTrade = false
+				ts.StartTime = time.Now()
+				ts.LowestPrice = math.MaxFloat64
+				ts.HighestPrice = 0.0
+				ts.EntryPrice = deleteElement(ts.EntryPrice, ts.Index)
+				ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, ts.Index)
+				ts.EntryQuantity = deleteElement(ts.EntryQuantity, ts.Index)
+				ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, ts.Index)
+				ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, ts.Index)
+				ts.TradingLevel = len(ts.EntryPrice)
+				break
+			}
+		}
+	}
+	return AggResult
+}
 // RiskManagement applies risk management rules to limit potential losses.
 // It calculates the stop-loss price based on the fixed percentage of risk per trade and the position size.
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
@@ -1162,57 +1193,42 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 		ts.TLevelValue = 0
 	}
 	switch ts.TLevelValue {
-	// case 0:
-	// 	ts.RiskCost += 20.0 + 2.5 + 1.5
-	// 	ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	// 	md.TargetProfit = mainValue * 0.0008
-	// 	md.TargetStopLoss = mainValue * 0.0015
-	// case 1:
-	// 	ts.RiskCost += 25.0 + 5.0 + 2.0
-	// 	ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	// 	md.TargetProfit = mainValue * 0.00085
-	// 	md.TargetStopLoss = mainValue * 0.002
 	case 0:
-		ts.RiskCost += 30.0 + 7.5 + 2.5
-		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.0009
-		md.TargetStopLoss = mainValue * 0.0025
-	case 1:
 		ts.RiskCost += 35.0 + 10.0 + 5.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.00095
 		md.TargetStopLoss = mainValue * 0.003
-	case 2:
+	case 1:
 		ts.RiskCost += 40.0 + 12.5 + 7.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.001
 		md.TargetStopLoss = mainValue * 0.0035
-	case 3:
+	case 2:
 		ts.RiskCost += 45.0 + 15. + 10.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.0015
 		md.TargetStopLoss = mainValue * 0.004
-	case 4:
+	case 3:
 		ts.RiskCost += 50.0 + 17.5 + 12.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.002
 		md.TargetStopLoss = mainValue * 0.0045
-	case 5:
+	case 4:
 		ts.RiskCost += 55.0 + 19.5 + 15.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.0025
 		md.TargetStopLoss = mainValue * 0.005
-	case 6:
+	case 5:
 		ts.RiskCost += 60.0 + 22.0 + 17.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.003
 		md.TargetStopLoss = mainValue * 0.0055
-	case 7:
+	case 6:
 		ts.RiskCost += 65.0 + 24.5 + 19.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.0035
 		md.TargetStopLoss = mainValue * 0.006
-	case 8:
+	case 7:
 		ts.RiskCost += 70.0 + 27.0 + 22.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.004
