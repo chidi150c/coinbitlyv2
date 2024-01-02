@@ -966,14 +966,14 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		qpcent := (ts.QuoteBalance/asset) * 100.0		
 		quantity := ts.EntryQuantity[ts.Index]
 		//Deciding whether to execute a supplemental sell if quote percentage falls below the 20% threshold.
-		if ( qpcent < 20.0) && (len(ts.EntryPrice) >= 2) {
+		if ( qpcent < 40.0) && (len(ts.EntryPrice) >= 2) {
 			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
 			v := 0.0 
 			ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f Index [%d] MiniQty %.8f", asset, qpcent, ts.Index, ts.MiniQty)
 			for ts.SupIndex, v = range ts.EntryQuantity {
 				if ts.SupIndex != ts.Index {
-					ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss - (localProfitLoss/2.0))
-					ts.Log.Printf("SupIndex[%d] SupQuantity: %.8f", ts.SupIndex, ts.SupQuantity)
+					ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss)
+					ts.Log.Printf("SupIndex[%d] Calculated SupQuantity: %.8f Position Quantity: %.8f", ts.SupIndex, ts.SupQuantity, v)
 					if v > ts.SupQuantity{ 
 						qpcent = quantity + ts.SupQuantity
 						asset = math.Floor(qpcent/ts.MiniQty) * ts.MiniQty
@@ -1048,7 +1048,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			lp = CalculateProfitLoss(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, ts.SupQuantity)
 			quantity -= ts.SupQuantity
 			ts.EntryQuantity[ts.SupIndex] -= ts.SupQuantity
-			ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity: %.8f to Remain %.8f for Asset Balance ratio 80:20", ts.SupIndex, ts.SupQuantity, ts.EntryQuantity[ts.SupIndex])
+			ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity: %.8f to Remain %.8f for Asset Balance ratio 60:40", ts.SupIndex, ts.SupQuantity, ts.EntryQuantity[ts.SupIndex])
 		}
 		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity) + lp
 		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
