@@ -966,7 +966,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		qpcent := (ts.QuoteBalance/asset) * 100.0		
 		quantity := ts.EntryQuantity[ts.Index]
 		//Deciding whether to execute a supplemental sell if quote percentage falls below the 20% threshold.
-		if ( qpcent < 50.0) && (len(ts.EntryPrice) >= 2) {
+		if ( qpcent < 40.0) && (len(ts.EntryPrice) >= 2) {
 			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
 			v := 0.0 
 			ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f Index [%d] Pre-LocalProfitLoss %.8f", asset, qpcent, ts.Index, localProfitLoss)
@@ -1053,7 +1053,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			lp = CalculateProfitLoss(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, ts.SupQuantity)
 			quantity -= ts.SupQuantity
 			ts.EntryQuantity[ts.SupIndex] -= ts.SupQuantity
-			ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity: %.8f to Remain %.8f for Asset Balance ratio 50:50", ts.SupIndex, ts.SupQuantity, ts.EntryQuantity[ts.SupIndex])
+			ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity: %.8f to Remain %.8f for Asset Balance ratio 40:60", ts.SupIndex, ts.SupQuantity, ts.EntryQuantity[ts.SupIndex])
 		}
 		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity) + lp
 		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
@@ -1193,42 +1193,42 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 		ts.TLevelValue = 0
 	}
 	switch ts.TLevelValue {
+	// case 0:
+	// 	ts.RiskCost += 35.0 + 10.0 + 5.0
+	// 	ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+	// 	md.TargetProfit = mainValue * 0.00095
+	// 	md.TargetStopLoss = mainValue * 0.003
 	case 0:
-		ts.RiskCost += 35.0 + 10.0 + 5.0
-		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.00095
-		md.TargetStopLoss = mainValue * 0.003
-	case 1:
 		ts.RiskCost += 40.0 + 12.5 + 7.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.001
 		md.TargetStopLoss = mainValue * 0.0035
-	case 2:
+	case 1:
 		ts.RiskCost += 45.0 + 15. + 10.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.0015
 		md.TargetStopLoss = mainValue * 0.004
-	case 3:
+	case 2:
 		ts.RiskCost += 50.0 + 17.5 + 12.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.002
 		md.TargetStopLoss = mainValue * 0.0045
-	case 4:
+	case 3:
 		ts.RiskCost += 55.0 + 19.5 + 15.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.0025
 		md.TargetStopLoss = mainValue * 0.005
-	case 5:
+	case 4:
 		ts.RiskCost += 60.0 + 22.0 + 17.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.003
 		md.TargetStopLoss = mainValue * 0.0055
-	case 6:
+	case 5:
 		ts.RiskCost += 65.0 + 24.5 + 19.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.0035
 		md.TargetStopLoss = mainValue * 0.006
-	case 7:
+	case 6:
 		ts.RiskCost += 70.0 + 27.0 + 22.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
 		md.TargetProfit = mainValue * 0.004
