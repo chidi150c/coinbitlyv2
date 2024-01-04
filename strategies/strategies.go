@@ -1358,32 +1358,20 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 			L8EMA3, L8EMA0 := long8EMA[ts.DataPoint-3], long8EMA[ts.DataPoint]
 			S4EMA3, S4EMA0 := short4EMA[ts.DataPoint-3], short4EMA[ts.DataPoint]
 			//for market determination
-			L55EMA3, L55EMA2, L55EMA1, L55EMA0 := long55EMA[ts.DataPoint-3], long55EMA[ts.DataPoint-2], long55EMA[ts.DataPoint-1], long55EMA[ts.DataPoint]
-			S15EMA3, S15EMA2, S15EMA1, S15EMA0 := short15EMA[ts.DataPoint-3], short15EMA[ts.DataPoint-2], short15EMA[ts.DataPoint-1], short15EMA[ts.DataPoint]
+			L55EMA3, L55EMA0 := long55EMA[ts.DataPoint-3], long55EMA[ts.DataPoint]
+			S15EMA3, S15EMA0 := short15EMA[ts.DataPoint-3], short15EMA[ts.DataPoint]
 			
 			go func(ch1 chan bool){
-				ch1 <- L55EMA3 > S15EMA3 &&
-				(L55EMA2-S15EMA2 >= L55EMA3-S15EMA3) &&
-				(L55EMA1-S15EMA1 >= L55EMA2-S15EMA2) &&
-				(L55EMA0-S15EMA0 > L55EMA1-S15EMA1)
+				ch1 <- (L55EMA3 > S15EMA3) && (L55EMA0-S15EMA0 > L55EMA3-S15EMA3) && (L55EMA0 > S15EMA0)
 			}(ch1)
 			go func(ch2 chan bool){
-				ch2 <- L55EMA0 > S15EMA0 &&
-				(L55EMA2-S15EMA2 <= L55EMA3-S15EMA3) &&
-				(L55EMA1-S15EMA1 <= L55EMA2-S15EMA2) &&
-				(L55EMA0-S15EMA0 < L55EMA1-S15EMA1)
+				ch2 <- L55EMA0 > S15EMA0 && (L55EMA0-S15EMA0 < L55EMA3-S15EMA3) && (L55EMA3 > S15EMA3)
 			}(ch2)
 			go func (ch3 chan bool){
-				ch3 <- S15EMA3 > L55EMA3 &&
-				(S15EMA2-L55EMA2 >= S15EMA3-L55EMA3) &&
-				(S15EMA1-L55EMA1 >= S15EMA2-L55EMA2) &&
-				(S15EMA0-L55EMA0 > S15EMA1-L55EMA1)
+				ch3 <- S15EMA3 > L55EMA3 && (S15EMA0-L55EMA0 > S15EMA3-L55EMA3) && (S15EMA3 > L55EMA3)
 			}(ch3)
 			go func (ch4 chan bool){
-				ch4 <- S15EMA0 > L55EMA0 &&
-				(S15EMA2-L55EMA2 <= S15EMA3-L55EMA3) &&
-				(S15EMA1-L55EMA1 <= S15EMA2-L55EMA2) &&
-				(S15EMA0-L55EMA0 < S15EMA1-L55EMA1)
+				ch4 <- S15EMA0 > L55EMA0 &&	(S15EMA0-L55EMA0 < S15EMA3-L55EMA3) && (S15EMA3 > L55EMA3)
 			}(ch4)
 
 			DownGoingDown := <-ch1			
@@ -1392,16 +1380,20 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 			UpGoingDown := <-ch4
 
 			if Action == "Entry" && (UpGoingUp || DownGoingUp){
-				buySignal = (L8EMA3 > S4EMA3) && (L8EMA0 > S4EMA0) && (L8EMA3 - S4EMA3) > (L8EMA0 - S4EMA0)
+				buySignal = (L8EMA3 > S4EMA3) && (L8EMA0 > S4EMA0) && ((L8EMA3 - S4EMA3) > (L8EMA0 - S4EMA0))
 				if buySignal {
 					ts.Log.Printf("TA Signalled: BuY: %v at currentPrice: %.8f, UpGoingUp: %v, DownGoingUp: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", buySignal, ts.CurrentPrice, UpGoingUp, DownGoingUp, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
-				} 
+				} else{
+					ts.Log.Printf("TA Signalled: Missed BuY: L8EMA3 %.8f > S4EMA3 %.8f = %v, UpGoingUp: %v, DownGoingUp: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", L8EMA3, S4EMA3, (L8EMA3 > S4EMA3 ), UpGoingUp, DownGoingUp, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
+				}
 			}
 			if Action == "Exit" && (UpGoingDown || DownGoingDown){
-				sellSignal = (S4EMA3 > L8EMA3) && (S4EMA0 > L8EMA0) && (S4EMA3 - L8EMA3) > (S4EMA0 - L8EMA0)
+				sellSignal = (S4EMA3 > L8EMA3) && (S4EMA0 > L8EMA0) && ((S4EMA3 - L8EMA3) > (S4EMA0 - L8EMA0))
 				if sellSignal{
 					ts.Log.Printf("TA Signalled: SeLL, currentPrice: %.8f, UpGoingDown: %v DownGoingDown: %v", ts.CurrentPrice, UpGoingDown, DownGoingDown)
-				} 
+				} else{
+					ts.Log.Printf("TA Signalled: Missed SeLL: S4EMA3 %.8f > L8EMA3 %.8f = %v, UpGoingUp: %v, DownGoingUp: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", S4EMA3, L8EMA3, (S4EMA3 > L8EMA3), UpGoingUp, DownGoingUp, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
+				}
 				if sellSignal && ts.FreeFall{
 					if !DownGoingDown {
 						ts.FreeFall = false
