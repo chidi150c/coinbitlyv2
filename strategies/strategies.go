@@ -602,13 +602,13 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 				ts.HighestPrice = 0.0
 			}
 		} else {
-			if (len(ts.EntryPrice) > 0) && (ts.LowestPrice > ts.CurrentPrice) {
-				ts.LowestPrice = ts.CurrentPrice
-			}
-			if (len(ts.EntryPrice) > 0) && (ts.HighestPrice < ts.CurrentPrice) {
-				ts.HighestPrice = ts.CurrentPrice
-			}
 			time.Sleep(ts.EpochTime)
+		}
+		if (len(ts.EntryPrice) > 0) && (ts.LowestPrice > ts.CurrentPrice) {
+			ts.LowestPrice = ts.CurrentPrice
+		}
+		if (len(ts.EntryPrice) > 0) && (ts.HighestPrice < ts.CurrentPrice) {
+			ts.HighestPrice = ts.CurrentPrice
 		}
 		if ts.InTrade && (len(ts.EntryPrice) > 0) {
 			//NextSell Re-Adjustment
