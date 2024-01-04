@@ -581,6 +581,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		md.DataPoint++
 		ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 		ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
+
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		ts.Trading(md, loadExchFrom)
@@ -1314,66 +1315,114 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 // Bands. It determines the buy and sell signals based on various strategy rules.
 func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (buySignal, sellSignal bool) {
 	// Calculate moving averages (MA) using historical data.
-	ch := make(chan string)
+	ch1 := make(chan bool)
+	ch2 := make(chan bool)
+	ch3 := make(chan bool)
+	ch4 := make(chan bool)
 	var (
-		err1, err2        error
-		shortEMA, longEMA []float64
+		err1, err2, err3, err4        error
+		short4EMA, long8EMA []float64
+		short15EMA, long55EMA []float64
 	)
-	C4EMA := CandleExponentialMovingAverageV1(ts.ClosingPrices, 4)
-	go func(ch chan string) {
-		longEMA, err2 = CandleExponentialMovingAverageV2(C4EMA, md.LongPeriod)
-		ch <- ""
-	}(ch)
-	shortEMA, err1 = CandleExponentialMovingAverageV2(C4EMA, md.ShortPeriod)
-	<-ch
+	go func(ch1 chan bool) {
+		md.LongPeriod = 4
+		short4EMA, err1 = CandleExponentialMovingAverageV2(ts.ClosingPrices, 4)
+		ch1 <- true
+	}(ch1)
+	go func(ch2 chan bool) {
+		md.ShortPeriod = 8
+		long8EMA, err2 = CandleExponentialMovingAverageV2(ts.ClosingPrices, 8)
+		ch2 <- true
+	}(ch2)
+	go func(ch3 chan bool) {
+		long55EMA, err3 = CandleExponentialMovingAverageV2(ts.ClosingPrices, 55)
+		ch3 <- true
+	}(ch3)
+	short15EMA, err4 = CandleExponentialMovingAverageV2(ts.ClosingPrices, 15)
+	<-ch1
+	<-ch2
+	<-ch3
 
-	if (err1 != nil) || (err2 != nil) {
+	if (err1 != nil) || (err2 != nil) || (err3 != nil) || (err4 != nil) {
 		// log.Printf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
 		md.LongEMA, md.ShortEMA = 0.0, 0.0
 	} else {
-		md.LongEMA, md.ShortEMA = longEMA[ts.DataPoint], shortEMA[ts.DataPoint]
+		md.LongEMA, md.ShortEMA = long8EMA[ts.DataPoint], short4EMA[ts.DataPoint]
 	}
 	// Determine the buy and sell signals based on the moving averages, RSI, MACD line, and Bollinger Bands.
-	if len(shortEMA) > 7 && len(longEMA) > 7 && ts.DataPoint >= 7 {
-
+	if len(short15EMA) > 4 && len(long55EMA) > 4 && ts.DataPoint >= 4 {
 		if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 1 {
-			ts.Container1 = shortEMA
-			ts.Container2 = longEMA
+			ts.Container1 = short4EMA
+			ts.Container2 = long8EMA
+			//for price determination
+			L8EMA3, L8EMA2, L8EMA1, L8EMA0 := long8EMA[ts.DataPoint-3], long8EMA[ts.DataPoint-2], long8EMA[ts.DataPoint-1], long8EMA[ts.DataPoint]
+			S4EMA3, S4EMA2, S4EMA1, S4EMA0 := short4EMA[ts.DataPoint-3], short4EMA[ts.DataPoint-2], short4EMA[ts.DataPoint-1], short4EMA[ts.DataPoint]
+			//for market determination
+			L55EMA3, L55EMA2, L55EMA1, L55EMA0 := long55EMA[ts.DataPoint-3], long55EMA[ts.DataPoint-2], long55EMA[ts.DataPoint-1], long55EMA[ts.DataPoint]
+			S15EMA3, S15EMA2, S15EMA1, S15EMA0 := short15EMA[ts.DataPoint-3], short15EMA[ts.DataPoint-2], short15EMA[ts.DataPoint-1], short15EMA[ts.DataPoint]
+			
+			go func(ch1 chan bool){
+				ch1 <- L55EMA3 > S15EMA3 &&
+				(L55EMA2-S15EMA2 >= L55EMA3-S15EMA3) &&
+				(L55EMA1-S15EMA1 >= L55EMA2-S15EMA2) &&
+				(L55EMA0-S15EMA0 > L55EMA1-S15EMA1)
+			}(ch1)
+			go func(ch2 chan bool){
+				ch2 <- L55EMA0 > S15EMA0 &&
+				(L55EMA2-S15EMA2 <= L55EMA3-S15EMA3) &&
+				(L55EMA1-S15EMA1 <= L55EMA2-S15EMA2) &&
+				(L55EMA0-S15EMA0 < L55EMA1-S15EMA1)
+			}(ch2)
+			go func (ch3 chan bool){
+				ch3 <- S15EMA3 > L55EMA3 &&
+				(S15EMA2-L55EMA2 >= S15EMA3-L55EMA3) &&
+				(S15EMA1-L55EMA1 >= S15EMA2-L55EMA2) &&
+				(S15EMA0-L55EMA0 > S15EMA1-L55EMA1)
+			}(ch3)
+			go func (ch4 chan bool){
+				ch4 <- S15EMA0 > L55EMA0 &&
+				(S15EMA2-L55EMA2 <= S15EMA3-L55EMA3) &&
+				(S15EMA1-L55EMA1 <= S15EMA2-L55EMA2) &&
+				(S15EMA0-L55EMA0 < S15EMA1-L55EMA1)
+			}(ch4)
 
-			LEMA7, LEMA6, LEMA5, LEMA4, LEMA3, LEMA2, LEMA1, LEMA0 := longEMA[ts.DataPoint-7], longEMA[ts.DataPoint-6], longEMA[ts.DataPoint-5], longEMA[ts.DataPoint-4], longEMA[ts.DataPoint-3], longEMA[ts.DataPoint-2], longEMA[ts.DataPoint-1], longEMA[ts.DataPoint]
-			SEMA7, SEMA6, SEMA5, SEMA4, SEMA3, SEMA2, SEMA1, SEMA0 := shortEMA[ts.DataPoint-7], shortEMA[ts.DataPoint-6], shortEMA[ts.DataPoint-5], shortEMA[ts.DataPoint-4], shortEMA[ts.DataPoint-3], shortEMA[ts.DataPoint-2], shortEMA[ts.DataPoint-1], shortEMA[ts.DataPoint]
+			DownGoingDown := <-ch1			
+			DownGoingUp := <- ch2
+			UpGoingUp := <- ch3
+			UpGoingDown := <-ch4
 
-			if Action == "Entry" {
-				buySignal = LEMA7 > SEMA7 &&
-					(LEMA6-SEMA6 >= LEMA7-SEMA7) &&
-					(LEMA5-SEMA5 >= LEMA6-SEMA6) &&
-					(LEMA4-SEMA4 >= LEMA5-SEMA5) &&
-					(LEMA3-SEMA3 >= LEMA4-SEMA4) &&
-					(LEMA2-SEMA2 >= LEMA3-SEMA3) &&
-					(LEMA1-SEMA1 >= LEMA2-SEMA2) &&
-					(LEMA0-SEMA0 < LEMA1-SEMA1)
+			if Action == "Entry" && (UpGoingUp || DownGoingUp){
+				buySignal = L8EMA3 > S4EMA3 &&
+					(L8EMA2-S4EMA2 >= L8EMA3-S4EMA3) &&
+					(L8EMA1-S4EMA1 >= L8EMA2-S4EMA2) &&
+					(L8EMA0-S4EMA0 < L8EMA1-S4EMA1)
 				if buySignal && (len(ts.NextInvestBuYPrice) >= 1) {
 					i := len(ts.NextInvestBuYPrice) - 1
 					ts.Log.Printf("TA Signalled: BuY: %v at currentPrice: %.8f, will BuY below NextInvestBuYPrice[%d]: %.8f, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", buySignal, ts.CurrentPrice, i, ts.NextInvestBuYPrice[i], time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
 				} else if buySignal {
 					ts.Log.Printf("TA Signalled: BuY, at currentPrice: %.8f", ts.CurrentPrice)
 				}
+			}else if Action == "Entry"{				
+				ts.Log.Printf("TA BuY Signal Failed: Market UpGoingUp: %v DownGoingUp: %v ", UpGoingUp, DownGoingUp)
 			}
-			if Action == "Exit" {
-				sellSignal = SEMA7 > LEMA7 &&
-					(SEMA6-LEMA6 >= SEMA7-LEMA7) &&
-					(SEMA5-LEMA5 >= SEMA6-LEMA6) &&
-					(SEMA4-LEMA4 >= SEMA5-LEMA5) &&
-					(SEMA3-LEMA3 >= SEMA4-LEMA4) &&
-					(SEMA2-LEMA2 >= SEMA3-LEMA3) &&
-					(SEMA1-LEMA1 >= SEMA2-LEMA2) &&
-					(SEMA0-LEMA0 < SEMA1-LEMA1)
-				if sellSignal && (len(ts.NextProfitSeLLPrice) >= 1) {
+			if Action == "Exit" && (UpGoingDown || DownGoingDown){
+				sellSignal = S4EMA3 > L8EMA3 &&
+					(S4EMA2-L8EMA2 >= S4EMA3-L8EMA3) &&
+					(S4EMA1-L8EMA1 >= S4EMA2-L8EMA2) &&
+					(S4EMA0-L8EMA0 < S4EMA1-L8EMA1)
+				if sellSignal && (len(ts.NextProfitSeLLPrice) >= 1){
 					i := len(ts.NextProfitSeLLPrice) - 1
 					ts.Log.Printf("TA Signalled: SeLL, currentPrice: %.8f, will SeLL above NextProfitSeLLPrice[%d]: %.8f, and Target Profit: %.8f", ts.CurrentPrice, i, ts.NextProfitSeLLPrice[i], md.TargetProfit)
 				} else if sellSignal {
 					ts.Log.Printf("TA Signalled: SeLL, currentPrice: %.8f", ts.CurrentPrice)
 				}
+				if sellSignal && ts.FreeFall{
+					if !DownGoingDown {
+						ts.FreeFall = false
+					}
+				}
+			}else if Action == "Exit"{				
+				ts.Log.Printf("TA SeLL Signal Failed: Market UpGoingDown: %v DownGoingDown: %v ", UpGoingDown, DownGoingDown)
 			}
 		}
 	}
@@ -1486,14 +1535,14 @@ func CalculateMACD(SignalMACDPeriod int, closingPrices []float64, timeStamps []i
 		return nil, nil, nil, err
 	}
 
-	longEMA, shortEMA, err := CandleExponentialMovingAverage(closingPrices, LongPeriod, ShortPeriod)
+	long8EMA, short4EMA, err := CandleExponentialMovingAverage(closingPrices, LongPeriod, ShortPeriod)
 	if err != nil {
 		log.Fatalf("Error: in CalclateMACD while tring to get EMA")
 	}
 	// Calculate MACD line
 	macdLine = make([]float64, len(closingPrices))
 	for i := range closingPrices {
-		macdLine[i] = shortEMA[i] - longEMA[i]
+		macdLine[i] = short4EMA[i] - long8EMA[i]
 	}
 
 	// Calculate signal line using the MACD line
@@ -1509,7 +1558,7 @@ func CalculateMACD(SignalMACDPeriod int, closingPrices []float64, timeStamps []i
 }
 
 //CandleExponentialMovingAverage calculates EMA from condles
-func CandleExponentialMovingAverage(closingPrices []float64, LongPeriod, ShortPeriod int) (longEMA, shortEMA []float64, err error) {
+func CandleExponentialMovingAverage(closingPrices []float64, LongPeriod, ShortPeriod int) (long8EMA, short4EMA []float64, err error) {
 	if LongPeriod <= 0 || len(closingPrices) < LongPeriod || closingPrices == nil {
 		return nil, nil, fmt.Errorf("Error Calculating Candle EMA: not enoguh data for period %v", LongPeriod)
 	}
@@ -1517,47 +1566,47 @@ func CandleExponentialMovingAverage(closingPrices []float64, LongPeriod, ShortPe
 	ema55 = ema.NewEma(alphaFromN(LongPeriod))
 	ema15 = ema.NewEma(alphaFromN(ShortPeriod))
 
-	longEMA = make([]float64, len(closingPrices))
-	shortEMA = make([]float64, len(closingPrices))
+	long8EMA = make([]float64, len(closingPrices))
+	short4EMA = make([]float64, len(closingPrices))
 	for k, closePrice := range closingPrices {
 		ema55.Step(closePrice)
 		ema15.Step(closePrice)
-		longEMA[k] = ema55.Compute()
-		shortEMA[k] = ema15.Compute()
+		long8EMA[k] = ema55.Compute()
+		short4EMA[k] = ema15.Compute()
 	}
-	return longEMA, shortEMA, nil
+	return long8EMA, short4EMA, nil
 }
 
 //CandleExponentialMovingAverage calculates EMA from condles
-func CandleExponentialMovingAverageV2(closingPrices []float64, ShortPeriod int) (shortEMA []float64, err error) {
+func CandleExponentialMovingAverageV2(closingPrices []float64, ShortPeriod int) (short4EMA []float64, err error) {
 	if ShortPeriod <= 0 || len(closingPrices) < ShortPeriod || closingPrices == nil {
 		return nil, fmt.Errorf("Error Calculating Candle EMA: not enoguh data for period %v", ShortPeriod)
 	}
 	var ema15 *ema.Ema
 	ema15 = ema.NewEma(alphaFromN(ShortPeriod))
 
-	shortEMA = make([]float64, len(closingPrices))
+	short4EMA = make([]float64, len(closingPrices))
 	for k, closePrice := range closingPrices {
 		ema15.Step(closePrice)
-		shortEMA[k] = ema15.Compute()
+		short4EMA[k] = ema15.Compute()
 	}
-	return shortEMA, nil
+	return short4EMA, nil
 }
 
 //CandleExponentialMovingAverage calculates EMA from condles
-func CandleExponentialMovingAverageV1(closingPrices []float64, ShortPeriod int) (shortEMA []float64) {
+func CandleExponentialMovingAverageV1(closingPrices []float64, ShortPeriod int) (short4EMA []float64) {
 	if ShortPeriod <= 0 || len(closingPrices) < ShortPeriod || closingPrices == nil {
 		return nil
 	}
 	var ema15 *ema.Ema
 	ema15 = ema.NewEma(alphaFromN(ShortPeriod))
 
-	shortEMA = make([]float64, len(closingPrices))
+	short4EMA = make([]float64, len(closingPrices))
 	for k, closePrice := range closingPrices {
 		ema15.Step(closePrice)
-		shortEMA[k] = ema15.Compute()
+		short4EMA[k] = ema15.Compute()
 	}
-	return shortEMA
+	return short4EMA
 }
 
 // CalculateExponentialMovingAverage calculates the Exponential Moving Average (EMA) for the given data and period.
