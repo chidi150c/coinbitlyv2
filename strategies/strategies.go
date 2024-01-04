@@ -1380,19 +1380,19 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 			UpGoingDown := <-ch4
 
 			if Action == "Entry" && (UpGoingUp || DownGoingUp){
-				buySignal = (L8EMA3 > S4EMA3) && (L8EMA0 > S4EMA0) && ((L8EMA3 - S4EMA3) > (L8EMA0 - S4EMA0))
+				buySignal = (L8EMA3 > S4EMA3) && (L8EMA0 > S4EMA0) 
 				if buySignal {
 					ts.Log.Printf("TA Signalled: BuY: %v at currentPrice: %.8f, UpGoingUp: %v, DownGoingUp: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", buySignal, ts.CurrentPrice, UpGoingUp, DownGoingUp, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
 				} else{
-					ts.Log.Printf("TA Signalled: Missed BuY: L8EMA3 %.8f > S4EMA3 %.8f = %v, UpGoingUp: %v, DownGoingUp: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", L8EMA3, S4EMA3, (L8EMA3 > S4EMA3 ), UpGoingUp, DownGoingUp, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
+					ts.Log.Printf("TA Signalled: Missed BuY: L8EMA3 %.8f > S4EMA3 %.8f = %v, L8EMA0 %.8f > S4EMA0 %.8f = %v,UpGoingUp: %v, DownGoingUp: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", L8EMA3, S4EMA3, (L8EMA3 > S4EMA3 ), L8EMA0, S4EMA0, (L8EMA0 > S4EMA0), UpGoingUp, DownGoingUp, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
 				}
 			}
 			if Action == "Exit" && (UpGoingDown || DownGoingDown){
-				sellSignal = (S4EMA3 > L8EMA3) && (S4EMA0 > L8EMA0) && ((S4EMA3 - L8EMA3) > (S4EMA0 - L8EMA0))
+				sellSignal = (S4EMA3 > L8EMA3) && (S4EMA0 > L8EMA0) 
 				if sellSignal{
 					ts.Log.Printf("TA Signalled: SeLL, currentPrice: %.8f, UpGoingDown: %v DownGoingDown: %v", ts.CurrentPrice, UpGoingDown, DownGoingDown)
 				} else{
-					ts.Log.Printf("TA Signalled: Missed SeLL: S4EMA3 %.8f > L8EMA3 %.8f = %v, UpGoingUp: %v, DownGoingUp: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", S4EMA3, L8EMA3, (S4EMA3 > L8EMA3), UpGoingUp, DownGoingUp, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
+					ts.Log.Printf("TA Signalled: Missed SeLL: S4EMA3 %.8f > L8EMA3 %.8f = %v, S4EMA0 %.8f > L8EMA0 %.8f = %v, UpGoingUp: %v, DownGoingUp: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", S4EMA3, L8EMA3, (S4EMA3 > L8EMA3), S4EMA0, L8EMA0, (S4EMA0 > L8EMA0), UpGoingUp, DownGoingUp, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
 				}
 				if sellSignal && ts.FreeFall{
 					if !DownGoingDown {
