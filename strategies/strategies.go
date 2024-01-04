@@ -977,7 +977,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		quantity := ts.EntryQuantity[ts.Index]
 		FreeFallProfitLoss := 0.0
 		//Deciding whether to execute a supplemental sell if quote percentage falls below the 20% threshold.
-		if (len(ts.EntryPrice) >= 2) && (qpcent < 50.0) {
+		if (len(ts.EntryPrice) >= 2) && (qpcent < 40.0) {
 			if (ts.FreeFall == true) {
 				qpcent = ((asset/2.0) - ts.QuoteBalance)/ts.CurrentPrice
 				asset = 0.0
@@ -1032,7 +1032,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		// Check if the total cost meets the minNotional requirement
 		if totalCost < ts.MinNotional {
 			reqQuantity := ts.MinNotional / ts.CurrentPrice
-			if (len(ts.EntryPrice) > 1) && (ts.Index > 0){
+			if (len(ts.EntryPrice) > 1) {
 				agg := ts.AggregateEntries()
 				ts.Log.Printf(agg)
 				return "", fmt.Errorf(agg)
@@ -1082,7 +1082,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 				quantity -= ts.SupQuantity
 				ts.EntryQuantity[ts.SupIndex] -= ts.SupQuantity
 				localProfitLoss = CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity) + FreeFallProfitLoss
-				ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity: %.8f to Remain %.8f for Asset Balance ratio 30:70", ts.SupIndex, ts.SupQuantity, ts.EntryQuantity[ts.SupIndex])
+				ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity: %.8f to Remain %.8f for Asset Balance ratio 40:60", ts.SupIndex, ts.SupQuantity, ts.EntryQuantity[ts.SupIndex])
 			}else if suplemented == "freefall"{
 				localProfitLoss = FreeFallProfitLoss 
 				ts.Log.Printf("STOPLOST!!! by FreeFall Suplemented from [0] to [%d] with Resultant SumQuantity of %.8f", ts.SupIndex, quantity)
@@ -1212,9 +1212,9 @@ func (ts *TradingSystem) DeleteFreeFallRangeEntries() string {
 }
 func (ts *TradingSystem) AggregateEntries() string {
 	AggResult := fmt.Sprintf("Aggregate Required !!! for [%d] of %.8f quantity", ts.Index, ts.EntryQuantity[ts.Index])
-	if (len(ts.EntryPrice) > 1) && (ts.Index > 0) { //ts.Index 
+	if (len(ts.EntryPrice) > 1){ //ts.Index 
 		for k, _ := range ts.EntryPrice{
-			if k < ts.Index{
+			if k != ts.Index{
 				ts.EntryQuantity[k] += ts.EntryQuantity[ts.Index]				
 				AggResult = fmt.Sprintf("Aggregated [%d] of X and [%d] of %.8f to be %.8f ", k, ts.Index, ts.EntryQuantity[ts.Index], ts.EntryQuantity[k])
 				if !ts.InTrade {
