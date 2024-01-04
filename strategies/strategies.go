@@ -160,7 +160,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		ts.Zoom = 499
 	}
 	ts.ShutDownCh = make(chan string)
-	ts.EpochTime = time.Second * 10
+	ts.EpochTime = time.Second * 30
 	ts.StartTime = time.Now()
 	ts.LowestPrice = math.MaxFloat64
 	ts.StoreAppDataChan = make(chan string, 1)
