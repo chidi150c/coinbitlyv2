@@ -87,9 +87,9 @@ type TradingSystem struct {
 	TLevelValue              int
 	TLevelAdjust             bool
 	FreeFall                 bool
-	UpgdChan chan bool
-	SupIndex int
-	SupQuantity float64
+	UpgdChan                 chan bool
+	SupIndex                 int
+	SupQuantity              float64
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -624,12 +624,12 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 				ts.Log.Printf("NextProfitSeLLPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
 				ts.StartTime = time.Now()
 				ts.HighestPrice = 0.0
-			} else if (time.Since(ts.StartTime) > elapseTimeSeLL(ts.TradingLevel)){				
+			} else if time.Since(ts.StartTime) > elapseTimeSeLL(ts.TradingLevel) {
 				ts.StartTime = time.Now()
 				ts.Log.Printf("FreeFall of SeLL-Target Activated!!! at First TimeElapse, CurrentPrice: %.8f", ts.CurrentPrice)
 				ts.FreeFall = true
 			}
-		} else if len(ts.EntryPrice) > 0 { 
+		} else if len(ts.EntryPrice) > 0 {
 			//NextBuy Re-Adjustment
 			nextInvBuYPrice := (-(ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
 			if time.Since(ts.StartTime) > elapseTime(ts.TradingLevel) {
@@ -977,42 +977,42 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", ts.CurrentPrice, md.TargetProfit)
 		suplemented := "false"
 		asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
-		qpcent := (ts.QuoteBalance/asset) * 100.0		
+		qpcent := (ts.QuoteBalance / asset) * 100.0
 		quantity := ts.EntryQuantity[ts.Index]
 		FreeFallProfitLoss := 0.0
 		//Deciding whether to execute a supplemental sell if quote percentage falls below the 20% threshold.
 		if (len(ts.EntryPrice) >= 2) && (qpcent < 40.0) {
-			if (ts.FreeFall == true) {
-				qpcent = ((asset/2.0) - ts.QuoteBalance)/ts.CurrentPrice
+			if ts.FreeFall == true {
+				qpcent = ((asset / 2.0) - ts.QuoteBalance) / ts.CurrentPrice
 				asset = 0.0
 				for ts.SupIndex, ts.SupQuantity = range ts.EntryQuantity {
 					FreeFallProfitLoss += CalculateProfitLoss(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, ts.SupQuantity)
 					asset += ts.SupQuantity
-					if asset >= qpcent{
+					if asset >= qpcent {
 						break
 					}
-				}	
+				}
 				ts.SupQuantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
 				quantity = math.Floor(asset/ts.MiniQty) * ts.MiniQty
 				ts.Log.Printf("Free Fall SumQunatity Determned to be: %.8f", quantity)
 				suplemented = "freefall"
-			}else{
+			} else if qpcent < 30.0 {
 				localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
-				v := 0.0 
+				v := 0.0
 				ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f Index [%d] Pre-LocalProfitLoss %.8f", asset, qpcent, ts.Index, localProfitLoss)
 				for ts.SupIndex, v = range ts.EntryQuantity {
 					if ts.SupIndex != ts.Index {
 						ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss)
 						ts.Log.Printf("SupIndex[%d] Calculated SupQuantity: %.8f Position Quantity: %.8f", ts.SupIndex, ts.SupQuantity, v)
-						if v > ts.SupQuantity{ 
+						if v > ts.SupQuantity {
 							qpcent = quantity + ts.SupQuantity
 							asset = math.Floor(qpcent/ts.MiniQty) * ts.MiniQty
-							if ts.SupQuantity > (qpcent - asset){
+							if ts.SupQuantity > (qpcent - asset) {
 								ts.SupQuantity -= qpcent - asset
 								quantity += ts.SupQuantity
 								suplemented = "true"
 								ts.Log.Printf("Finally Suplemented SupIndex[%d] SupQuantity: %.8f ", ts.SupIndex, ts.SupQuantity)
-								break	
+								break
 							}
 						}
 					}
@@ -1036,19 +1036,19 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		// Check if the total cost meets the minNotional requirement
 		if totalCost < ts.MinNotional {
 			reqQuantity := ts.MinNotional / ts.CurrentPrice
-			if (len(ts.EntryPrice) > 1) {
+			if len(ts.EntryPrice) > 1 {
 				agg := ts.AggregateEntries()
 				ts.Log.Printf(agg)
 				return "", fmt.Errorf(agg)
-			}else if ts.BaseBalance >= (reqQuantity + ts.MiniQty){
+			} else if ts.BaseBalance >= (reqQuantity + ts.MiniQty) {
 				d := quantity
-				quantity = math.Floor((reqQuantity + ts.MiniQty)/ts.MiniQty) * ts.MiniQty
+				quantity = math.Floor((reqQuantity+ts.MiniQty)/ts.MiniQty) * ts.MiniQty
 				ts.Log.Printf("Suplemented Quantity Defficiency!!! from %.8f to %.8f", d, quantity)
-			}else{
+			} else {
 				//Delete or Reset entry
 				ts.DeleteOrResetEntry("totalCost", totalCost, "MinNotional", ts.MinNotional)
 				ts.Log.Printf("Less than MinNotional: Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, ts.CurrentPrice, totalCost, ts.MinNotional)
-			
+
 				return "", fmt.Errorf("Not placing trade for %s: Quantity=%.4f, Price=%.2f, Total=%.2f does not meet MinNotional=%.2f\n", ts.Symbol, quantity, ts.CurrentPrice, totalCost, ts.MinNotional)
 			}
 		}
@@ -1080,20 +1080,20 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.QuoteBalance += totalCost
 		ts.BaseBalance -= quantity
 		localProfitLoss := 0.0
-		if suplemented != "false"{
-			if suplemented == "true"{
+		if suplemented != "false" {
+			if suplemented == "true" {
 				FreeFallProfitLoss = CalculateProfitLoss(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, ts.SupQuantity)
 				quantity -= ts.SupQuantity
 				ts.EntryQuantity[ts.SupIndex] -= ts.SupQuantity
 				localProfitLoss = CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity) + FreeFallProfitLoss
 				ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity: %.8f to Remain %.8f for Asset Balance ratio 40:60", ts.SupIndex, ts.SupQuantity, ts.EntryQuantity[ts.SupIndex])
-			}else if suplemented == "freefall"{
-				localProfitLoss = FreeFallProfitLoss 
+			} else if suplemented == "freefall" {
+				localProfitLoss = FreeFallProfitLoss
 				ts.Log.Printf("STOPLOST!!! by FreeFall Suplemented from [0] to [%d] with Resultant SumQuantity of %.8f", ts.SupIndex, quantity)
-			}else{
+			} else {
 				localProfitLoss = CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
 			}
-		}else{
+		} else {
 			localProfitLoss = CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
 		}
 		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
@@ -1117,9 +1117,9 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.TLevelValue = ts.Index
 			ts.TLevelAdjust = true
 		}
-		if suplemented == "freefall"{
+		if suplemented == "freefall" {
 			ts.Log.Printf(ts.DeleteFreeFallRangeEntries())
-		}else{
+		} else {
 			ts.EntryPrice = deleteElement(ts.EntryPrice, ts.Index)
 			ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, ts.Index)
 			ts.EntryQuantity = deleteElement(ts.EntryQuantity, ts.Index)
@@ -1191,7 +1191,7 @@ func (ts *TradingSystem) DeleteOrResetEntry(have string, quantity float64, expec
 }
 func (ts *TradingSystem) DeleteFreeFallRangeEntries() string {
 	AggResult := fmt.Sprintf("Deleting FreeFall Range Entries from 0 to [%d] ", ts.SupIndex)
-	if (len(ts.EntryPrice) > 1) && (ts.SupIndex > 0) { //ts.Index 
+	if (len(ts.EntryPrice) > 1) && (ts.SupIndex > 0) { //ts.Index
 		if !ts.InTrade {
 			ts.StopLossTrigered = false
 		}
@@ -1199,14 +1199,14 @@ func (ts *TradingSystem) DeleteFreeFallRangeEntries() string {
 		ts.StartTime = time.Now()
 		ts.LowestPrice = math.MaxFloat64
 		ts.HighestPrice = 0.0
-		for k, _ := range ts.EntryPrice{
-				ts.EntryPrice = deleteElement(ts.EntryPrice, k)
-				ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, k)
-				ts.EntryQuantity = deleteElement(ts.EntryQuantity, k)
-				ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, k)
-				ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, k)
-				ts.TradingLevel = len(ts.EntryPrice)				
-			if k == ts.SupIndex{
+		for k, _ := range ts.EntryPrice {
+			ts.EntryPrice = deleteElement(ts.EntryPrice, k)
+			ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, k)
+			ts.EntryQuantity = deleteElement(ts.EntryQuantity, k)
+			ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, k)
+			ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, k)
+			ts.TradingLevel = len(ts.EntryPrice)
+			if k == ts.SupIndex {
 				AggResult = fmt.Sprintf("Deleted from 0 up to Entry [%d] added to Free Fall Summed Quantity", k)
 				break
 			}
@@ -1216,10 +1216,10 @@ func (ts *TradingSystem) DeleteFreeFallRangeEntries() string {
 }
 func (ts *TradingSystem) AggregateEntries() string {
 	AggResult := fmt.Sprintf("Aggregate Required !!! for [%d] of %.8f quantity", ts.Index, ts.EntryQuantity[ts.Index])
-	if (len(ts.EntryPrice) > 1){ //ts.Index 
-		for k, _ := range ts.EntryPrice{
-			if k != ts.Index{
-				ts.EntryQuantity[k] += ts.EntryQuantity[ts.Index]				
+	if len(ts.EntryPrice) > 1 { //ts.Index
+		for k, _ := range ts.EntryPrice {
+			if k != ts.Index {
+				ts.EntryQuantity[k] += ts.EntryQuantity[ts.Index]
 				AggResult = fmt.Sprintf("Aggregated [%d] of X and [%d] of %.8f to be %.8f ", k, ts.Index, ts.EntryQuantity[ts.Index], ts.EntryQuantity[k])
 				if !ts.InTrade {
 					ts.StopLossTrigered = false
@@ -1240,6 +1240,7 @@ func (ts *TradingSystem) AggregateEntries() string {
 	}
 	return AggResult
 }
+
 // RiskManagement applies risk management rules to limit potential losses.
 // It calculates the stop-loss price based on the fixed percentage of risk per trade and the position size.
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
@@ -1582,10 +1583,12 @@ func CalculateExponentialMovingAverage(data []float64, period int) (ema []float6
 
 	return ema, nil
 }
+
 // CalculateProfitLoss calculates the profit or loss from a trade.
 func CalculateQuantity(entryPrice, exitPrice, profitLoss float64) float64 {
-	return profitLoss/(exitPrice - entryPrice)
+	return profitLoss / (exitPrice - entryPrice)
 }
+
 // CalculateProfitLoss calculates the profit or loss from a trade.
 func CalculateProfitLoss(entryPrice, exitPrice, positionSize float64) float64 {
 	return (exitPrice - entryPrice) * positionSize
