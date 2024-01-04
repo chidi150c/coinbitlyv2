@@ -1332,12 +1332,12 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 		long8EMA, err2 = CandleExponentialMovingAverageV2(ts.ClosingPrices, 8)
 		ch2 <- true
 	}(ch2)
+	<-ch1
 	go func(ch3 chan bool) {
-		long55EMA, err3 = CandleExponentialMovingAverageV2(ts.ClosingPrices, 55)
+		long55EMA, err3 = CandleExponentialMovingAverageV2(short4EMA, 55)
 		ch3 <- true
 	}(ch3)
-	short15EMA, err4 = CandleExponentialMovingAverageV2(ts.ClosingPrices, 15)
-	<-ch1
+	short15EMA, err4 = CandleExponentialMovingAverageV2(short4EMA, 15)
 	<-ch2
 	<-ch3
 
