@@ -624,7 +624,11 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 				ts.Log.Printf("NextProfitSeLLPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
 				ts.StartTime = time.Now()
 				ts.HighestPrice = 0.0
-			} 
+			} else if (time.Since(ts.StartTime) > elapseTimeSeLL(ts.TradingLevel)){				
+				ts.StartTime = time.Now()
+				ts.Log.Printf("FreeFall of SeLL-Target Activated!!! at First TimeElapse, CurrentPrice: %.8f", ts.CurrentPrice)
+				ts.FreeFall = true
+			}
 		} else if len(ts.EntryPrice) > 0 { 
 			//NextBuy Re-Adjustment
 			nextInvBuYPrice := (-(ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
@@ -846,7 +850,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			//if we have hit bottom earlier and expecting to sell but rather hit buy target
 			ts.Log.Printf("Unable to buY!!!! Insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice)
 			if ts.InTrade && ts.StopLossTrigered {
-				ts.Log.Printf("FreeFall of SeLL-Target Activated!!! at NextProfitSeLLPrice: %.8f", ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
+				ts.Log.Printf("FreeFall of SeLL-Target Activated!!! at BuY Insufficiency NextProfitSeLLPrice: %.8f", ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
 				ts.FreeFall = true
 			}
 			// quantity = ts.QuoteBalance / ts.CurrentPrice
@@ -950,7 +954,6 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			} else {
 				ts.InTrade = true
 				ts.StopLossTrigered = true
-				ts.FreeFall = true
 				ts.HighestPrice = ts.CurrentPrice
 				//so that is goes down the full next buy original target without adjustment
 				for k, _ := range ts.NextInvestBuYPrice {
