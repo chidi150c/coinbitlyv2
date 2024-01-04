@@ -950,6 +950,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			} else {
 				ts.InTrade = true
 				ts.StopLossTrigered = true
+				ts.FreeFall = true
 				ts.HighestPrice = ts.CurrentPrice
 				//so that is goes down the full next buy original target without adjustment
 				for k, _ := range ts.NextInvestBuYPrice {
