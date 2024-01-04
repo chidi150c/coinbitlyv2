@@ -1325,12 +1325,10 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 		short15EMA, long55EMA []float64
 	)
 	go func(ch1 chan bool) {
-		md.LongPeriod = 4
 		short4EMA, err1 = CandleExponentialMovingAverageV2(ts.ClosingPrices, 4)
 		ch1 <- true
 	}(ch1)
 	go func(ch2 chan bool) {
-		md.ShortPeriod = 8
 		long8EMA, err2 = CandleExponentialMovingAverageV2(ts.ClosingPrices, 8)
 		ch2 <- true
 	}(ch2)
@@ -1352,8 +1350,10 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 	// Determine the buy and sell signals based on the moving averages, RSI, MACD line, and Bollinger Bands.
 	if len(short15EMA) > 4 && len(long55EMA) > 4 && ts.DataPoint >= 4 {
 		if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 1 {
-			ts.Container1 = short4EMA
-			ts.Container2 = long8EMA
+			md.ShortPeriod = 15
+			md.LongPeriod = 55
+			ts.Container1 = short15EMA
+			ts.Container2 = long55EMA
 			//for price determination
 			L8EMA3, L8EMA2, L8EMA1, L8EMA0 := long8EMA[ts.DataPoint-3], long8EMA[ts.DataPoint-2], long8EMA[ts.DataPoint-1], long8EMA[ts.DataPoint]
 			S4EMA3, S4EMA2, S4EMA1, S4EMA0 := short4EMA[ts.DataPoint-3], short4EMA[ts.DataPoint-2], short4EMA[ts.DataPoint-1], short4EMA[ts.DataPoint]
