@@ -1358,6 +1358,25 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 			//for price determination
 			L8EMA3, L8EMA0 := long8EMA[ts.DataPoint-3], long8EMA[ts.DataPoint]
 			S4EMA3, S4EMA0 := short4EMA[ts.DataPoint-3], short4EMA[ts.DataPoint]
+
+			cch1 := make(chan bool)
+			cch2 := make(chan bool)
+			cch3 := make(chan bool)
+			cch4 := make(chan bool)
+
+			go func(cch1 chan bool){
+				cch1 <- (L8EMA3 > S4EMA3) && (L8EMA0-S4EMA0 > L8EMA3-S4EMA3) && (L8EMA0 > S4EMA0)
+			}(cch1)
+			go func(cch2 chan bool){
+				cch2 <- (L8EMA0 > S4EMA0) && (L8EMA0-S4EMA0 < L8EMA3-S4EMA3) && (L8EMA3 > S4EMA3)
+			}(cch2)
+			go func (cch3 chan bool){
+				cch3 <- (S4EMA3 > L8EMA3) && (S4EMA0-L8EMA0 > S4EMA3-L8EMA3) && (S4EMA0 > L8EMA0)
+			}(cch3)
+			go func (cch4 chan bool){
+				cch4 <- (S4EMA0 > L8EMA0) &&	(S4EMA0-L8EMA0 < S4EMA3-L8EMA3) && (S4EMA3 > L8EMA3)
+			}(cch4)
+
 			//for market determination
 			L55EMA3, L55EMA0 := long55EMA[ts.DataPoint-3], long55EMA[ts.DataPoint]
 			S15EMA3, S15EMA0 := short15EMA[ts.DataPoint-3], short15EMA[ts.DataPoint]
@@ -1375,28 +1394,33 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 				ch4 <- (S15EMA0 > L55EMA0) &&	(S15EMA0-L55EMA0 < S15EMA3-L55EMA3) && (S15EMA3 > L55EMA3)
 			}(ch4)
 
-			DownGoingDown := <-ch1			
-			DownGoingUp := <- ch2
-			UpGoingUp := <- ch3
-			UpGoingDown := <-ch4
+			PriceDownGoingDown := <-cch1			
+			PriceDownGoingUp := <- cch2
+			PriceUpGoingUp := <- cch3
+			PriceUpGoingDown := <-cch4
+			MarketDownGoingDown := <-ch1			
+			MarketDownGoingUp := <- ch2
+			MarketUpGoingUp := <- ch3
+			MarketUpGoingDown := <-ch4
 
-			if Action == "Entry" && (UpGoingUp || DownGoingUp){
-				buySignal = (L8EMA3 > S4EMA3) && (L8EMA0 > S4EMA0) && ((L8EMA3 - S4EMA3) > (L8EMA0 - S4EMA0))
+			if Action == "Entry" && (MarketUpGoingUp || MarketDownGoingUp){
+			PriceUpGoingUp := <- cch3
+				buySignal = (MarketUpGoingUp && PriceDownGoingUp) || (MarketDownGoingUp && PriceUpGoingUp)
 				if buySignal {
-					ts.Log.Printf("TA Signalled: BuY: %v at currentPrice: %.8f, UpGoingUp: %v, DownGoingUp: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", buySignal, ts.CurrentPrice, UpGoingUp, DownGoingUp, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
+					ts.Log.Printf("TA Signalled: BuY: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
 				} else{
-					ts.Log.Printf("TA Signalled: Missed BuY: L8EMA3 %.8f > S4EMA3 %.8f = %v, L8EMA0 %.8f > S4EMA0 %.8f = %v,UpGoingUp: %v, DownGoingUp: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", L8EMA3, S4EMA3, (L8EMA3 > S4EMA3 ), L8EMA0, S4EMA0, (L8EMA0 > S4EMA0), UpGoingUp, DownGoingUp, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
+					ts.Log.Printf("TA Signalled: Missed BuY: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
 				}
 			}
-			if Action == "Exit" && (UpGoingDown || DownGoingDown){
-				sellSignal = (S4EMA3 > L8EMA3) && (S4EMA0 > L8EMA0) && ((S4EMA3 - L8EMA3) > (S4EMA0 - L8EMA0))
+			if Action == "Exit" && (MarketUpGoingDown || MarketDownGoingDown){
+				sellSignal = (MarketUpGoingDown && PriceDownGoingDown) || (MarketDownGoingDown && PriceUpGoingDown)
 				if sellSignal{
-					ts.Log.Printf("TA Signalled: SeLL, currentPrice: %.8f, UpGoingDown: %v DownGoingDown: %v", ts.CurrentPrice, UpGoingDown, DownGoingDown)
+					ts.Log.Printf("TA Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
 				} else{
-					ts.Log.Printf("TA Signalled: Missed SeLL: S4EMA3 %.8f > L8EMA3 %.8f = %v, S4EMA0 %.8f > L8EMA0 %.8f = %v, UpGoingDown: %v, DownGoingDown: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", S4EMA3, L8EMA3, (S4EMA3 > L8EMA3), S4EMA0, L8EMA0, (S4EMA0 > L8EMA0), UpGoingDown, DownGoingDown, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
+					ts.Log.Printf("TA Signalled: Missed SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
 				}
 				if sellSignal && ts.FreeFall{
-					if !DownGoingDown {
+					if !MarketDownGoingDown {
 						ts.Log.Printf("TA Signalled: FreeFall Deactivation !!!")
 						ts.FreeFall = false
 					}
