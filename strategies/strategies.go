@@ -1353,8 +1353,8 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 		if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 1 {
 			md.ShortPeriod = 30
 			md.LongPeriod = 80
-			ts.Container1 = short4EMA
-			ts.Container2 = long8EMA
+			ts.Container1 = short15EMA
+			ts.Container2 = long55EMA
 			//for price determination
 			L8EMA3, L8EMA0 := long8EMA[ts.DataPoint-3], long8EMA[ts.DataPoint]
 			S4EMA3, S4EMA0 := short4EMA[ts.DataPoint-3], short4EMA[ts.DataPoint]
@@ -1366,13 +1366,13 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 				ch1 <- (L55EMA3 > S15EMA3) && (L55EMA0-S15EMA0 > L55EMA3-S15EMA3) && (L55EMA0 > S15EMA0)
 			}(ch1)
 			go func(ch2 chan bool){
-				ch2 <- L55EMA0 > S15EMA0 && (L55EMA0-S15EMA0 < L55EMA3-S15EMA3) && (L55EMA3 > S15EMA3)
+				ch2 <- (L55EMA0 > S15EMA0) && (L55EMA0-S15EMA0 < L55EMA3-S15EMA3) && (L55EMA3 > S15EMA3)
 			}(ch2)
 			go func (ch3 chan bool){
-				ch3 <- S15EMA3 > L55EMA3 && (S15EMA0-L55EMA0 > S15EMA3-L55EMA3) && (S15EMA3 > L55EMA3)
+				ch3 <- (S15EMA3 > L55EMA3) && (S15EMA0-L55EMA0 > S15EMA3-L55EMA3) && (S15EMA0 > L55EMA0)
 			}(ch3)
 			go func (ch4 chan bool){
-				ch4 <- S15EMA0 > L55EMA0 &&	(S15EMA0-L55EMA0 < S15EMA3-L55EMA3) && (S15EMA3 > L55EMA3)
+				ch4 <- (S15EMA0 > L55EMA0) &&	(S15EMA0-L55EMA0 < S15EMA3-L55EMA3) && (S15EMA3 > L55EMA3)
 			}(ch4)
 
 			DownGoingDown := <-ch1			
