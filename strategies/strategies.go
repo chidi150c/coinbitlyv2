@@ -1396,6 +1396,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 				}
 				if sellSignal && ts.FreeFall{
 					if !DownGoingDown {
+						ts.Log.Printf("TA Signalled: FreeFall Deactivation !!!")
 						ts.FreeFall = false
 					}
 				}
