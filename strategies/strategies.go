@@ -1007,7 +1007,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 				ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f Index [%d] Pre-LocalProfitLoss %.8f", asset, qpcent, ts.Index, localProfitLoss)
 				for ts.SupIndex, v = range ts.EntryQuantity {
 					if ts.SupIndex != ts.Index {
-						ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss)
+						ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss*Qfactor(qpcent))
 						ts.Log.Printf("SupIndex[%d] Calculated SupQuantity: %.8f Position Quantity: %.8f", ts.SupIndex, ts.SupQuantity, v)
 						if v > ts.SupQuantity {
 							qpcent = quantity + ts.SupQuantity
@@ -1166,7 +1166,19 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		return "", fmt.Errorf("invalid trade action: %s", tradeAction)
 	}
 }
-
+func Qfactor(qpcent float64)float64{
+	if qpcent > 20.0 {
+		return 2.0/6.0
+	}else if qpcent > 15.0 {
+		return 3.0/6.0
+	}else if qpcent > 10.0 {
+		return 4.0/6.0
+	}else if qpcent > 5.0 {
+		return 5.0/6.0
+	}else{
+		return 1.0
+	}
+}
 func swapElements(slice []float64, index1, index2 int) []float64 {
 	// Check if the indices are valid
 	if index1 < 0 || index1 >= len(slice) || index2 < 0 || index2 >= len(slice) {
