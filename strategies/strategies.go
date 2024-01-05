@@ -160,7 +160,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 		ts.Zoom = 499
 	}
 	ts.ShutDownCh = make(chan string)
-	ts.EpochTime = time.Second * 30
+	ts.EpochTime = time.Second * 60
 	ts.StartTime = time.Now()
 	ts.LowestPrice = math.MaxFloat64
 	ts.StoreAppDataChan = make(chan string, 1)
@@ -785,7 +785,7 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 	} else {
 		targetCrossed = true
 	}
-	if targetCrossed && (ts.EntryRule(md)) {
+	if targetCrossed && ts.EntryRule(md) {
 		// Execute the buy order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(md, "Buy")
 		if err != nil {
