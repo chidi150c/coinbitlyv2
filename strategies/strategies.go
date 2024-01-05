@@ -1392,7 +1392,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 				if sellSignal{
 					ts.Log.Printf("TA Signalled: SeLL, currentPrice: %.8f, UpGoingDown: %v DownGoingDown: %v", ts.CurrentPrice, UpGoingDown, DownGoingDown)
 				} else{
-					ts.Log.Printf("TA Signalled: Missed SeLL: S4EMA3 %.8f > L8EMA3 %.8f = %v, S4EMA0 %.8f > L8EMA0 %.8f = %v, UpGoingUp: %v, DownGoingUp: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", S4EMA3, L8EMA3, (S4EMA3 > L8EMA3), S4EMA0, L8EMA0, (S4EMA0 > L8EMA0), UpGoingUp, DownGoingUp, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
+					ts.Log.Printf("TA Signalled: Missed SeLL: S4EMA3 %.8f > L8EMA3 %.8f = %v, S4EMA0 %.8f > L8EMA0 %.8f = %v, UpGoingDown: %v, DownGoingDown: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", S4EMA3, L8EMA3, (S4EMA3 > L8EMA3), S4EMA0, L8EMA0, (S4EMA0 > L8EMA0), UpGoingDown, DownGoingDown, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
 				}
 				if sellSignal && ts.FreeFall{
 					if !DownGoingDown {
