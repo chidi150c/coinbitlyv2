@@ -996,6 +996,10 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 				ts.SupQuantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
 				quantity = math.Floor(asset/ts.MiniQty) * ts.MiniQty
 				ts.Log.Printf("Free Fall SumQunatity Determned to be: %.8f", quantity)
+				ts.Log.Printf("Crashed!!! By Prohibited Free Fall Operation")
+				ts.Log.Printf("Crashed!!! By Prohibited Free Fall Operation: Hokked on Channel Ch at 1000")
+				ch := make(chan bool)
+				<- ch
 				suplemented = "freefall"
 			} else if qpcent < 30.0 {
 				localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
