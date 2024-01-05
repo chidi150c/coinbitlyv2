@@ -785,7 +785,7 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 	} else {
 		targetCrossed = true
 	}
-	if (ts.EntryRule(md)) && targetCrossed {
+	if targetCrossed && (ts.EntryRule(md)) {
 		// Execute the buy order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(md, "Buy")
 		if err != nil {
@@ -810,7 +810,7 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 		}
 	}
 	ts.RiskFactor = float64(ts.Index)
-	if ts.ExitRule(md) && targetCrossed {
+	if targetCrossed && ts.ExitRule(md){
 		// Execute the sell order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(md, "Sell")
 		if err != nil {
