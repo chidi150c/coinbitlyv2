@@ -1324,20 +1324,21 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 		short4EMA, long8EMA []float64
 		short15EMA, long55EMA []float64
 	)
+	ema4 := CandleExponentialMovingAverageV1(ts.ClosingPrices, 4)
 	go func(ch1 chan bool) {
-		short4EMA, err1 = CandleExponentialMovingAverageV2(ts.ClosingPrices, 4)
+		short4EMA, err1 = CandleExponentialMovingAverageV2(ema4, 4)
 		ch1 <- true
 	}(ch1)
 	go func(ch2 chan bool) {
-		long8EMA, err2 = CandleExponentialMovingAverageV2(ts.ClosingPrices, 8)
+		long8EMA, err2 = CandleExponentialMovingAverageV2(ema4, 8)
 		ch2 <- true
 	}(ch2)
 	<-ch1
 	go func(ch3 chan bool) {
-		long55EMA, err3 = CandleExponentialMovingAverageV2(short4EMA, 55)
+		long55EMA, err3 = CandleExponentialMovingAverageV2(short4EMA, 80)
 		ch3 <- true
 	}(ch3)
-	short15EMA, err4 = CandleExponentialMovingAverageV2(short4EMA, 15)
+	short15EMA, err4 = CandleExponentialMovingAverageV2(short4EMA, 30)
 	<-ch2
 	<-ch3
 
@@ -1350,10 +1351,10 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 	// Determine the buy and sell signals based on the moving averages, RSI, MACD line, and Bollinger Bands.
 	if len(short15EMA) > 4 && len(long55EMA) > 4 && ts.DataPoint >= 4 {
 		if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 1 {
-			md.ShortPeriod = 15
-			md.LongPeriod = 55
-			ts.Container1 = short15EMA
-			ts.Container2 = long55EMA
+			md.ShortPeriod = 30
+			md.LongPeriod = 80
+			ts.Container1 = short4EMA
+			ts.Container2 = long8EMA
 			//for price determination
 			L8EMA3, L8EMA0 := long8EMA[ts.DataPoint-3], long8EMA[ts.DataPoint]
 			S4EMA3, S4EMA0 := short4EMA[ts.DataPoint-3], short4EMA[ts.DataPoint]
@@ -1380,7 +1381,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 			UpGoingDown := <-ch4
 
 			if Action == "Entry" && (UpGoingUp || DownGoingUp){
-				buySignal = (L8EMA3 > S4EMA3) && (L8EMA0 > S4EMA0) 
+				buySignal = (L8EMA3 > S4EMA3) && (L8EMA0 > S4EMA0) && ((L8EMA3 - S4EMA3) > (L8EMA0 - S4EMA0))
 				if buySignal {
 					ts.Log.Printf("TA Signalled: BuY: %v at currentPrice: %.8f, UpGoingUp: %v, DownGoingUp: %v, AdjutTime(Secs):%.2f, TargetTime(Secs):%.2f", buySignal, ts.CurrentPrice, UpGoingUp, DownGoingUp, time.Since(ts.StartTime).Seconds(), elapseTime(ts.TradingLevel).Seconds())
 				} else{
@@ -1388,7 +1389,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 				}
 			}
 			if Action == "Exit" && (UpGoingDown || DownGoingDown){
-				sellSignal = (S4EMA3 > L8EMA3) && (S4EMA0 > L8EMA0) 
+				sellSignal = (S4EMA3 > L8EMA3) && (S4EMA0 > L8EMA0) && ((S4EMA3 - L8EMA3) > (S4EMA0 - L8EMA0))
 				if sellSignal{
 					ts.Log.Printf("TA Signalled: SeLL, currentPrice: %.8f, UpGoingDown: %v DownGoingDown: %v", ts.CurrentPrice, UpGoingDown, DownGoingDown)
 				} else{
