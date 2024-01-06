@@ -586,7 +586,6 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		md.DataPoint++
 		ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 		ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
-		dataPoint.Date = time.Now()
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		ts.Trading(md, dataPoint, loadExchFrom)
@@ -1480,12 +1479,18 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 			// Volatility Measures
 			dataPoint.StdDevL95 = stat.StdDev([]float64{dataPoint.L95EMA}, nil)
 			dataPoint.StdDevS15 = stat.StdDev([]float64{dataPoint.S15EMA}, nil)
+			// Lagged Features (1-day lag)
+			if ts.DataPoint > 0 {
+				dataPoint.LaggedL95EMA = long55EMA[ts.DataPoint-1]
+				dataPoint.LaggedS15EMA = short15EMA[ts.DataPoint-1]
+			}
 			// Cross-EMA Relationships
 			if dataPoint.L95EMA > dataPoint.S15EMA {
 				dataPoint.CrossL95S15 = 1
 			} else {
 				dataPoint.CrossL95S15 = 0
 			}
+			dataPoint.Date = time.Now()
 		}
 	}
 	return buySignal, sellSignal
