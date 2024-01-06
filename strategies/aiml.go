@@ -40,6 +40,8 @@ func (ts *TradingSystem)DataPointtoCSV(data *model.DataPoint)error { //fundament
         ts.Log.Printf("Writing Data to CSV ERROR %v", err)
         return err
 	}
+	// Flush the CSVWriter to ensure data is written to the file
+    ts.CSVWriter.Flush()
 	return nil
 }
 
