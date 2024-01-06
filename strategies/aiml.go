@@ -7,26 +7,34 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
+	// "strconv"
     // "github.com/sjwhitworth/golearn/base"
     // "github.com/sjwhitworth/golearn/ensemble"
     // "github.com/sjwhitworth/golearn/evaluation"
 
-	"coinbitly.com/model" // Import the AppData struct
+	"coinbitly.com/model" // Import the DataPoint struct
 )
 
-
-func (ts *TradingSystem)AppDatatoCSV(data *model.AppData)error { //fundamentalAnalysis()
+func (ts *TradingSystem)DataPointtoCSV(data *model.DataPoint)error { //fundamentalAnalysis()
 
     err := ts.CSVWriter.Write([]string{
-		fmt.Sprintf("%d", data.DataPoint),
-		data.Strategy,
-		fmt.Sprintf("%d", data.ShortPeriod),
-		fmt.Sprintf("%d", data.LongPeriod),
-		fmt.Sprintf("%f", data.TargetProfit),
-		fmt.Sprintf("%f", data.TargetStopLoss),
-		fmt.Sprintf("%f", data.RiskPositionPercentage),
-		fmt.Sprintf("%f", data.TotalProfitLoss),
+		data.Date.Format("02 15:04:05"),
+        fmt.Sprintf("%f", data.L95EMA),
+        fmt.Sprintf("%f", data.S15EMA),
+        fmt.Sprintf("%f", data.L8EMA ),
+        fmt.Sprintf("%f", data.S4EMA ),
+        fmt.Sprintf("%f", data.DiffL95S15),
+        fmt.Sprintf("%f", data.DiffL8S4),
+        fmt.Sprintf("%f", data.RoCL95),
+        fmt.Sprintf("%f", data.RoCS15),
+        fmt.Sprintf("%f", data.MA5DiffL95S15),
+        fmt.Sprintf("%f", data.MA5DiffL8S4 ),
+        fmt.Sprintf("%f", data.StdDevL95),
+        fmt.Sprintf("%f", data.StdDevS15),
+        fmt.Sprintf("%d", data.CrossL95S15),
+        fmt.Sprintf("%f", data.LaggedL95EMA),
+        fmt.Sprintf("%f", data.LaggedS15EMA),
+        fmt.Sprintf("%d", data.Label),
 	})
 	if err != nil {
 		return err
@@ -34,7 +42,7 @@ func (ts *TradingSystem)AppDatatoCSV(data *model.AppData)error { //fundamentalAn
 	return nil
 }
 
-func AppDataListtoCSV(data []*model.AppData) { //fundamentalAnalysis()
+func DataPointListtoCSV(data []*model.DataPoint) { //fundamentalAnalysis()
     // Save data to CSV file
     file, err := os.Create("./webclient/assets/data.csv")
     if err != nil {
@@ -48,8 +56,8 @@ func AppDataListtoCSV(data []*model.AppData) { //fundamentalAnalysis()
     // Write headers to the CSV file
 
     headers := []string{
-        "DataPoint","Strategy","ShortPeriod","LongPeriod","ShortEMA", "LongEMA", "TargetProfit",
-        "TargetStopLoss","RiskPositionPercentage","TotalProfitLoss",   
+        "Date","L95EMA","S15EMA","L8EMA","S4EMA","DiffL95S15","DiffL8S4","RoCL95","RoCS15","MA5DiffL95S15",
+        "MA5DiffL8S4","StdDevL95","StdDevS15","CrossL95S15","LaggedL95EMA","LaggedS15EMA","Label", 
     }
     err = writer.Write(headers)
     if err != nil {
@@ -58,14 +66,23 @@ func AppDataListtoCSV(data []*model.AppData) { //fundamentalAnalysis()
 
     for _, d := range data {
         err := writer.Write([]string{
-            fmt.Sprintf("%d", d.DataPoint),
-			d.Strategy,
-			fmt.Sprintf("%d", d.ShortPeriod),
-			fmt.Sprintf("%d", d.LongPeriod),
-			fmt.Sprintf("%f", d.TargetProfit),
-			fmt.Sprintf("%f", d.TargetStopLoss),
-			fmt.Sprintf("%f", d.RiskPositionPercentage),
-			fmt.Sprintf("%f", d.TotalProfitLoss),
+            d.Date.Format("02 15:04:05"),
+            fmt.Sprintf("%f", d.L95EMA),
+            fmt.Sprintf("%f", d.S15EMA),
+            fmt.Sprintf("%f", d.L8EMA ),
+            fmt.Sprintf("%f", d.S4EMA ),
+            fmt.Sprintf("%f", d.DiffL95S15),
+            fmt.Sprintf("%f", d.DiffL8S4),
+            fmt.Sprintf("%f", d.RoCL95),
+            fmt.Sprintf("%f", d.RoCS15),
+            fmt.Sprintf("%f", d.MA5DiffL95S15),
+            fmt.Sprintf("%f", d.MA5DiffL8S4 ),
+            fmt.Sprintf("%f", d.StdDevL95),
+            fmt.Sprintf("%f", d.StdDevS15),
+            fmt.Sprintf("%d", d.CrossL95S15),
+            fmt.Sprintf("%f", d.LaggedL95EMA),
+            fmt.Sprintf("%f", d.LaggedS15EMA),
+            fmt.Sprintf("%d", d.Label),
         })
         if err != nil {
             log.Fatal(err)
@@ -73,138 +90,42 @@ func AppDataListtoCSV(data []*model.AppData) { //fundamentalAnalysis()
     }
 }
 
-func CSVtoAppData(filename string) ([]*model.AppData, error) {
-    var data []*model.AppData
+// func CSVtoDataPoint(filename string) ([]*model.DataPoint, error) {
+//     var data []*model.DataPoint
 
-    file, err := os.Open(filename)
-    if err != nil {
-        return data, err
-    }
-    defer file.Close()
-
-    reader := csv.NewReader(file)
-    records, err := reader.ReadAll()
-    if err != nil {
-        return data, err
-    }
-
-    for _, record := range records {
-        // Convert record fields to appropriate types and populate AppData instances
-        DataPoint, _ := strconv.Atoi(record[0])
-		ShortPeriod, _ := strconv.Atoi(record[3])
-		LongPeriod, _ := strconv.Atoi(record[4])
-		TargetProfit, _ := strconv.ParseFloat(record[18], 64)
-		TargetStopLoss, _ := strconv.ParseFloat(record[19], 64)
-		RiskPositionPercentage, _ := strconv.ParseFloat(record[20], 64)
-		TotalProfitLoss, _ := strconv.ParseFloat(record[22], 64)
-
-        data = append(data, &model.AppData{
-            DataPoint:             DataPoint,
-            Strategy:          record[1],
-            ShortPeriod:       ShortPeriod,
-            LongPeriod:        LongPeriod,		
-			TargetProfit: TargetProfit,
-			TargetStopLoss: TargetStopLoss,
-			RiskPositionPercentage: RiskPositionPercentage,
-			TotalProfitLoss:	TotalProfitLoss,
-        })
-    }
-
-    return data, nil
-}
-
-// func (ts *TradingSystem) MLPrediction(loadFrom string)string{
-//     // Read data from CSV (uses your AppData struct)
-//     trainData, err := base.ParseCSVToInstances("data.csv", true)
+//     file, err := os.Open(filename)
 //     if err != nil {
-//         panic(err)
+//         return data, err
 //     }
+//     defer file.Close()
 
-//     rf := ensemble.NewRandomForest(10, 4)
-//     rf.Fit(trainData)
-
-
-
-
-//     // data, err := CSVtoAppData("data.csv")
-//     // if err != nil {
-//     //     log.Fatal(err)
-//     // }
-
-
-
-//     // Convert data to suitable format for SVM (feature matrix X, target vector y)
-//     var X [][]float64
-//     var y []float64
-//     for _, d := range trainData {
-//         // Extract relevant features and target (price movement)
-//         featureVector := []float64{
-//             float64(d.ShortPeriod),
-//             float64(d.LongPeriod),
-//             float64(d.ShortPeriod),
-//             float64(d.LongPeriod),
-//             float64(d.ShortMACDPeriod),
-//             float64(d.LongMACDPeriod),
-//             float64(d.SignalMACDPeriod),
-//             float64(d.RSIPeriod),
-//             float64(d.StochRSIPeriod),
-//             float64(d.SmoothK),
-//             float64(d.SmoothD),
-//             float64(d.RSIOverbought),
-//             float64(d.RSIOversold),
-//             float64(d.StRSIOverbought),
-//             float64(d.StRSIOversold),
-//             float64(d.BollingerPeriod),
-//             float64(d.BollingerNumStdDev),
-//             float64(d.TargetProfit),
-//             float64(d.TargetStopLoss),
-//             float64(d.RiskPositionPercentage),
-//         }
-//         TotalProfitLoss, _ := ts.Trading(d, loadFrom) // Implement this function to compute price movement
-//         X = append(X, featureVector)
-//         y = append(y, TotalProfitLoss)
-//     }
-//     // Train a Support Vector Machine (SVM) model
-//     model, err := linear_models.NewLinearSVC("l2", "svc", false, 0.00001, 1.0)
+//     reader := csv.NewReader(file)
+//     records, err := reader.ReadAll()
 //     if err != nil {
-//         log.Fatal(err)
+//         return data, err
 //     }
 
-//     // Convert X and y to instances
-//     instances := base.NewInstances()
-//     for i := range X {
-//         instance := base.NewDenseInstance(X[i])
-//         instance.SetClass(y[i])
-//         instances.Add(instance)
+//     for _, record := range records {
+//         // Convert record fields to appropriate types and populate DataPoint instances
+//         DataPoint, _ := strconv.Atoi(record[0])
+// 		ShortPeriod, _ := strconv.Atoi(record[3])
+// 		LongPeriod, _ := strconv.Atoi(record[4])
+// 		TargetProfit, _ := strconv.ParseFloat(record[18], 64)
+// 		TargetStopLoss, _ := strconv.ParseFloat(record[19], 64)
+// 		RiskPositionPercentage, _ := strconv.ParseFloat(record[20], 64)
+// 		TotalProfitLoss, _ := strconv.ParseFloat(record[22], 64)
+
+//         data = append(data, &model.DataPoint{
+//             DataPoint:             DataPoint,
+//             Strategy:          record[1],
+//             ShortPeriod:       ShortPeriod,
+//             LongPeriod:        LongPeriod,		
+// 			TargetProfit: TargetProfit,
+// 			TargetStopLoss: TargetStopLoss,
+// 			RiskPositionPercentage: RiskPositionPercentage,
+// 			TotalProfitLoss:	TotalProfitLoss,
+//         })
 //     }
 
-//     // Train the model
-//     err = model.Fit(instances)
-//     if err != nil {
-//         log.Fatal(err)
-//     }
-
-//     // Simulated input features for prediction (replace with real-time data)
-//     inputFeatures := []float64{10.0, 30.0} // Example values for ShortPeriod and LongPeriod
-
-//     // Make predictions using the trained SVM model
-//     predictedPriceMovement, err := model.Predict(inputFeatures)
-//     if err != nil {
-//         log.Fatal(err)
-//     }
-
-//     // Interpret the predicted price movement
-//     predictedDirection := "unknown"
-//     if predictedPriceMovement > 0 {
-//         predictedDirection = "up"
-//     } else if predictedPriceMovement < 0 {
-//         predictedDirection = "down"
-//     }
-
-//     fmt.Printf("Predicted price movement: %s\n", predictedDirection)
-// 	return predictedDirection
+//     return data, nil
 // }
-
-
-
-

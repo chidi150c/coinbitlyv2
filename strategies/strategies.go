@@ -9,10 +9,11 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
-	"sync"
+	"gonum.org/v1/gonum/stat"
 
 	"coinbitly.com/binanceapi"
 	"coinbitly.com/config"
@@ -359,6 +360,9 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 	}()
 	return md
 }
+func (ts *TradingSystem) NewDataPoint() *model.DataPoint {
+	return &model.DataPoint{}
+}
 
 // UpdateClosingPrices fetches historical data from the exchange and updates the ClosingPrices field in TradingSystem.
 func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom, loadDBFrom string) error {
@@ -565,6 +569,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl, syscall.SIGINT)
 	md := ts.NewAppData(loadExchFrom)
+	dataPoint := ts.NewDataPoint()
 	fmt.Println("App started. Press Ctrl+C to exit.")
 	go ts.ShutDown(md, sigchnl)
 	// Initialize variables for tracking trading performance.
@@ -581,11 +586,16 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		md.DataPoint++
 		ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 		ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
-
+		dataPoint.Date = time.Now()
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
-		ts.Trading(md, loadExchFrom)
+		ts.Trading(md, dataPoint, loadExchFrom)
 
+		err = ts.DataPointtoCSV(dataPoint)
+		if err != nil {
+			fmt.Printf("Error creating Writing to CSV File %v", err)
+		}
+		
 		ts.TickerQueueAdjustment() //At this point you have all three(ts.ClosingPrices, ts.Timestamps and ts.Signals) assigned
 
 		err = ts.Reporting(md, "Live Trading")
@@ -737,6 +747,7 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 	var err error
 	for i, md := range backT {
 		md = ts.NewAppData(loadExchFrom)
+		dataPoint := ts.NewDataPoint()
 		// Simulate the backtesting process using historical price data.
 		for ts.DataPoint, ts.CurrentPrice = range ts.ClosingPrices {
 			select {
@@ -748,7 +759,7 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 			default:
 			}
 
-			ts.Trading(md, loadExchFrom)
+			ts.Trading(md, dataPoint, loadExchFrom)
 
 			// time.Sleep(ts.EpochTime)
 		}
@@ -773,7 +784,7 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 	}
 }
 
-func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
+func (ts *TradingSystem) Trading(md *model.AppData, dataPoint *model.DataPoint, loadExchFrom string) {
 	// Execute the trade if entry conditions are met.
 	passed := false
 	v := 0.0
@@ -785,7 +796,7 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 	} else {
 		targetCrossed = true
 	}
-	if targetCrossed && ts.EntryRule(md) {
+	if targetCrossed && ts.EntryRule(md, dataPoint) {
 		// Execute the buy order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(md, "Buy")
 		if err != nil {
@@ -810,7 +821,7 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 		}
 	}
 	ts.RiskFactor = float64(ts.Index)
-	if targetCrossed && ts.ExitRule(md){
+	if targetCrossed && ts.ExitRule(md, dataPoint){
 		// Execute the sell order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(md, "Sell")
 		if err != nil {
@@ -827,7 +838,7 @@ func (ts *TradingSystem) Trading(md *model.AppData, loadExchFrom string) {
 		passed = true
 	}
 	if !passed {
-		ts.EntryRule(md)                        //To takecare of EMA Calculation and Grphing
+		ts.EntryRule(md, dataPoint)                        //To takecare of EMA Calculation and Grphing
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
 }
@@ -1329,14 +1340,14 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 // TechnicalAnalysis(): This function performs technical analysis using the
 // calculated moving averages (short and long EMA), RSI, MACD line, and Bollinger
 // Bands. It determines the buy and sell signals based on various strategy rules.
-func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (buySignal, sellSignal bool) {
+func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.DataPoint, Action string) (buySignal, sellSignal bool) {
 	// Calculate moving averages (MA) using historical data.
 	ch1 := make(chan bool)
 	ch2 := make(chan bool)
 	ch3 := make(chan bool)
 	ch4 := make(chan bool)
 	var (
-		err1, err2, err3, err4        error
+		err1, err2, err3, err4 error
 		short4EMA, long8EMA []float64
 		short15EMA, long55EMA []float64
 	)
@@ -1421,20 +1432,25 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 
 			if Action == "Entry" && (MarketUpGoingUp || MarketDownGoingUp){
 				buySignal = (MarketUpGoingUp && PriceDownGoingUp) || (MarketDownGoingUp && PriceUpGoingUp)
-				if buySignal {
+				if buySignal {					
+					dataPoint.Label = 1
 					ts.Log.Printf("TA Signalled: BuY: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
-				} else{
+				} else{		
+					dataPoint.Label = 0
 					ts.Log.Printf("TA Signalled: Missed BuY: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
 				}
 			}
 			if Action == "Exit" {
 				if ((S15EMA0-L55EMA0) * 1.5 < ts.CurrentPrice-S15EMA0) && (MarketUpGoingUp && PriceUpGoingUp){ 
-					sellSignal = true
+					sellSignal = true		
+					dataPoint.Label = -1
 					ts.Log.Printf("TAS1 Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v ((S15EMA0-L55EMA0) * 1.5 = %.8f < ts.CurrentPrice-S15EMA0 = %.8f) = %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown, (S15EMA0-L55EMA0) * 1.5, ts.CurrentPrice-S15EMA0, ((S15EMA0-L55EMA0) * 1.5 < ts.CurrentPrice-S15EMA0))
 				}else if (MarketUpGoingDown && PriceDownGoingDown) || (MarketDownGoingDown && PriceUpGoingDown){
-					sellSignal = true
+					sellSignal = true		
+					dataPoint.Label = -1
 					ts.Log.Printf("TAS2 Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
-				} else{
+				} else{		
+					dataPoint.Label = 0
 					ts.Log.Printf("TAS0 Signalled: Missed SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
 				}
 				if sellSignal && ts.FreeFall{
@@ -1444,11 +1460,43 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 					}
 				}
 			}
+			dataPoint.L95EMA = L55EMA0
+			dataPoint.S15EMA = S15EMA0 
+			dataPoint.L8EMA  = L8EMA0
+			dataPoint.S4EMA  = S4EMA0
+			// Derived Metrics
+			dataPoint.DiffL95S15 = dataPoint.L95EMA - dataPoint.S15EMA
+			dataPoint.DiffL8S4 = dataPoint.L8EMA - dataPoint.S4EMA
+			// Historical Trends
+			dataPoint.RoCL95 = CalculatePercentileRank(dataPoint.L95EMA, []float64{dataPoint.L95EMA})
+			dataPoint.RoCS15 = CalculatePercentileRank(dataPoint.S15EMA, []float64{dataPoint.S15EMA})
+			// Moving Averages of Differences
+			dataPoint.MA5DiffL95S15 = stat.Mean([]float64{dataPoint.DiffL95S15}, nil)
+			dataPoint.MA5DiffL8S4 = stat.Mean([]float64{dataPoint.DiffL8S4}, nil)
+			// Volatility Measures
+			dataPoint.StdDevL95 = stat.StdDev([]float64{dataPoint.L95EMA}, nil)
+			dataPoint.StdDevS15 = stat.StdDev([]float64{dataPoint.S15EMA}, nil)
+			// Cross-EMA Relationships
+			if dataPoint.L95EMA > dataPoint.S15EMA {
+				dataPoint.CrossL95S15 = 1
+			} else {
+				dataPoint.CrossL95S15 = 0
+			}
 		}
 	}
+
 	return buySignal, sellSignal
 }
-
+// CalculatePercentileRank calculates the percentile rank of a value in a dataset.
+func CalculatePercentileRank(value float64, data []float64) float64 {
+    count := 0
+    for _, v := range data {
+        if v <= value {
+            count++
+        }
+    }
+    return float64(count) / float64(len(data))
+}
 // FundamentalAnalysis performs fundamental analysis and generates trading signals.
 func (ts *TradingSystem) FundamentalAnalysis() (buySignal, sellSignal bool) {
 	// Implement your fundamental analysis logic here.
@@ -1459,17 +1507,17 @@ func (ts *TradingSystem) FundamentalAnalysis() (buySignal, sellSignal bool) {
 }
 
 // EntryRule defines the entry conditions for a trade.
-func (ts *TradingSystem) EntryRule(md *model.AppData) bool {
+func (ts *TradingSystem) EntryRule(md *model.AppData, dataPoint *model.DataPoint) bool {
 	// Combine the results of technical and fundamental analysis to decide entry conditions.
-	technicalBuy, _ := ts.TechnicalAnalysis(md, "Entry")
+	technicalBuy, _ := ts.TechnicalAnalysis(md, dataPoint, "Entry")
 	// fundamentalBuy, fundamentalSell := ts.FundamentalAnalysis()
 	return technicalBuy
 }
 
 // ExitRule defines the exit conditions for a trade.
-func (ts *TradingSystem) ExitRule(md *model.AppData) bool {
+func (ts *TradingSystem) ExitRule(md *model.AppData, dataPoint *model.DataPoint) bool {
 	// Combine the results of technical and fundamental analysis to decide exit conditions.
-	_, technicalSell := ts.TechnicalAnalysis(md, "Exit")
+	_, technicalSell := ts.TechnicalAnalysis(md, dataPoint, "Exit")
 	// fundamentalBuy, fundamentalSell := ts.FundamentalAnalysis()
 	return technicalSell
 }
@@ -1493,12 +1541,6 @@ func (ts *TradingSystem) Reporting(md *model.AppData, from string) error {
 	}
 	if err != nil {
 		return fmt.Errorf("Error creating Line Chart with signals: %v", err)
-	}
-	if from == "Live Trading" {
-		// err = ts.AppDatatoCSV(md)
-		// if err != nil {
-		// 	return fmt.Errorf("Error creating Writing to CSV File %v", err)
-		// }
 	}
 	return nil
 }

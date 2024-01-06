@@ -178,7 +178,7 @@ func (ts *TradingSystem)CreateLineChartWithSignalsV3(md *model.AppData, timeSeri
 	selectedTimeLabels := make([]string, len(timeSeries))
 	for i, timeVal := range timeSeries {
 		if timeVal >= nextMark {
-			selectedTimeLabels[i] = time.Unix(0, timeVal*int64(time.Millisecond)).Format("02 15:04:05")
+			selectedTimeLabels[i] = time.Unix(timeVal*int64(time.Millisecond), 0).Format("02 15:04:05")
 			nextMark += stepSize
 		} else {
 			selectedTimeLabels[i] = ""

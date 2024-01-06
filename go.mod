@@ -9,6 +9,7 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.0
+	gonum.org/v1/gonum v0.13.0
 	gonum.org/v1/plot v0.13.0
 )
 
