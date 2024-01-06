@@ -1427,12 +1427,15 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, Action string) (bu
 					ts.Log.Printf("TA Signalled: Missed BuY: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
 				}
 			}
-			if Action == "Exit" && (MarketUpGoingDown || MarketDownGoingDown){
-				sellSignal = (MarketUpGoingDown && PriceDownGoingDown) || (MarketDownGoingDown && PriceUpGoingDown)
-				if sellSignal{
-					ts.Log.Printf("TA Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
+			if Action == "Exit" {
+				if ((S15EMA0-L55EMA0) * 1.5 < ts.CurrentPrice-S15EMA0) && (MarketUpGoingUp && PriceUpGoingUp){ 
+					sellSignal = true
+					ts.Log.Printf("TAS1 Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v ((S15EMA0-L55EMA0) * 1.5 = %.8f < ts.CurrentPrice-S15EMA0 = %.8f) = %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown, (S15EMA0-L55EMA0) * 1.5, ts.CurrentPrice-S15EMA0, ((S15EMA0-L55EMA0) * 1.5 < ts.CurrentPrice-S15EMA0))
+				}else if (MarketUpGoingDown && PriceDownGoingDown) || (MarketDownGoingDown && PriceUpGoingDown){
+					sellSignal = true
+					ts.Log.Printf("TAS2 Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
 				} else{
-					ts.Log.Printf("TA Signalled: Missed SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
+					ts.Log.Printf("TAS0 Signalled: Missed SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
 				}
 				if sellSignal && ts.FreeFall{
 					if !MarketDownGoingDown {
