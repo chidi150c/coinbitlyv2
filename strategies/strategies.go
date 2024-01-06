@@ -761,6 +761,10 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 
 			ts.Trading(md, dataPoint, loadExchFrom)
 
+			err = ts.DataPointtoCSV(dataPoint)
+			if err != nil {
+				fmt.Printf("Error creating Writing to CSV File %v", err)
+			}
 			// time.Sleep(ts.EpochTime)
 		}
 		err = ts.Reporting(md, "Backtesting")
