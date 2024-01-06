@@ -1434,7 +1434,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 			MarketUpGoingUp := <- ch3
 			MarketUpGoingDown := <-ch4
 
-			if Action == "Entry" && (MarketUpGoingUp || MarketDownGoingUp){
+			if Action == "Entry" {
 				buySignal = (MarketUpGoingUp && PriceDownGoingUp) || (MarketDownGoingUp && PriceUpGoingUp)
 				if buySignal {					
 					dataPoint.Label = 1
@@ -1488,7 +1488,6 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 			}
 		}
 	}
-
 	return buySignal, sellSignal
 }
 // CalculatePercentileRank calculates the percentile rank of a value in a dataset.
