@@ -16,7 +16,6 @@ import (
 )
 
 func (ts *TradingSystem)DataPointtoCSV(data *model.DataPoint)error { //fundamentalAnalysis()
-    ts.Log.Printf("Writing Data to CSV %v", data)
     err := ts.CSVWriter.Write([]string{
 		data.Date.Format("02 15:04:05"),
         fmt.Sprintf("%f", data.L95EMA),

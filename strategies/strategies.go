@@ -311,7 +311,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			// md.TotalProfitLoss = 14.772279
 		} else {
 			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
-			// md.LongPeriod = 55  //30 Define moving average long period for the strategy.
+			// md.LongPeriod = 95  //30 Define moving average long period for the strategy.
 			// md.TargetProfit = mainValue * 0.001
 			// md.TargetStopLoss = mainValue * 0.001
 			// md.TotalProfitLoss = 16.0
@@ -739,7 +739,7 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 	//StRSIOverbought,StRSIOversold,BollingerPeriod,BollingerNumStdDev,TargetProfit,
 	//TargetStopLoss,RiskPositionPercentage
 	backT := []*model.AppData{ //StochRSI
-		{0, 0, "EMA", 20, 55, 0.0, 0.0, 0.5, 3.0, 0.25, 0.0},
+		{0, 0, "EMA", 20, 95, 0.0, 0.0, 0.5, 3.0, 0.25, 0.0},
 	}
 
 	fmt.Println("App started. Press Ctrl+C to exit.")
@@ -1352,7 +1352,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 	var (
 		err1, err2, err3, err4 error
 		short4EMA, long8EMA []float64
-		short15EMA, long55EMA []float64
+		short15EMA, long95EMA []float64
 	)
 	ema4 := CandleExponentialMovingAverageV1(ts.ClosingPrices, 4)
 	go func(ch1 chan bool) {
@@ -1364,7 +1364,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 		ch2 <- true
 	}(ch2)
 	go func(ch3 chan bool) {
-		long55EMA, err3 = CandleExponentialMovingAverageV2(ema4, 95)
+		long95EMA, err3 = CandleExponentialMovingAverageV2(ema4, 95)
 		ch3 <- true
 	}(ch3)
 	short15EMA, err4 = CandleExponentialMovingAverageV2(ema4, 15)
@@ -1379,12 +1379,12 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 		md.LongEMA, md.ShortEMA = long8EMA[ts.DataPoint], short4EMA[ts.DataPoint]
 	}
 	// Determine the buy and sell signals based on the moving averages, RSI, MACD line, and Bollinger Bands.
-	if len(short15EMA) > 4 && len(long55EMA) > 4 && ts.DataPoint >= 4 {
+	if len(short15EMA) > 4 && len(long95EMA) > 4 && ts.DataPoint >= 4 {
 		if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 1 {
 			md.ShortPeriod = 15
 			md.LongPeriod = 95
 			ts.Container1 = short15EMA
-			ts.Container2 = long55EMA
+			ts.Container2 = long95EMA
 			//for price determination
 			L8EMA3, L8EMA0 := long8EMA[ts.DataPoint-3], long8EMA[ts.DataPoint]
 			S4EMA3, S4EMA0 := short4EMA[ts.DataPoint-3], short4EMA[ts.DataPoint]
@@ -1408,20 +1408,20 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 			}(cch4)
 
 			//for market determination
-			L55EMA3, L55EMA0 := long55EMA[ts.DataPoint-3], long55EMA[ts.DataPoint]
+			L95EMA3, L95EMA0 := long95EMA[ts.DataPoint-3], long95EMA[ts.DataPoint]
 			S15EMA3, S15EMA0 := short15EMA[ts.DataPoint-3], short15EMA[ts.DataPoint]
 			
 			go func(ch1 chan bool){
-				ch1 <- (L55EMA3 > S15EMA3) && (L55EMA0-S15EMA0 > L55EMA3-S15EMA3) && (L55EMA0 > S15EMA0)
+				ch1 <- (L95EMA3 > S15EMA3) && (L95EMA0-S15EMA0 > L95EMA3-S15EMA3) && (L95EMA0 > S15EMA0)
 			}(ch1)
 			go func(ch2 chan bool){
-				ch2 <- (L55EMA0 > S15EMA0) && (L55EMA0-S15EMA0 < L55EMA3-S15EMA3) && (L55EMA3 > S15EMA3)
+				ch2 <- (L95EMA0 > S15EMA0) && (L95EMA0-S15EMA0 < L95EMA3-S15EMA3) && (L95EMA3 > S15EMA3)
 			}(ch2)
 			go func (ch3 chan bool){
-				ch3 <- (S15EMA3 > L55EMA3) && (S15EMA0-L55EMA0 > S15EMA3-L55EMA3) && (S15EMA0 > L55EMA0)
+				ch3 <- (S15EMA3 > L95EMA3) && (S15EMA0-L95EMA0 > S15EMA3-L95EMA3) && (S15EMA0 > L95EMA0)
 			}(ch3)
 			go func (ch4 chan bool){
-				ch4 <- (S15EMA0 > L55EMA0) &&	(S15EMA0-L55EMA0 < S15EMA3-L55EMA3) && (S15EMA3 > L55EMA3)
+				ch4 <- (S15EMA0 > L95EMA0) &&	(S15EMA0-L95EMA0 < S15EMA3-L95EMA3) && (S15EMA3 > L95EMA3)
 			}(ch4)
 
 			PriceDownGoingDown := <-cch1			
@@ -1433,6 +1433,30 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 			MarketUpGoingUp := <- ch3
 			MarketUpGoingDown := <-ch4
 
+			dataPoint.L95EMA = L95EMA0
+			dataPoint.S15EMA = S15EMA0 
+			dataPoint.L8EMA  = L8EMA0
+			dataPoint.S4EMA  = S4EMA0
+			window := 20
+			go func (ch1 chan bool)  {				
+				// Moving Averages of Differences
+				dataPoint.MA5DiffL95S15 = rollingMean(rollingDiff(long95EMA[len(long95EMA)-window:], short15EMA[len(short15EMA)-window:]), window)
+				dataPoint.MA5DiffL8S4 = rollingMean(rollingDiff(long8EMA[len(long8EMA)-window:], short4EMA[len(short4EMA)-window:]), window)
+				ch1 <- true
+			}(ch1)
+			go func (ch2 chan bool)  {	
+				// Volatility Measures
+				dataPoint.StdDevL95 = rollingStdDev(long95EMA[len(long95EMA)-window:], window)
+				dataPoint.StdDevS15 = rollingStdDev(short15EMA[len(short15EMA)-window:], window)
+				ch2 <- true
+			}(ch2)
+			go func (ch3 chan bool)  {	
+				// Historical Trends
+				dataPoint.RoCL95 = CalculatePercentileRank(dataPoint.L95EMA, long95EMA[len(long95EMA)-window:])
+				dataPoint.RoCS15 = CalculatePercentileRank(dataPoint.S15EMA, short15EMA[len(short15EMA)-window:])
+				ch3 <- true
+			}(ch3)
+			
 			if Action == "Entry" {
 				buySignal = (MarketUpGoingUp && PriceDownGoingUp) || (MarketDownGoingUp && PriceUpGoingUp)
 				if buySignal {					
@@ -1444,10 +1468,10 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 				}
 			}
 			if Action == "Exit" {
-				if ((S15EMA0-L55EMA0) * 1.5 < ts.CurrentPrice-S15EMA0) && (MarketUpGoingUp && PriceUpGoingUp){ 
+				if ((S15EMA0-L95EMA0) * 1.5 < ts.CurrentPrice-S15EMA0) && (MarketUpGoingUp && PriceUpGoingUp){ 
 					sellSignal = true		
 					dataPoint.Label = -1
-					ts.Log.Printf("TAS1 Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v ((S15EMA0-L55EMA0) * 1.5 = %.8f < ts.CurrentPrice-S15EMA0 = %.8f) = %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown, (S15EMA0-L55EMA0) * 1.5, ts.CurrentPrice-S15EMA0, ((S15EMA0-L55EMA0) * 1.5 < ts.CurrentPrice-S15EMA0))
+					ts.Log.Printf("TAS1 Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v ((S15EMA0-L95EMA0) * 1.5 = %.8f < ts.CurrentPrice-S15EMA0 = %.8f) = %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown, (S15EMA0-L95EMA0) * 1.5, ts.CurrentPrice-S15EMA0, ((S15EMA0-L95EMA0) * 1.5 < ts.CurrentPrice-S15EMA0))
 				}else if (MarketUpGoingDown && PriceDownGoingDown) || (MarketDownGoingDown && PriceUpGoingDown){
 					sellSignal = true		
 					dataPoint.Label = -1
@@ -1463,25 +1487,13 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 					}
 				}
 			}
-			dataPoint.L95EMA = L55EMA0
-			dataPoint.S15EMA = S15EMA0 
-			dataPoint.L8EMA  = L8EMA0
-			dataPoint.S4EMA  = S4EMA0
+
 			// Derived Metrics
 			dataPoint.DiffL95S15 = dataPoint.L95EMA - dataPoint.S15EMA
 			dataPoint.DiffL8S4 = dataPoint.L8EMA - dataPoint.S4EMA
-			// Historical Trends
-			dataPoint.RoCL95 = CalculatePercentileRank(dataPoint.L95EMA, []float64{dataPoint.L95EMA})
-			dataPoint.RoCS15 = CalculatePercentileRank(dataPoint.S15EMA, []float64{dataPoint.S15EMA})
-			// Moving Averages of Differences
-			dataPoint.MA5DiffL95S15 = stat.Mean([]float64{dataPoint.DiffL95S15}, nil)
-			dataPoint.MA5DiffL8S4 = stat.Mean([]float64{dataPoint.DiffL8S4}, nil)
-			// Volatility Measures
-			dataPoint.StdDevL95 = stat.StdDev([]float64{dataPoint.L95EMA}, nil)
-			dataPoint.StdDevS15 = stat.StdDev([]float64{dataPoint.S15EMA}, nil)
 			// Lagged Features (1-day lag)
 			if ts.DataPoint > 0 {
-				dataPoint.LaggedL95EMA = long55EMA[ts.DataPoint-1]
+				dataPoint.LaggedL95EMA = long95EMA[ts.DataPoint-1]
 				dataPoint.LaggedS15EMA = short15EMA[ts.DataPoint-1]
 			}
 			// Cross-EMA Relationships
@@ -1491,10 +1503,45 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 				dataPoint.CrossL95S15 = 0
 			}
 			dataPoint.Date = time.Now()
+			<-ch1
+			<-ch2
+			<-ch3
 		}
 	}
 	return buySignal, sellSignal
 }
+
+func rollingDiff(L, S []float64)(diff []float64){
+	for k, v := range L{
+		diff = append(diff, v - S[k])
+	}
+	return diff
+}
+// Function to calculate rolling mean with handling for NaN
+func rollingMean(data []float64, window int) float64 {
+	if len(data) < window {
+		// Handle the case where there are not enough data points
+		return 0.0 // or any default value you prefer
+	}
+
+	// Take the last 'window' elements from the slice
+	data = data[len(data)-window:]
+
+	return stat.Mean(data, nil)
+}
+// Function to calculate rolling standard deviation with handling for NaN
+func rollingStdDev(data []float64, window int) float64 {
+	if len(data) < window {
+		// Handle the case where there are not enough data points
+		return 0.0 // or any default value you prefer
+	}
+
+	// Take the last 'window' elements from the slice
+	data = data[len(data)-window:]
+
+	return stat.StdDev(data, nil)
+}
+
 // CalculatePercentileRank calculates the percentile rank of a value in a dataset.
 func CalculatePercentileRank(value float64, data []float64) float64 {
     count := 0
@@ -1632,16 +1679,16 @@ func CandleExponentialMovingAverage(closingPrices []float64, LongPeriod, ShortPe
 	if LongPeriod <= 0 || len(closingPrices) < LongPeriod || closingPrices == nil {
 		return nil, nil, fmt.Errorf("Error Calculating Candle EMA: not enoguh data for period %v", LongPeriod)
 	}
-	var ema55, ema15 *ema.Ema
-	ema55 = ema.NewEma(alphaFromN(LongPeriod))
+	var ema95, ema15 *ema.Ema
+	ema95 = ema.NewEma(alphaFromN(LongPeriod))
 	ema15 = ema.NewEma(alphaFromN(ShortPeriod))
 
 	long8EMA = make([]float64, len(closingPrices))
 	short4EMA = make([]float64, len(closingPrices))
 	for k, closePrice := range closingPrices {
-		ema55.Step(closePrice)
+		ema95.Step(closePrice)
 		ema15.Step(closePrice)
-		long8EMA[k] = ema55.Compute()
+		long8EMA[k] = ema95.Compute()
 		short4EMA[k] = ema15.Compute()
 	}
 	return long8EMA, short4EMA, nil
