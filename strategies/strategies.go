@@ -1378,8 +1378,9 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 	} else {
 		md.LongEMA, md.ShortEMA = long8EMA[ts.DataPoint], short4EMA[ts.DataPoint]
 	}
+	window := 20
 	// Determine the buy and sell signals based on the moving averages, RSI, MACD line, and Bollinger Bands.
-	if len(short15EMA) > 4 && len(long95EMA) > 4 && ts.DataPoint >= 4 {
+	if len(short15EMA) > window && len(long95EMA) > window && ts.DataPoint >= window {
 		if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 1 {
 			md.ShortPeriod = 15
 			md.LongPeriod = 95
@@ -1407,9 +1408,9 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 				cch4 <- (S4EMA0 > L8EMA0) &&	(S4EMA0-L8EMA0 < S4EMA3-L8EMA3) && (S4EMA3 > L8EMA3)
 			}(cch4)
 
-			//for market determination
-			L95EMA3, L95EMA0 := long95EMA[ts.DataPoint-3], long95EMA[ts.DataPoint]
-			S15EMA3, S15EMA0 := short15EMA[ts.DataPoint-3], short15EMA[ts.DataPoint]
+			//for market determination 
+			L95EMA6, L95EMA3, L95EMA0 := long95EMA[ts.DataPoint-6], long95EMA[ts.DataPoint-3], long95EMA[ts.DataPoint]
+			S15EMA6, S15EMA3, S15EMA0 := short15EMA[ts.DataPoint-6], short15EMA[ts.DataPoint-3], short15EMA[ts.DataPoint]
 			
 			go func(ch1 chan bool){
 				ch1 <- (L95EMA3 > S15EMA3) && (L95EMA0-S15EMA0 > L95EMA3-S15EMA3) && (L95EMA0 > S15EMA0)
@@ -1437,7 +1438,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 			dataPoint.S15EMA = S15EMA0 
 			dataPoint.L8EMA  = L8EMA0
 			dataPoint.S4EMA  = S4EMA0
-			window := 20
+			
 			go func (ch1 chan bool)  {				
 				// Moving Averages of Differences
 				dataPoint.MA5DiffL95S15 = rollingMean(rollingDiff(long95EMA[len(long95EMA)-window:], short15EMA[len(short15EMA)-window:]), window)
@@ -1458,7 +1459,7 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 			}(ch3)
 			
 			if Action == "Entry" {
-				if ((L95EMA0-S15EMA0) * 1.2 < S15EMA0-ts.CurrentPrice) && (PriceDownGoingDown && MarketDownGoingDown){ 
+				if (L95EMA6 > S15EMA6) && ((L95EMA0-S15EMA0) * 1.2 < S15EMA0-ts.CurrentPrice) && (PriceDownGoingDown && MarketDownGoingDown){ 
 					buySignal = true		
 					dataPoint.Label = 1
 					ts.Log.Printf("TAB1 Signalled: BuY: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v ((L95EMA0-S15EMA0) * 1.2 = %.8f < S15EMA0-ts.CurrentPrice = %.8f) = %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown, (L95EMA0-S15EMA0) * 1.5, S15EMA0-ts.CurrentPrice, ((L95EMA0-S15EMA0) * 1.2 < S15EMA0-ts.CurrentPrice))
@@ -1472,10 +1473,10 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 				}
 			}
 			if Action == "Exit" {
-				if ((S15EMA0-L95EMA0) * 1.2 < ts.CurrentPrice-S15EMA0) && (MarketUpGoingUp && PriceUpGoingUp){ 
+				if (S15EMA6 > L95EMA6) && ((S15EMA0-L95EMA0) * 1.2 < ts.CurrentPrice-S15EMA0) && (MarketUpGoingUp && PriceUpGoingUp){ 
 					sellSignal = true		
 					dataPoint.Label = -1
-					ts.Log.Printf("TAS1 Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v ((S15EMA0-L95EMA0) * 1.0 = %.8f < ts.CurrentPrice-S15EMA0 = %.8f) = %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown, (S15EMA0-L95EMA0) * 1.2, ts.CurrentPrice-S15EMA0, ((S15EMA0-L95EMA0) * 1.2 < ts.CurrentPrice-S15EMA0))
+					ts.Log.Printf("TAS1 Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v ((S15EMA0-L95EMA0) * 1.2 = %.8f < ts.CurrentPrice-S15EMA0 = %.8f) = %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown, (S15EMA0-L95EMA0) * 1.2, ts.CurrentPrice-S15EMA0, ((S15EMA0-L95EMA0) * 1.2 < ts.CurrentPrice-S15EMA0))
 				}else if (MarketUpGoingDown && PriceDownGoingDown) || (MarketDownGoingDown && PriceUpGoingDown){
 					sellSignal = true		
 					dataPoint.Label = -1
