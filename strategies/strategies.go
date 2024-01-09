@@ -87,7 +87,7 @@ type TradingSystem struct {
 	Index                    int
 	TLevelValue              int
 	TLevelAdjust             bool
-	FreeFall                 bool
+	// FreeFall                 bool
 	UpgdChan                 chan bool
 	SupIndex                 int
 	SupQuantity              float64
@@ -624,21 +624,13 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			//NextSell Re-Adjustment
 			nextProfitSeLLPrice := ((ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
 			commissionAtProfitSeLLPrice := nextProfitSeLLPrice * ts.EntryQuantity[len(ts.EntryQuantity)-1] * ts.CommissionPercentage
-			if ts.FreeFall {
-				nextProfitSeLLPrice = 0.0
-				commissionAtProfitSeLLPrice = 0.0
-			}
 			if ((nextProfitSeLLPrice + commissionAtProfitSeLLPrice) < ts.HighestPrice) && (time.Since(ts.StartTime) > elapseTimeSeLL(ts.TradingLevel)) {
 				before := ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1]
 				ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.HighestPrice
 				ts.Log.Printf("NextProfitSeLLPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
 				ts.StartTime = time.Now()
 				ts.HighestPrice = 0.0
-			} else if time.Since(ts.StartTime) > elapseTimeSeLL(ts.TradingLevel) {
-				ts.StartTime = time.Now()
-				ts.Log.Printf("FreeFall of SeLL-Target Activated!!! at First TimeElapse, CurrentPrice: %.8f", ts.CurrentPrice)
-				ts.FreeFall = true
-			}
+			} 
 		} else if len(ts.EntryPrice) > 0 {
 			//NextBuy Re-Adjustment
 			nextInvBuYPrice := (-(ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
@@ -864,13 +856,6 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		if ts.QuoteBalance < totalCost {
 			//if we have hit bottom earlier and expecting to sell but rather hit buy target
 			ts.Log.Printf("Unable to buY!!!! Insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice)
-			if ts.InTrade && ts.StopLossTrigered {
-				ts.Log.Printf("FreeFall of SeLL-Target Activated!!! at BuY Insufficiency NextProfitSeLLPrice: %.8f", ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
-				ts.FreeFall = true
-			}
-			// quantity = ts.QuoteBalance / ts.CurrentPrice
-			// quantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
-			// if quantity < ts.MiniQty {
 			return "", fmt.Errorf("cannot execute a buy order due to insufficient QuoteBalance: %.8f (ts.PositionSize %.8f* ts.CurrentPrice %.8f) = %.8f", ts.QuoteBalance, ts.PositionSize, ts.CurrentPrice, ts.PositionSize*ts.CurrentPrice)
 			// }
 		}
@@ -901,27 +886,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.QuoteBalance -= totalCost
 		ts.BaseBalance += quantity
 		md.TotalProfitLoss -= (ts.CommissionPercentage * quantity * ts.CurrentPrice)
-
-		<-ts.UpgdChan
-		<-ts.UpgdChan
-		if (!ts.InTrade) && (ts.StopLossTrigered) {
-			//upgrade to next stage
-			ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
-			<-ts.UpgdChan
-			if err != nil {
-				panic(fmt.Sprintf("Error Creating TradingSystem: %v", err))
-			} else {
-				log.Printf("Upgrade done with New Ts ID: %d\n", ts.ID)
-				ts.EntryPrice = []float64{}
-				ts.EntryCostLoss = []float64{}
-				ts.EntryQuantity = []float64{}
-				ts.NextProfitSeLLPrice = []float64{}
-				ts.NextInvestBuYPrice = []float64{}
-				ts.StopLossRecover = append(ts.StopLossRecover, float64(ts.ID))
-			}
-		} else {
-			<-ts.UpgdChan
-		}
+		
 		//Record entry entities for calculating profit/loss and stoploss later.
 		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
 		ts.EntryQuantity = append(ts.EntryQuantity, quantity)
@@ -935,20 +900,37 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.Log.Printf("Replenished bursted:[%d] !!! \n", ts.TLevelValue)
 			ts.TLevelAdjust = false
 		}
-		// if (!ts.InTrade) && (ts.StopLossTrigered) {
-		// 	ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2]
-		// 	ts.Log.Printf("LongActivated!!! Next Sell of index[%d] replaced with that of index[%d] from %.8f to %.8f", len(ts.NextProfitSeLLPrice)-1, len(ts.NextProfitSeLLPrice)-2, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2])
-		// 	// for k, v := range ts.NextProfitSeLLPrice {
-		// 	// 	if ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < v {
-		// 	// 		ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-2]
-		// 	// 	}
-		// 	// }
-		// }
 		ts.NextInvestBuYPrice = append(ts.NextInvestBuYPrice, nextInvBuYPrice-commissionAtInvBuYPrice)
-
 		ts.TradingLevel = len(ts.EntryPrice)
 		ts.LowestPrice = math.MaxFloat64
 		ts.StartTime = time.Now()
+		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, EntryCostLoss[%d]: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice[%d]: %.8f nextInvBuYPrice[%d]: %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d, mdDataPt: %d \n",
+			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], md.RiskPositionPercentage, md.TotalProfitLoss, len(ts.NextProfitSeLLPrice)-1, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], len(ts.NextInvestBuYPrice)-1, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
+		
+		<-ts.UpgdChan
+		<-ts.UpgdChan
+		if ((!ts.InTrade) && (ts.StopLossTrigered)) || (ts.TradingLevel >= 5){
+			//upgrade to next stage
+			ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
+			<-ts.UpgdChan
+			if err != nil {
+				panic(fmt.Sprintf("Error Creating TradingSystem: %v", err))
+			} else {
+				log.Printf("Upgrade done with New Ts ID: %d\n", ts.ID)
+				ts.EntryPrice = []float64{}
+				ts.EntryQuantity = []float64{}
+				ts.EntryCostLoss = []float64{}
+				ts.NextProfitSeLLPrice = []float64{}
+				ts.NextInvestBuYPrice = []float64{}
+				ts.StopLossRecover = append(ts.StopLossRecover, float64(ts.ID))
+				ts.TradingLevel = len(ts.EntryPrice)
+				ts.LowestPrice = math.MaxFloat64
+				ts.StartTime = time.Now()
+			}
+		} else {
+			<-ts.UpgdChan
+		}
+		
 		ts.RiskManagement(md)
 		// adjustedPrice := math.Floor(price/lotSizeStep) * lotSizeStep
 		quantity = math.Floor(ts.PositionSize/ts.MiniQty) * ts.MiniQty
@@ -959,10 +941,8 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		if i > 1 {
 			before = ts.NextInvestBuYPrice[i-2]
 		}
-		ts.FreeFall = false
-		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, EntryCostLoss[%d]: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice[%d]: %.8f nextInvBuYPrice[%d]: %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d, mdDataPt: %d \n",
-			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], md.RiskPositionPercentage, md.TotalProfitLoss, len(ts.NextProfitSeLLPrice)-1, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], len(ts.NextInvestBuYPrice)-1, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
-		if ts.QuoteBalance < totalCost {
+		//Check whether to move to next stage due to insufficiency in next buy
+		if (ts.QuoteBalance < totalCost) { //level
 			if (!ts.InTrade) && (ts.StopLossTrigered) {
 				ts.InTrade = false
 				ts.StopLossTrigered = false
@@ -990,54 +970,34 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		return resp, nil
 	case "Sell":
 		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", ts.CurrentPrice, md.TargetProfit)
-		suplemented := "false"
+		suplemented := false
 		asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
 		qpcent := (ts.QuoteBalance / asset) * 100.0
 		quantity := ts.EntryQuantity[ts.Index]
-		FreeFallProfitLoss := 0.0
 		//Deciding whether to execute a supplemental sell if quote percentage falls below the 20% threshold.
-		if (len(ts.EntryPrice) >= 2) && (qpcent < 40.0) {
-			if ts.FreeFall == true {
-				qpcent = ((asset / 2.0) - ts.QuoteBalance) / ts.CurrentPrice
-				asset = 0.0
-				for ts.SupIndex, ts.SupQuantity = range ts.EntryQuantity {
-					FreeFallProfitLoss += CalculateProfitLoss(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, ts.SupQuantity)
-					asset += ts.SupQuantity
-					if asset >= qpcent {
-						break
-					}
-				}
-				ts.SupQuantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
-				quantity = math.Floor(asset/ts.MiniQty) * ts.MiniQty
-				ts.Log.Printf("Free Fall SumQunatity Determned to be: %.8f", quantity)
-				ts.Log.Printf("Crashed!!! By Prohibited Free Fall Operation")
-				ts.Log.Printf("Crashed!!! By Prohibited Free Fall Operation: Hokked on Channel Ch at 1000")
-				ch := make(chan bool)
-				<- ch
-				suplemented = "freefall"
-			} else if qpcent < 30.0 {
-				localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
-				v := 0.0
-				ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f Index [%d] Pre-LocalProfitLoss %.8f", asset, qpcent, ts.Index, localProfitLoss)
-				for ts.SupIndex, v = range ts.EntryQuantity {
-					if ts.SupIndex != ts.Index {
-						ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss*Qfactor(qpcent))
-						ts.Log.Printf("SupIndex[%d] Calculated SupQuantity: %.8f Position Quantity: %.8f", ts.SupIndex, ts.SupQuantity, v)
-						if v > ts.SupQuantity {
-							qpcent = quantity + ts.SupQuantity
-							asset = math.Floor(qpcent/ts.MiniQty) * ts.MiniQty
-							if ts.SupQuantity > (qpcent - asset) {
-								ts.SupQuantity -= qpcent - asset
-								quantity += ts.SupQuantity
-								suplemented = "true"
-								ts.Log.Printf("Finally Suplemented SupIndex[%d] SupQuantity: %.8f ", ts.SupIndex, ts.SupQuantity)
-								break
-							}
+		if (len(ts.EntryPrice) >= 2) && (qpcent < 30.0) {
+			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
+			v := 0.0
+			ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f Index [%d] Pre-LocalProfitLoss %.8f", asset, qpcent, ts.Index, localProfitLoss)
+			for ts.SupIndex, v = range ts.EntryQuantity {
+				if ts.SupIndex != ts.Index {
+					ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss*Qfactor(qpcent))
+					ts.Log.Printf("SupIndex[%d] Calculated SupQuantity: %.8f Position Quantity: %.8f", ts.SupIndex, ts.SupQuantity, v)
+					if v > ts.SupQuantity {
+						qpcent = quantity + ts.SupQuantity
+						asset = math.Floor(qpcent/ts.MiniQty) * ts.MiniQty
+						if ts.SupQuantity > (qpcent - asset) {
+							ts.SupQuantity -= qpcent - asset
+							quantity += ts.SupQuantity
+							suplemented = true
+							ts.Log.Printf("Finally Suplemented SupIndex[%d] SupQuantity: %.8f ", ts.SupIndex, ts.SupQuantity)
+							break
 						}
 					}
 				}
 			}
 		}
+		
 		quantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
 		if ts.BaseBalance < quantity {
 			ts.Log.Printf("But BaseBalance %.8f is < quantity %.8f", ts.BaseBalance, quantity)
@@ -1099,19 +1059,12 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.QuoteBalance += totalCost
 		ts.BaseBalance -= quantity
 		localProfitLoss := 0.0
-		if suplemented != "false" {
-			if suplemented == "true" {
-				FreeFallProfitLoss = CalculateProfitLoss(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, ts.SupQuantity)
-				quantity -= ts.SupQuantity
-				ts.EntryQuantity[ts.SupIndex] -= ts.SupQuantity
-				localProfitLoss = CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity) + FreeFallProfitLoss
-				ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity: %.8f to Remain %.8f for Asset Balance ratio 40:60", ts.SupIndex, ts.SupQuantity, ts.EntryQuantity[ts.SupIndex])
-			} else if suplemented == "freefall" {
-				localProfitLoss = FreeFallProfitLoss
-				ts.Log.Printf("STOPLOST!!! by FreeFall Suplemented from [0] to [%d] with Resultant SumQuantity of %.8f", ts.SupIndex, quantity)
-			} else {
-				localProfitLoss = CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
-			}
+		if suplemented == true {
+			pl := CalculateProfitLoss(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, ts.SupQuantity)
+			quantity -= ts.SupQuantity
+			ts.EntryQuantity[ts.SupIndex] -= ts.SupQuantity
+			localProfitLoss = CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity) + pl
+			ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity: %.8f to Remain %.8f for Asset Balance ratio 40:60", ts.SupIndex, ts.SupQuantity, ts.EntryQuantity[ts.SupIndex])
 		} else {
 			localProfitLoss = CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
 		}
@@ -1124,7 +1077,6 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		if !ts.InTrade {
 			ts.StopLossTrigered = false
 		}
-		ts.FreeFall = false
 		ts.InTrade = false
 		ts.StartTime = time.Now()
 		ts.LowestPrice = math.MaxFloat64
@@ -1136,16 +1088,13 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			ts.TLevelValue = ts.Index
 			ts.TLevelAdjust = true
 		}
-		if suplemented == "freefall" {
-			ts.Log.Printf(ts.DeleteFreeFallRangeEntries())
-		} else {
-			ts.EntryPrice = deleteElement(ts.EntryPrice, ts.Index)
-			ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, ts.Index)
-			ts.EntryQuantity = deleteElement(ts.EntryQuantity, ts.Index)
-			ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, ts.Index)
-			ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, ts.Index)
-			ts.TradingLevel = len(ts.EntryPrice)
-		}
+		ts.EntryPrice = deleteElement(ts.EntryPrice, ts.Index)
+		ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, ts.Index)
+		ts.EntryQuantity = deleteElement(ts.EntryQuantity, ts.Index)
+		ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, ts.Index)
+		ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, ts.Index)
+		ts.TradingLevel = len(ts.EntryPrice)
+
 		<-ts.UpgdChan
 		<-ts.UpgdChan
 		if len(ts.EntryPrice) == 0 && len(ts.StopLossRecover) > 1 {
@@ -1220,31 +1169,6 @@ func (ts *TradingSystem) DeleteOrResetEntry(have string, quantity float64, expec
 	ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, ts.Index)
 	ts.TradingLevel = len(ts.EntryPrice)
 }
-func (ts *TradingSystem) DeleteFreeFallRangeEntries() string {
-	AggResult := fmt.Sprintf("Deleting FreeFall Range Entries from 0 to [%d] ", ts.SupIndex)
-	if (len(ts.EntryPrice) > 1) && (ts.SupIndex > 0) { //ts.Index
-		if !ts.InTrade {
-			ts.StopLossTrigered = false
-		}
-		ts.InTrade = false
-		ts.StartTime = time.Now()
-		ts.LowestPrice = math.MaxFloat64
-		ts.HighestPrice = 0.0
-		for k, _ := range ts.EntryPrice {
-			ts.EntryPrice = deleteElement(ts.EntryPrice, k)
-			ts.EntryCostLoss = deleteElement(ts.EntryCostLoss, k)
-			ts.EntryQuantity = deleteElement(ts.EntryQuantity, k)
-			ts.NextProfitSeLLPrice = deleteElement(ts.NextProfitSeLLPrice, k)
-			ts.NextInvestBuYPrice = deleteElement(ts.NextInvestBuYPrice, k)
-			ts.TradingLevel = len(ts.EntryPrice)
-			if k == ts.SupIndex {
-				AggResult = fmt.Sprintf("Deleted from 0 up to Entry [%d] added to Free Fall Summed Quantity", k)
-				break
-			}
-		}
-	}
-	return AggResult
-}
 func (ts *TradingSystem) AggregateEntries() string {
 	AggResult := fmt.Sprintf("Aggregate Required !!! for [%d] of %.8f quantity", ts.Index, ts.EntryQuantity[ts.Index])
 	if len(ts.EntryPrice) > 1 { //ts.Index
@@ -1318,9 +1242,9 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData) {
 		md.TargetProfit = mainValue * 0.0025
 		md.TargetStopLoss = mainValue * 0.005
 	case 4:
-		ts.RiskCost += 60.0 + 22.0 + 17.5
+		ts.RiskCost += (60.0 + 22.0 + 17.5) * 2.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.003
+		md.TargetProfit = (mainValue * 0.003) * 2.0
 		md.TargetStopLoss = mainValue * 0.0055
 	case 5:
 		ts.RiskCost += 65.0 + 24.5 + 19.5
@@ -1484,12 +1408,6 @@ func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.D
 				} else{		
 					dataPoint.Label = 0
 					ts.Log.Printf("TAS0 Signalled: Missed SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
-				}
-				if sellSignal && ts.FreeFall{
-					if !MarketDownGoingDown {
-						ts.Log.Printf("TA Signalled: FreeFall Deactivation !!!")
-						ts.FreeFall = false
-					}
 				}
 			}
 
