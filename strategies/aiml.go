@@ -34,6 +34,15 @@ func (ts *TradingSystem)DataPointtoCSV(data *model.DataPoint)error { //fundament
         fmt.Sprintf("%f", data.LaggedL95EMA),
         fmt.Sprintf("%f", data.LaggedS15EMA),
         fmt.Sprintf("%d", data.Label),
+        fmt.Sprintf("%f", data.TotalProfitLoss),
+	    fmt.Sprintf("%f", data.Asset),
+	    fmt.Sprintf("%f", data.QuoteBalance),
+	    fmt.Sprintf("%f", data.BaseBalance),
+	    fmt.Sprintf("%f", data.CurrentPrice),        
+        fmt.Sprintf("%f", data.TargetProfit),
+        fmt.Sprintf("%f", data.TargetStopLoss),
+        fmt.Sprintf("%f", data.LowestPrice),
+        fmt.Sprintf("%f", data.HighestPrice),
 	})
 	if err != nil {
         ts.Log.Printf("Writing Data to CSV ERROR %v", err)
@@ -59,7 +68,8 @@ func DataPointListtoCSV(data []*model.DataPoint) { //fundamentalAnalysis()
 
     headers := []string{
         "Date","L95EMA","S15EMA","L8EMA","S4EMA","DiffL95S15","DiffL8S4","RoCL95","RoCS15","MA5DiffL95S15",
-        "MA5DiffL8S4","StdDevL95","StdDevS15","CrossL95S15","LaggedL95EMA","LaggedS15EMA","Label", 
+        "MA5DiffL8S4","StdDevL95","StdDevS15","CrossL95S15","LaggedL95EMA","LaggedS15EMA","Label","TotalProfitLoss",
+        "Asset","QuoteBalance","BaseBalance","CurrentPrice","TargetProfit","TargetStopLoss","LowestPrice","HighestPrice",
     }
     err = writer.Write(headers)
     if err != nil {
@@ -85,6 +95,15 @@ func DataPointListtoCSV(data []*model.DataPoint) { //fundamentalAnalysis()
             fmt.Sprintf("%f", d.LaggedL95EMA),
             fmt.Sprintf("%f", d.LaggedS15EMA),
             fmt.Sprintf("%d", d.Label),
+            fmt.Sprintf("%f", d.TotalProfitLoss),
+            fmt.Sprintf("%f", d.Asset),
+            fmt.Sprintf("%f", d.QuoteBalance),
+            fmt.Sprintf("%f", d.BaseBalance),
+            fmt.Sprintf("%f", d.CurrentPrice),
+            fmt.Sprintf("%f", d.TargetProfit),
+            fmt.Sprintf("%f", d.TargetStopLoss),
+            fmt.Sprintf("%f", d.LowestPrice),
+            fmt.Sprintf("%f", d.HighestPrice),
         })
         if err != nil {
             log.Fatal(err)

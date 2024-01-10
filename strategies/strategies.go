@@ -325,7 +325,7 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 			}
 		}
 	}()
-	//Sending md to react Frontend UI
+	//Sending md to react Frontend UI for usage of TargetStopLoss, TargetProfit, TotalProfitLoss, RiskPositionPercentage 
 	go func() {
 		log.Printf("Ready to send AppDatat to Frontend UI")
 		for { // Serialize the DBAppData object to JSON for the UI frontend
@@ -360,7 +360,29 @@ func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
 	}()
 	return md
 }
-func (ts *TradingSystem) NewDataPoint() *model.DataPoint {
+func (ts *TradingSystem) NewDataPoint(loadExchFrom string) *model.DataPoint {
+	// Initialize the App Data
+	// loadDataFrom := ""
+	var (
+		dp  *model.DataPoint
+		err error
+	)
+	if loadExchFrom == "BinanceTestnet" {
+		dp, err = &model.DataPoint{}, fmt.Errorf(("Testnet Error simulation"))
+		if err != nil {
+			fmt.Println("dp = ", dp)
+			log.Printf("\n%v: But going ahead to initialize empty DataPoint struct\n", err)
+			dp = &model.DataPoint{}
+			dp.TargetProfit = mainValue * ts.RiskProfitLossPercentage
+			dp.TargetStopLoss = mainValue * ts.RiskProfitLossPercentage
+			dp.TotalProfitLoss = 0.0
+		}
+	} else {
+		dp = &model.DataPoint{}
+		dp.TargetProfit = mainValue * ts.RiskProfitLossPercentage
+		dp.TargetStopLoss = mainValue * ts.RiskProfitLossPercentage
+	}
+	fmt.Println("DataPoint = ", dp)
 	return &model.DataPoint{}
 }
 
@@ -569,7 +591,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl, syscall.SIGINT)
 	md := ts.NewAppData(loadExchFrom)
-	dataPoint := ts.NewDataPoint()
+	dataPoint := ts.NewDataPoint(loadExchFrom)
 	fmt.Println("App started. Press Ctrl+C to exit.")
 	go ts.ShutDown(md, sigchnl)
 	// Initialize variables for tracking trading performance.
@@ -738,7 +760,7 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 	var err error
 	for i, md := range backT {
 		md = ts.NewAppData(loadExchFrom)
-		dataPoint := ts.NewDataPoint()
+		dataPoint := ts.NewDataPoint(loadExchFrom)
 		// Simulate the backtesting process using historical price data.
 		for ts.DataPoint, ts.CurrentPrice = range ts.ClosingPrices {
 			select {
@@ -779,7 +801,7 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 	}
 }
 
-func (ts *TradingSystem) Trading(md *model.AppData, dataPoint *model.DataPoint, loadExchFrom string) {
+func (ts *TradingSystem) Trading(md *model.AppData, dp *model.DataPoint, loadExchFrom string) {
 	// Execute the trade if entry conditions are met.
 	passed := false
 	v := 0.0
@@ -791,9 +813,9 @@ func (ts *TradingSystem) Trading(md *model.AppData, dataPoint *model.DataPoint, 
 	} else {
 		targetCrossed = true
 	}
-	if targetCrossed && ts.EntryRule(md, dataPoint) {
+	if targetCrossed && ts.EntryRule(md, dp) {
 		// Execute the buy order using the ExecuteStrategy function.
-		resp, err := ts.ExecuteStrategy(md, "Buy")
+		resp, err := ts.ExecuteStrategy(md, dp, "Buy")
 		if err != nil {
 			// fmt.Println("Error executing buy order:", err)
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
@@ -816,9 +838,9 @@ func (ts *TradingSystem) Trading(md *model.AppData, dataPoint *model.DataPoint, 
 		}
 	}
 	ts.RiskFactor = float64(ts.Index)
-	if targetCrossed && ts.ExitRule(md, dataPoint){
+	if targetCrossed && ts.ExitRule(md, dp){
 		// Execute the sell order using the ExecuteStrategy function.
-		resp, err := ts.ExecuteStrategy(md, "Sell")
+		resp, err := ts.ExecuteStrategy(md, dp, "Sell")
 		if err != nil {
 			// fmt.Println("Error:", err, " at:", ts.CurrentPrice, ", TargetStopLoss:", md.TargetStopLoss)
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
@@ -833,21 +855,30 @@ func (ts *TradingSystem) Trading(md *model.AppData, dataPoint *model.DataPoint, 
 		passed = true
 	}
 	if !passed {
-		ts.EntryRule(md, dataPoint)                        //To takecare of EMA Calculation and Grphing
+		ts.EntryRule(md, dp)                        //To takecare of EMA Calculation and Grphing
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
+	dp.TotalProfitLoss = md.TotalProfitLoss
+	dp.TotalProfitLoss = md.TotalProfitLoss
+	dp.QuoteBalance  = ts.QuoteBalance
+	dp.BaseBalance   = ts.BaseBalance
+	dp.CurrentPrice   = ts.CurrentPrice
+	dp.TargetProfit  = md.TargetProfit
+	dp.TargetStopLoss  = md.TargetStopLoss
+	dp.LowestPrice  = ts.LowestPrice
+	dp.HighestPrice  = ts.HighestPrice
 }
 
 // ExecuteStrategy executes the trade based on the provided trade action and current price.
 // The tradeAction parameter should be either "Buy" or "Sell".
-func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) (string, error) {
+func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, dp *model.DataPoint, tradeAction string) (string, error) {
 	var (
 		orderResp model.Response
 		err       error
 	)
 	switch tradeAction {
 	case "Buy":
-		ts.RiskManagement(md)
+		ts.RiskManagement(md, dp)
 		// adjustedPrice := math.Floor(price/lotSizeStep) * lotSizeStep
 		quantity := math.Floor(ts.PositionSize/ts.MiniQty) * ts.MiniQty
 		// Calculate the total cost of the trade
@@ -931,7 +962,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 			<-ts.UpgdChan
 		}
 		
-		ts.RiskManagement(md)
+		ts.RiskManagement(md, dp)
 		// adjustedPrice := math.Floor(price/lotSizeStep) * lotSizeStep
 		quantity = math.Floor(ts.PositionSize/ts.MiniQty) * ts.MiniQty
 		// Calculate the total cost of the trade
@@ -972,6 +1003,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", ts.CurrentPrice, md.TargetProfit)
 		suplemented := false
 		asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
+		dp.Asset = asset
 		qpcent := (ts.QuoteBalance / asset) * 100.0
 		quantity := ts.EntryQuantity[ts.Index]
 		//Deciding whether to execute a supplemental sell if quote percentage falls below the 20% threshold.
@@ -1070,6 +1102,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, tradeAction string) 
 		}
 		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
 		md.TotalProfitLoss += localProfitLoss
+		dp.TotalProfitLoss = md.TotalProfitLoss
 		// ts.Log.Printf("Profit After Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
 		if localProfitLoss >= 0 {
 			ts.ClosedWinTrades += 2
@@ -1199,9 +1232,10 @@ func (ts *TradingSystem) AggregateEntries() string {
 // RiskManagement applies risk management rules to limit potential losses.
 // It calculates the stop-loss price based on the fixed percentage of risk per trade and the position size.
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
-func (ts *TradingSystem) RiskManagement(md *model.AppData) {
+func (ts *TradingSystem) RiskManagement(md *model.AppData, dp *model.DataPoint) {
 	// Calculate position size based on the fixed percentage of risk per trade.
 	asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
+	dp.Asset = asset
 	num := (ts.MinNotional + 1.0) / ts.StepSize
 	ts.RiskCost = math.Floor(num) * ts.StepSize
 	if ts.InitialCapital < asset {
