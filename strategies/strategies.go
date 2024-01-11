@@ -806,6 +806,7 @@ func (ts *TradingSystem) Trading(md *model.AppData, dp *model.DataPoint, loadExc
 	passed := false
 	v := 0.0
 	targetCrossed := false
+	dp.Asset = (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
 	if len(ts.NextInvestBuYPrice) > 0 {
 		if ts.CurrentPrice <= ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] {
 			targetCrossed = true
@@ -1002,24 +1003,24 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, dp *model.DataPoint,
 	case "Sell":
 		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", ts.CurrentPrice, md.TargetProfit)
 		suplemented := false
-		asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
-		dp.Asset = asset
-		qpcent := (ts.QuoteBalance / asset) * 100.0
+		floatHd := 0.0
+		dp.Asset = (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
+		qpcent := (ts.QuoteBalance / dp.Asset) * 100.0
 		quantity := ts.EntryQuantity[ts.Index]
 		//Deciding whether to execute a supplemental sell if quote percentage falls below the 20% threshold.
 		if (len(ts.EntryPrice) >= 2) && (qpcent < 30.0) {
 			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
 			v := 0.0
-			ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f Index [%d] Pre-LocalProfitLoss %.8f", asset, qpcent, ts.Index, localProfitLoss)
+			ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f Index [%d] Pre-LocalProfitLoss %.8f", dp.Asset, qpcent, ts.Index, localProfitLoss)
 			for ts.SupIndex, v = range ts.EntryQuantity {
 				if ts.SupIndex != ts.Index {
 					ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss*Qfactor(qpcent))
 					ts.Log.Printf("SupIndex[%d] Calculated SupQuantity: %.8f Position Quantity: %.8f", ts.SupIndex, ts.SupQuantity, v)
 					if v > ts.SupQuantity {
 						qpcent = quantity + ts.SupQuantity
-						asset = math.Floor(qpcent/ts.MiniQty) * ts.MiniQty
-						if ts.SupQuantity > (qpcent - asset) {
-							ts.SupQuantity -= qpcent - asset
+						floatHd = math.Floor(qpcent/ts.MiniQty) * ts.MiniQty
+						if ts.SupQuantity > (qpcent - floatHd) {
+							ts.SupQuantity -= qpcent - floatHd
 							quantity += ts.SupQuantity
 							suplemented = true
 							ts.Log.Printf("Finally Suplemented SupIndex[%d] SupQuantity: %.8f ", ts.SupIndex, ts.SupQuantity)
@@ -1234,12 +1235,11 @@ func (ts *TradingSystem) AggregateEntries() string {
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
 func (ts *TradingSystem) RiskManagement(md *model.AppData, dp *model.DataPoint) {
 	// Calculate position size based on the fixed percentage of risk per trade.
-	asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
-	dp.Asset = asset
+	dp.Asset = (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
 	num := (ts.MinNotional + 1.0) / ts.StepSize
 	ts.RiskCost = math.Floor(num) * ts.StepSize
-	if ts.InitialCapital < asset {
-		diff := asset - ts.InitialCapital
+	if ts.InitialCapital < dp.Asset {
+		diff := dp.Asset - ts.InitialCapital
 		num += diff
 	}
 	ts.RiskCost = math.Floor(num) * ts.StepSize
