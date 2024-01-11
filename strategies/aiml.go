@@ -3,10 +3,10 @@
 package strategies
 
 import (
-	"encoding/csv"
+	// "encoding/csv"
 	"fmt"
-	"log"
-	"os"
+	// "log"
+	// "os"
 	// "strconv"
     // "github.com/sjwhitworth/golearn/base"
     // "github.com/sjwhitworth/golearn/ensemble"
@@ -17,32 +17,37 @@ import (
 
 func (ts *TradingSystem)DataPointtoCSV(data *model.DataPoint)error { //fundamentalAnalysis()
     err := ts.CSVWriter.Write([]string{
-		data.Date.Format("02 15:04:05"),
-        fmt.Sprintf("%f", data.L95EMA),
-        fmt.Sprintf("%f", data.S15EMA),
-        fmt.Sprintf("%f", data.L8EMA ),
-        fmt.Sprintf("%f", data.S4EMA ),
-        fmt.Sprintf("%f", data.DiffL95S15),
-        fmt.Sprintf("%f", data.DiffL8S4),
-        fmt.Sprintf("%f", data.RoCL95),
-        fmt.Sprintf("%f", data.RoCS15),
-        fmt.Sprintf("%f", data.MA5DiffL95S15),
-        fmt.Sprintf("%f", data.MA5DiffL8S4 ),
-        fmt.Sprintf("%f", data.StdDevL95),
-        fmt.Sprintf("%f", data.StdDevS15),
-        fmt.Sprintf("%d", data.CrossL95S15),
-        fmt.Sprintf("%f", data.LaggedL95EMA),
-        fmt.Sprintf("%f", data.LaggedS15EMA),
-        fmt.Sprintf("%d", data.Label),
-        fmt.Sprintf("%f", data.TotalProfitLoss),
+        data.Date.Format("02 15:04:05"),
+	    data.CrossUPTime.Format("02 15:04:05"),
+	    fmt.Sprintf("%v", data.CrossL95S15UP),
+	    fmt.Sprintf("%v", data.PriceDownGoingDown),
+	    fmt.Sprintf("%v", data.PriceDownGoingUp),
+	    fmt.Sprintf("%v", data.PriceUpGoingUp),
+	    fmt.Sprintf("%v", data.PriceUpGoingDown),
+	    fmt.Sprintf("%v", data.MarketDownGoingDown),
+	    fmt.Sprintf("%v", data.MarketDownGoingUp),
+	    fmt.Sprintf("%v", data.MarketUpGoingUp),
+	    fmt.Sprintf("%v", data.MarketUpGoingDown),
+	    fmt.Sprintf("%f", data.DiffL95S15),
+	    fmt.Sprintf("%f", data.DiffL8S4),
+	    fmt.Sprintf("%f", data.RoCL95),
+	    fmt.Sprintf("%f", data.RoCS15),
+	    fmt.Sprintf("%f", data.MA5DiffL95S15),
+	    fmt.Sprintf("%f", data.MA5DiffL8S4),
+	    fmt.Sprintf("%f", data.StdDevL95),
+	    fmt.Sprintf("%f", data.StdDevS15),
+	    fmt.Sprintf("%f", data.LaggedL95EMA),
+	    fmt.Sprintf("%f", data.LaggedS15EMA),
+	    fmt.Sprintf("%d", data.Label),
+	    fmt.Sprintf("%f", data.TotalProfitLoss),
 	    fmt.Sprintf("%f", data.Asset),
 	    fmt.Sprintf("%f", data.QuoteBalance),
 	    fmt.Sprintf("%f", data.BaseBalance),
-	    fmt.Sprintf("%f", data.CurrentPrice),        
-        fmt.Sprintf("%f", data.TargetProfit),
-        fmt.Sprintf("%f", data.TargetStopLoss),
-        fmt.Sprintf("%f", data.LowestPrice),
-        fmt.Sprintf("%f", data.HighestPrice),
+	    fmt.Sprintf("%f", data.CurrentPrice),
+	    fmt.Sprintf("%f", data.TargetProfit),
+	    fmt.Sprintf("%f", data.TargetStopLoss),
+	    fmt.Sprintf("%f", data.LowestPrice),
+	    fmt.Sprintf("%f", data.HighestPrice),
 	})
 	if err != nil {
         ts.Log.Printf("Writing Data to CSV ERROR %v", err)
@@ -53,63 +58,64 @@ func (ts *TradingSystem)DataPointtoCSV(data *model.DataPoint)error { //fundament
 	return nil
 }
 
-func DataPointListtoCSV(data []*model.DataPoint) { //fundamentalAnalysis()
-    // Save data to CSV file
-    file, err := os.Create("./webclient/assets/data.csv")
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer file.Close()
+// func DataPointListtoCSV(data []*model.DataPoint) { //fundamentalAnalysis()
+//     // Save data to CSV file
+//     file, err := os.Create("./webclient/assets/data.csv")
+//     if err != nil {
+//         log.Fatal(err)
+//     }
+//     defer file.Close()
 
-    writer := csv.NewWriter(file)
-    defer writer.Flush()
+//     writer := csv.NewWriter(file)
+//     defer writer.Flush()
 
-    // Write headers to the CSV file
+//     // Write headers to the CSV file
 
-    headers := []string{
-        "Date","L95EMA","S15EMA","L8EMA","S4EMA","DiffL95S15","DiffL8S4","RoCL95","RoCS15","MA5DiffL95S15",
-        "MA5DiffL8S4","StdDevL95","StdDevS15","CrossL95S15","LaggedL95EMA","LaggedS15EMA","Label","TotalProfitLoss",
-        "Asset","QuoteBalance","BaseBalance","CurrentPrice","TargetProfit","TargetStopLoss","LowestPrice","HighestPrice",
-    }
-    err = writer.Write(headers)
-    if err != nil {
-        log.Fatal(err)
-    }
+// 	headers := []string{
+//     	"Date","CrossUPTime time.Time","CrossL95S15UP","PriceDownGoingDown","PriceDownGoingUp",
+// 		"PriceUpGoingUp","PriceUpGoingDown","MarketDownGoingDown","MarketDownGoingUp","MarketUpGoingUp",
+// 		"MarketUpGoingDown","DiffL95S15","DiffL8S4","RoCL95","RoCS15","MA5DiffL95S15","MA5DiffL8S4",
+// 		"StdDevL95","StdDevS15","LaggedL95EMA","LaggedS15EMA","Label","TotalProfitLoss","Asset",
+// 		"QuoteBalance","BaseBalance","CurrentPrice","TargetProfit","TargetStopLoss","LowestPrice","HighestPrice",  float64
+// 	}
+//     err = writer.Write(headers)
+//     if err != nil {
+//         log.Fatal(err)
+//     }
 
-    for _, d := range data {
-        err := writer.Write([]string{
-            d.Date.Format("02 15:04:05"),
-            fmt.Sprintf("%f", d.L95EMA),
-            fmt.Sprintf("%f", d.S15EMA),
-            fmt.Sprintf("%f", d.L8EMA ),
-            fmt.Sprintf("%f", d.S4EMA ),
-            fmt.Sprintf("%f", d.DiffL95S15),
-            fmt.Sprintf("%f", d.DiffL8S4),
-            fmt.Sprintf("%f", d.RoCL95),
-            fmt.Sprintf("%f", d.RoCS15),
-            fmt.Sprintf("%f", d.MA5DiffL95S15),
-            fmt.Sprintf("%f", d.MA5DiffL8S4 ),
-            fmt.Sprintf("%f", d.StdDevL95),
-            fmt.Sprintf("%f", d.StdDevS15),
-            fmt.Sprintf("%d", d.CrossL95S15),
-            fmt.Sprintf("%f", d.LaggedL95EMA),
-            fmt.Sprintf("%f", d.LaggedS15EMA),
-            fmt.Sprintf("%d", d.Label),
-            fmt.Sprintf("%f", d.TotalProfitLoss),
-            fmt.Sprintf("%f", d.Asset),
-            fmt.Sprintf("%f", d.QuoteBalance),
-            fmt.Sprintf("%f", d.BaseBalance),
-            fmt.Sprintf("%f", d.CurrentPrice),
-            fmt.Sprintf("%f", d.TargetProfit),
-            fmt.Sprintf("%f", d.TargetStopLoss),
-            fmt.Sprintf("%f", d.LowestPrice),
-            fmt.Sprintf("%f", d.HighestPrice),
-        })
-        if err != nil {
-            log.Fatal(err)
-        }
-    }
-}
+//     for _, d := range data {
+//         err := writer.Write([]string{
+//             d.Date.Format("02 15:04:05"),
+//             fmt.Sprintf("%d", d.CrossL95S15UP),
+//             fmt.Sprintf("%d", d.CrossL95S15DN),
+//             fmt.Sprintf("%d", d.CrossL8S4UP),
+//             fmt.Sprintf("%d", d.CrossL8S4DN),
+//             fmt.Sprintf("%f", d.DiffL95S15),
+//             fmt.Sprintf("%f", d.DiffL8S4),
+//             fmt.Sprintf("%f", d.RoCL95),
+//             fmt.Sprintf("%f", d.RoCS15),
+//             fmt.Sprintf("%f", d.MA5DiffL95S15),
+//             fmt.Sprintf("%f", d.MA5DiffL8S4 ),
+//             fmt.Sprintf("%f", d.StdDevL95),
+//             fmt.Sprintf("%f", d.StdDevS15),
+//             fmt.Sprintf("%f", d.LaggedL95EMA),
+//             fmt.Sprintf("%f", d.LaggedS15EMA),
+//             fmt.Sprintf("%d", d.Label),
+//             fmt.Sprintf("%f", d.TotalProfitLoss),
+//             fmt.Sprintf("%f", d.Asset),
+//             fmt.Sprintf("%f", d.QuoteBalance),
+//             fmt.Sprintf("%f", d.BaseBalance),
+//             fmt.Sprintf("%f", d.CurrentPrice),
+//             fmt.Sprintf("%f", d.TargetProfit),
+//             fmt.Sprintf("%f", d.TargetStopLoss),
+//             fmt.Sprintf("%f", d.LowestPrice),
+//             fmt.Sprintf("%f", d.HighestPrice),
+//         })
+//         if err != nil {
+//             log.Fatal(err)
+//         }
+//     }
+// }
 
 // func CSVtoDataPoint(filename string) ([]*model.DataPoint, error) {
 //     var data []*model.DataPoint
