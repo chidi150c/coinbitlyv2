@@ -56,7 +56,7 @@ func main() {
 		"PriceUpGoingUp","PriceUpGoingDown","MarketDownGoingDown","MarketDownGoingUp","MarketUpGoingUp",
 		"MarketUpGoingDown","DiffL95S15","DiffL8S4","RoCL95","RoCS15","MA5DiffL95S15","MA5DiffL8S4",
 		"StdDevL95","StdDevS15","LaggedL95EMA","LaggedS15EMA","Label","TotalProfitLoss","Asset",
-		"QuoteBalance","BaseBalance","CurrentPrice","TargetProfit","TargetStopLoss","LowestPrice","HighestPrice",  float64
+		"QuoteBalance","BaseBalance","CurrentPrice","TargetProfit","TargetStopLoss","LowestPrice","HighestPrice", 
 	}
 	err = ts.CSVWriter.Write(headers)
 	if err != nil {
