@@ -35,6 +35,16 @@ type DataPoint struct {
 	TargetStopLoss  float64
 	LowestPrice     float64
 	HighestPrice    float64
+	MarketUpGoneUp bool
+	MarketDownGoneDown bool
+	L95EMA6 float64
+	L95EMA3 float64
+	L95EMA1 float64
+	L95EMA0 float64
+	S15EMA6 float64
+	S15EMA3 float64
+	S15EMA1 float64
+	S15EMA0 float64
 }
 
 	// CrossL95S15DN     bool
