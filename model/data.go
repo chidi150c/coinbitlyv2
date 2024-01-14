@@ -1,6 +1,25 @@
 package model
 
 import "time"
+// DataPointRequest represents the JSON structure for the POST request
+type DataPointRequest struct {
+    DiffL95S15      float64 `json:"DiffL95S15"`
+    DiffL8S4        float64 `json:"DiffL8S4"`
+    RoCL95          float64 `json:"RoCL95"`
+    RoCS15          float64 `json:"RoCS15"`
+    MA5DiffL95S15   float64 `json:"MA5DiffL95S15"`
+    MA5DiffL8S4     float64 `json:"MA5DiffL8S4"`
+    StdDevL95       float64 `json:"StdDevL95"`
+    StdDevS15       float64 `json:"StdDevS15"`
+    LaggedL95EMA    float64 `json:"LaggedL95EMA"`
+    LaggedS15EMA    float64 `json:"LaggedS15EMA"`
+    CurrentPrice    float64 `json:"CurrentPrice"`
+}
+
+// PredictionResponse represents the structure of the JSON response from the Flask app
+type PredictionResponse struct {
+    Prediction int `json:"prediction"`
+}
 
 // DataPoint represents a single data point in the dataset
 type DataPoint struct {

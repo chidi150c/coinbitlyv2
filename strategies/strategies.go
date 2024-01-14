@@ -1,11 +1,14 @@
 package strategies
 
 import (
+	"bytes"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -830,6 +833,8 @@ func (ts *TradingSystem) Trading(md *model.AppData, dp *model.DataPoint, loadExc
 		}
 		// Close the trade if exit conditions are met.
 		passed = true
+	}else if targetCrossed{
+		passed = true
 	}
 	targetCrossed = false
 	for ts.Index, v = range ts.NextProfitSeLLPrice {
@@ -839,7 +844,7 @@ func (ts *TradingSystem) Trading(md *model.AppData, dp *model.DataPoint, loadExc
 		}
 	}
 	ts.RiskFactor = float64(ts.Index)
-	if targetCrossed && ts.ExitRule(md, dp){
+	if targetCrossed && ts.ExitRule(md, dp, "Exit"){
 		// Execute the sell order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(md, dp, "Sell")
 		if err != nil {
@@ -1297,7 +1302,66 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData, dp *model.DataPoint) 
 		md.TargetStopLoss = mainValue * 0.007
 	}
 }
+func (ts *TradingSystem)AIAnalysis(dp *model.DataPoint, Action string)(buySignal, sellSignal bool){
+	    // Create an instance of DataPointRequest and populate it with data
+		if strings.Contains(dbs.loadExchFrom, "TestnetWithOutAI") {
+			return true, true
+		}
+		dataPoint := model.DataPointRequest{
+			DiffL95S15:      dp.DiffL95S15,
+			DiffL8S4:        dp.DiffL8S4,
+			RoCL95:          dp.RoCL95,
+			RoCS15:          dp.RoCS15,
+			MA5DiffL95S15:   dp.MA5DiffL95S15,
+			MA5DiffL8S4:     dp.MA5DiffL8S4,
+			StdDevL95:       dp.StdDevL95,
+			StdDevS15:       dp.StdDevS15,
+			LaggedL95EMA:    dp.LaggedL95EMA,
+			LaggedS15EMA:    dp.LaggedS15EMA,
+			CurrentPrice:    dp.CurrentPrice,
+		}
 
+		
+    // Convert dataPoint to JSON
+    jsonData, err := json.Marshal(dataPoint)
+    if err != nil {
+        log.Fatalf("Error occurred during marshaling. Error: %s", err.Error())
+    }
+
+    // Send POST request
+	var response *http.Response
+	if strings.Contains(ts.RDBServices.loadExchFrom, "Testnet")
+    	response, err = http.Post("http://localhost:5000/predict", "application/json", bytes.NewBuffer(jsonData))
+	}else{
+		response, err = http.Post("http://flask-app:5000/predict", "application/json", bytes.NewBuffer(jsonData))
+	}
+	if err != nil {
+        log.Fatalf("Error occurred while sending POST request to AI Model!!!. Error: %s", err.Error())
+    }
+    defer response.Body.Close()
+    // Read the response body
+    responseData, err := ioutil.ReadAll(response.Body)
+    if err != nil {
+        log.Fatalf("Error occurred while reading the response body. Error: %s", err.Error())
+    }
+
+    // Unmarshal the response data into PredictionResponse struct
+    var prediction model.PredictionResponse
+    err = json.Unmarshal(responseData, &prediction)
+    if err != nil {
+        log.Fatalf("Error occurred during unmarshaling. Error: %s", err.Error())
+    }
+
+    // Use the prediction as needed
+    log.Printf("Received prediction: %d ts.DataPoint %d ts.CurrentPrice %.8f, Action %s", prediction.Prediction, ts.DataPoint, ts.CurrentPrice, Action)
+
+	if prediction.Prediction == -1{
+		return false, true
+	}else if  prediction.Prediction == 1{
+		return true, false
+	}
+	return false, false
+}
 // TechnicalAnalysis(): This function performs technical analysis using the
 // calculated moving averages (short and long EMA), RSI, MACD line, and Bollinger
 // Bands. It determines the buy and sell signals based on various strategy rules.
@@ -1536,16 +1600,16 @@ func (ts *TradingSystem) FundamentalAnalysis() (buySignal, sellSignal bool) {
 func (ts *TradingSystem) EntryRule(md *model.AppData, dataPoint *model.DataPoint, Action string) bool {
 	// Combine the results of technical and fundamental analysis to decide entry conditions.
 	technicalBuy, _ := ts.TechnicalAnalysis(md, dataPoint, Action)
-	// fundamentalBuy, fundamentalSell := ts.FundamentalAnalysis()
-	return technicalBuy
+	AIBuy, _ := ts.AIAnalysis(dataPoint, Action)
+	return technicalBuy && AIBuy
 }
 
 // ExitRule defines the exit conditions for a trade.
-func (ts *TradingSystem) ExitRule(md *model.AppData, dataPoint *model.DataPoint) bool {
+func (ts *TradingSystem) ExitRule(md *model.AppData, dataPoint *model.DataPoint, Action string) bool {
 	// Combine the results of technical and fundamental analysis to decide exit conditions.
-	_, technicalSell := ts.TechnicalAnalysis(md, dataPoint, "Exit")
-	// fundamentalBuy, fundamentalSell := ts.FundamentalAnalysis()
-	return technicalSell
+	_, technicalSell := ts.TechnicalAnalysis(md, dataPoint, Action)
+	_, AISell := ts.AIAnalysis(dataPoint, Action)
+	return technicalSell && AISell
 }
 
 func (ts *TradingSystem) Reporting(md *model.AppData, from string) error {
