@@ -1336,21 +1336,24 @@ func (ts *TradingSystem)AIAnalysis(dp *model.DataPoint, Action string)(buySignal
 		response, err = http.Post("http://flask-app:5000/predict", "application/json", bytes.NewBuffer(jsonData))
 	}
 	if err != nil {
-        log.Fatalf("Error occurred while sending POST request to AI Model!!!. Error: %s", err.Error())
+        ts.Log.Printf("Error occurred while sending POST request to AI Model!!!. Error: %s", err.Error())
+		return true, true
     }
     defer response.Body.Close()
     // Read the response body
     responseData, err := ioutil.ReadAll(response.Body)
     if err != nil {
-        log.Fatalf("Error occurred while reading the response body. Error: %s", err.Error())
+        ts.Log.Printf("Error occurred while reading the response body of AI Model!!!. Error: %s", err.Error())
+		return true, true
     }
 
     // Unmarshal the response data into PredictionResponse struct
     var prediction model.PredictionResponse
     err = json.Unmarshal(responseData, &prediction)
     if err != nil {
-        log.Fatalf("Error occurred during unmarshaling. Error: %s", err.Error())
-    }
+        ts.Log.Printf("Error occurred during unmarshaling of AI Model!!!. Error: %s", err.Error())
+    	return true, true
+	}
 
     // Use the prediction as needed
     ts.Log.Printf("Received prediction: %d ts.DataPoint %d ts.CurrentPrice %.8f, Action %s", prediction.Prediction, ts.DataPoint, ts.CurrentPrice, Action)
