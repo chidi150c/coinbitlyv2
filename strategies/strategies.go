@@ -792,7 +792,8 @@ func (ts *TradingSystem) Trading(md *model.AppData, dp *model.DataPoint, loadExc
 		// Close the trade if exit conditions are met.
 		passed = true
 	}else if targetCrossed{
-		passed = true
+		passed = true                       //To takecare of EMA Calculation and Grphing
+		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
 	targetCrossed = false
 	for ts.Index, v = range ts.NextProfitSeLLPrice {
