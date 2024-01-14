@@ -1353,7 +1353,7 @@ func (ts *TradingSystem)AIAnalysis(dp *model.DataPoint, Action string)(buySignal
     }
 
     // Use the prediction as needed
-    log.Printf("Received prediction: %d ts.DataPoint %d ts.CurrentPrice %.8f, Action %s", prediction.Prediction, ts.DataPoint, ts.CurrentPrice, Action)
+    ts.Log.Printf("Received prediction: %d ts.DataPoint %d ts.CurrentPrice %.8f, Action %s", prediction.Prediction, ts.DataPoint, ts.CurrentPrice, Action)
 
 	if prediction.Prediction == -1{
 		return false, true
