@@ -50,17 +50,17 @@ func main() {
 	
     ts.CSVWriter = csv.NewWriter(appfile)
 	// Write headers to the CSV file
-	// headers := []string{
-    // 	"Date","CrossUPTime time.Time","CrossL95S15UP","PriceDownGoingDown","PriceDownGoingUp",
-	// 	"PriceUpGoingUp","PriceUpGoingDown","MarketDownGoingDown","MarketDownGoingUp","MarketUpGoingUp",
-	// 	"MarketUpGoingDown","DiffL95S15","DiffL8S4","RoCL95","RoCS15","MA5DiffL95S15","MA5DiffL8S4",
-	// 	"StdDevL95","StdDevS15","LaggedL95EMA","LaggedS15EMA","Label","TotalProfitLoss","Asset",
-	// 	"QuoteBalance","BaseBalance","CurrentPrice","TargetProfit","TargetStopLoss","LowestPrice","HighestPrice", 
-	// }
-	// err = ts.CSVWriter.Write(headers)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	headers := []string{
+    	"Date","CrossUPTime time.Time","CrossL95S15UP","PriceDownGoingDown","PriceDownGoingUp",
+		"PriceUpGoingUp","PriceUpGoingDown","MarketDownGoingDown","MarketDownGoingUp","MarketUpGoingUp",
+		"MarketUpGoingDown","DiffL95S15","DiffL8S4","RoCL95","RoCS15","MA5DiffL95S15","MA5DiffL8S4",
+		"StdDevL95","StdDevS15","LaggedL95EMA","LaggedS15EMA","Label","TotalProfitLoss","Asset",
+		"QuoteBalance","BaseBalance","CurrentPrice","TargetProfit","TargetStopLoss","LowestPrice","HighestPrice", 
+	}
+	err = ts.CSVWriter.Write(headers)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	ts.Log.Println("started.................................")
 
