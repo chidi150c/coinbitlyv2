@@ -135,6 +135,10 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom string
 			ts.EnableStoploss = true
 			ts.BaseCurrency = BaseCurrency
 		} else {
+			ts.Signals = []string{}
+			for _, _ = range ts.ClosingPrices{
+				ts.Signals = append(ts.Signals, "Hold")
+			}
 			loadDataFrom = "DataBase"
 			ts.InitialCapital = 54.038193 + 26.47 + 54.2 + 86.5 + 100.0 + 16.6 + 58.0 + 56.72 + 18.0
 		}
