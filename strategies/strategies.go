@@ -1304,7 +1304,7 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData, dp *model.DataPoint) 
 }
 func (ts *TradingSystem)AIAnalysis(dp *model.DataPoint, Action string)(buySignal, sellSignal bool){
 	    // Create an instance of DataPointRequest and populate it with data
-		if strings.Contains(dbs.loadExchFrom, "TestnetWithOutAI") {
+		if strings.Contains(ts.RDBServices.loadExchFrom, "TestnetWithOutAI") {
 			return true, true
 		}
 		dataPoint := model.DataPointRequest{
@@ -1330,7 +1330,7 @@ func (ts *TradingSystem)AIAnalysis(dp *model.DataPoint, Action string)(buySignal
 
     // Send POST request
 	var response *http.Response
-	if strings.Contains(ts.RDBServices.loadExchFrom, "Testnet")
+	if strings.Contains(ts.RDBServices.loadExchFrom, "Testnet"){
     	response, err = http.Post("http://localhost:5000/predict", "application/json", bytes.NewBuffer(jsonData))
 	}else{
 		response, err = http.Post("http://flask-app:5000/predict", "application/json", bytes.NewBuffer(jsonData))
