@@ -1,27 +1,11 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"time"
 )
 
 type Api struct {
-}
-type DBConfig struct {
-	Name                  string
-	BaseURL               string
-	ApiKey                string
-	SecretKey             string
-	DBOrgID               string
-	LiveDBBucket          string
-	LiveTimeRange         string
-	LiveMeasurement       string
-	LiveTag               string
-	HistoricalDBBucket    string
-	HistoricalTimeRange   string
-	HistoricalMeasurement string
-	HistoricalTag         string
 }
 type ExchConfig struct {
 	Name            string
@@ -43,39 +27,6 @@ const (
 	timeRange int = -1
 )
 
-func NewDataBaseConfigs() map[string]*DBConfig {
-	DBConfigs := map[string]*DBConfig{
-		"InfluxDB": {
-			Name:                  "InfluxDB",
-			BaseURL:               "http://influxdb-container:8086",
-			DBOrgID:               "Resoledge",
-			SecretKey:             "8tf6oI1nYCHpeosYrw9qcB_31tL6w4k1l3EFq2olfCylSyTJBL3y6Db0bBgQIul9CBKZExtvLYZJe_XYDiNI7A==",
-			HistoricalMeasurement: "historical_data",
-			HistoricalTag:         "candle",
-			HistoricalTimeRange:   fmt.Sprintf("%dd", timeRange),
-			HistoricalDBBucket:    "AIMLDataSet",
-			LiveMeasurement:       "Live_data",
-			LiveTag:               "ticker",
-			LiveTimeRange:         fmt.Sprintf("%dd", timeRange),
-			LiveDBBucket:          "AIMLLiveData",
-		},
-		"InfluxDBLocal": {
-			Name:                  "InfluxDB",
-			BaseURL:               "http://localhost:8086",
-			DBOrgID:               "Resoledge",
-			SecretKey:             "aXDeT9-0EX6K81D_94L-6q5G-w2eHS_4FJTIbsanUNqHlziMrFTOD3JULdCkCWgCTtVPvIuBhxUB0asbt8_AYw==",
-			HistoricalMeasurement: "historical_data",
-			HistoricalTag:         "candle",
-			HistoricalTimeRange:   fmt.Sprintf("%dd", timeRange),
-			HistoricalDBBucket:    "AIMLDataSet",
-			LiveMeasurement:       "Live_data",
-			LiveTag:               "ticker",
-			LiveTimeRange:         fmt.Sprintf("%dd", timeRange),
-			LiveDBBucket:          "AIMLLiveData",
-		},
-	}
-	return DBConfigs
-}
 func NewExchangeConfigs() map[string]*ExchConfig {
 	ExchConfigs := map[string]*ExchConfig{
 		"Binance": {

@@ -59,6 +59,3 @@ type AppData struct {
 	RiskPositionPercentage float64 `json:"risk_position_percentage"`
 	TotalProfitLoss        float64 `json:"total_profit_loss"`
 }
-type BacTServices interface {
-	WriteToInfluxDB(backTData *AppData) error
-}

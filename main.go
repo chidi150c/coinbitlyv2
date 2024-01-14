@@ -19,14 +19,12 @@ func main() {
  
 	//You specify the source of Exch API (e.g., "HitBTC", "Binance", "BinanceTestnet" "BinanceTestnetWithDB" "BinanceTestnetWithDBRemote" "TestnetWithOutAI")
 	loadExchFrom := "Binance" 
-	//You specify the source of DataBase (e.g., "InfluxDB")
-	loadDBFrom :=  "InfluxDB"
 	//You specify whether you're performing live trading or not 
 	liveTrading := true
  
 	config := config.NewExchangeConfigs()[loadExchFrom]
     //You're initializing your trading system using the strategies.NewTradingSystem function. 
-	ts, err := strategies.NewTradingSystem(config.BaseCurrency, liveTrading, loadExchFrom, loadDBFrom)
+	ts, err := strategies.NewTradingSystem(config.BaseCurrency, liveTrading, loadExchFrom)
 	if err != nil {
 		log.Fatal("Error initializing trading system:", err)
 		return

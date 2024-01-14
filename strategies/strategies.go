@@ -21,7 +21,6 @@ import (
 	"coinbitly.com/binanceapi"
 	"coinbitly.com/config"
 	"coinbitly.com/hitbtcapi"
-	"coinbitly.com/influxdb"
 	"coinbitly.com/model"
 	"github.com/apourchet/investment/lib/ema"
 	"github.com/pkg/errors"
@@ -100,7 +99,7 @@ type TradingSystem struct {
 // historical data from the exchange using the GetCandlesFromExch() function.
 // It sets various strategy parameters like short and long EMA periods, RSI period,
 // MACD signal period, Bollinger Bands period, and more.
-func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadDBFrom string) (*TradingSystem, error) {
+func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom string) (*TradingSystem, error) {
 	// Initialize the trading system.
 	var (
 		ts          *TradingSystem
@@ -119,7 +118,6 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.CommissionPercentage = 0.00075
 			ts.RiskProfitLossPercentage = 0.001
 			ts.EnableStoploss = true
-			ts.MaxDataSize = 500
 			ts.BaseCurrency = BaseCurrency
 			ts.QuoteBalance = 100.0
 		} else {
@@ -135,7 +133,6 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 			ts.CommissionPercentage = 0.00075
 			ts.RiskProfitLossPercentage = 0.001
 			ts.EnableStoploss = true
-			ts.MaxDataSize = 500
 			ts.BaseCurrency = BaseCurrency
 		} else {
 			loadDataFrom = "DataBase"
@@ -147,12 +144,12 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	}
 	fmt.Println("TS = ", ts)
 	if liveTrading {
-		err = ts.LiveUpdate(loadExchFrom, loadDBFrom, loadDataFrom)
+		err = ts.LiveUpdate(loadExchFrom, loadDataFrom)
 		if err != nil {
 			return &TradingSystem{}, err
 		}
 	} else {
-		err = ts.UpdateHistoricalData(loadExchFrom, loadDBFrom)
+		err = ts.UpdateHistoricalData(loadExchFrom)
 		if err != nil {
 			return &TradingSystem{}, err
 		}
@@ -163,6 +160,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom, loadD
 	} else {
 		ts.Zoom = 499
 	}
+	ts.MaxDataSize = 500
 	ts.ShutDownCh = make(chan string)
 	ts.EpochTime = time.Second * 60
 	ts.StartTime = time.Now()
@@ -390,12 +388,11 @@ func (ts *TradingSystem) NewDataPoint(loadExchFrom string) *model.DataPoint {
 }
 
 // UpdateClosingPrices fetches historical data from the exchange and updates the ClosingPrices field in TradingSystem.
-func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom, loadDBFrom string) error {
+func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom string) error {
 	var (
 		err             error
 		exch            model.APIServices
 		exchConfigParam *config.ExchConfig
-		dBConfigParam   *config.DBConfig
 		ok              bool
 		DB              model.DBServices
 	)
@@ -403,21 +400,6 @@ func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom, loadDBFrom string) e
 	if exchConfigParam, ok = config.NewExchangeConfigs()[loadExchFrom]; !ok {
 		fmt.Println("Error Internal: Exch name not", loadExchFrom)
 		return errors.New("Exch name not " + loadExchFrom)
-	}
-	// Check if REQUIRED "InfluxDB" exists in the map
-	if dBConfigParam, ok = config.NewDataBaseConfigs()[loadDBFrom]; !ok {
-		fmt.Println("Error Internal: DB Manager Required")
-		return errors.New("Required DB services not contracted")
-	}
-	switch loadDBFrom {
-	case "InfluxDB":
-		//Initiallize InfluDB config Parameters and instanciate its struct
-		DB, err = influxdb.NewAPIServices(dBConfigParam)
-		if err != nil {
-			log.Fatalf("Error getting Required services from InfluxDB: %v", err)
-		}
-	default:
-		return errors.Errorf("Error updating historical data from %s and %s: invalid loadExchFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
 	}
 
 	switch loadExchFrom {
@@ -447,7 +429,7 @@ func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom, loadDBFrom string) e
 			log.Fatalf("Error getting new exchange services from Binance: %v", err)
 		}
 	default:
-		return errors.Errorf("Error updating historical data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
+		return errors.Errorf("Error updating historical data from %s invalid loadFrom tags \"%s\" ", loadExchFrom, loadExchFrom)
 	}
 	ts.InitialCapital = exchConfigParam.InitialCapital
 	ts.DBServices = DB
@@ -467,21 +449,16 @@ func (ts *TradingSystem) UpdateHistoricalData(loadExchFrom, loadDBFrom string) e
 	for _, candle := range HistoricalData {
 		ts.ClosingPrices = append(ts.ClosingPrices, candle.Close)
 		ts.Timestamps = append(ts.Timestamps, candle.Timestamp)
-		// err := ts.DBServices.WriteCandleToDB(candle.Close, candle.Timestamp)
-		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
-		// 	log.Fatalf("Error: writing to influxDB: %v", err)
-		// }
 	}
 	return nil
 }
 
 // UpdateClosingPrices fetches historical data from the exchange and updates the ClosingPrices field in TradingSystem.
-func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom string) error {
+func (ts *TradingSystem) LiveUpdate(loadExchFrom, LoadDataFrom string) error {
 	var (
 		err             error
 		exch            model.APIServices
 		exchConfigParam *config.ExchConfig
-		dBConfigParam   *config.DBConfig
 		ok              bool
 		DB              model.DBServices
 	)
@@ -489,21 +466,6 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 	if exchConfigParam, ok = config.NewExchangeConfigs()[loadExchFrom]; !ok {
 		fmt.Println("Error Internal: Exch name not", loadExchFrom)
 		return errors.New("Exch name not " + loadExchFrom)
-	}
-	// Check if REQUIRED "InfluxDB" exists in the map
-	if dBConfigParam, ok = config.NewDataBaseConfigs()["InfluxDB"]; !ok {
-		fmt.Println("Error Internal: Exch Required InfluxDB")
-		return errors.New("Required InfluxDB services not contracted")
-	}
-	switch loadDBFrom {
-	case "InfluxDB":
-		//Initiallize InfluDB config Parameters and instanciate its struct
-		DB, err = influxdb.NewAPIServices(dBConfigParam)
-		if err != nil {
-			log.Fatalf("Error getting Required services from InfluxDB: %v", err)
-		}
-	default:
-		return errors.Errorf("Error updating Live data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
 	}
 
 	switch loadExchFrom {
@@ -533,7 +495,7 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, loadDBFrom, LoadDataFrom strin
 			log.Fatalf("Error getting new exchange services from Binance: %v", err)
 		}
 	default:
-		return errors.Errorf("Error updating Live data from %s and %s invalid loadFrom tags \"%s\" and \"%s\" ", loadExchFrom, loadDBFrom, loadExchFrom, loadDBFrom)
+		return errors.Errorf("Error updating Live data from %s invalid loadFrom tags \"%s\" ", loadExchFrom, loadExchFrom)
 	}
 	ts.Symbol = exchConfigParam.Symbol
 	ts.DBServices = DB
@@ -680,10 +642,6 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		} else {
 			md.RiskPositionPercentage = ts.HighestPrice // Define risk management parameter 5% balance
 		}
-		// err = ts.APIServices.WriteTickerToDB(ts.ClosingPrices[ts.DataPoint], ts.Timestamps[ts.DataPoint])
-		// if (err != nil) && (!strings.Contains(fmt.Sprintf("%v", err), "Skipping write")) {
-		// 	log.Fatalf("Error: writing to influxDB: %v", err)
-		// }
 	}
 }
 func deleteElement(slice []float64, index int) []float64 {
