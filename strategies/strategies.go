@@ -69,19 +69,23 @@ type TradingSystem struct {
 	EpochTime                time.Duration
 	CSVWriter                *csv.Writer
 	RiskProfitLossPercentage float64
-	StoreAppDataChan         chan string
 	BaseCurrency             string //in Binance is called BaseAsset
 	QuoteCurrency            string //in Binance is called QuoteAsset
 	MiniQty                  float64
 	MaxQty                   float64
 	MinNotional              float64
 	StepSize                 float64
+	TargetStopLoss           float64
+	TargetProfit             float64
+	TotalProfitLoss          float64
+	RiskPositionPercentage   float64
+	ShortPeriod              int
+	LongPeriod               int
 	DBServices               model.DBServices
 	RDBServices              *RDBServices
 	DBStoreTicker            *time.Ticker
 	TSDataChan               chan []byte
 	ADataChan                chan []byte
-	MDChan                   chan *model.AppData
 	Zoom                     int
 	StartTime                time.Time
 	LowestPrice              float64
@@ -90,9 +94,9 @@ type TradingSystem struct {
 	TLevelValue              int
 	TLevelAdjust             bool
 	// FreeFall                 bool
-	UpgdChan                 chan bool
-	SupIndex                 int
-	SupQuantity              float64
+	UpgdChan    chan bool
+	SupIndex    int
+	SupQuantity float64
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -117,6 +121,8 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom string
 			ts.RiskFactor = float64(ts.Index)
 			ts.CommissionPercentage = 0.00075
 			ts.RiskProfitLossPercentage = 0.001
+			ts.TargetProfit = mainValue * ts.RiskProfitLossPercentage
+			ts.TargetStopLoss = mainValue * ts.RiskProfitLossPercentage
 			ts.EnableStoploss = true
 			ts.BaseCurrency = BaseCurrency
 			ts.QuoteBalance = 100.0
@@ -132,6 +138,8 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom string
 			ts.RiskFactor = float64(ts.Index)
 			ts.CommissionPercentage = 0.00075
 			ts.RiskProfitLossPercentage = 0.001
+			ts.TargetProfit = mainValue * ts.RiskProfitLossPercentage
+			ts.TargetStopLoss = mainValue * ts.RiskProfitLossPercentage
 			ts.EnableStoploss = true
 			ts.BaseCurrency = BaseCurrency
 		} else {
@@ -165,12 +173,10 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom string
 	ts.EpochTime = time.Second * 60
 	ts.StartTime = time.Now()
 	ts.LowestPrice = math.MaxFloat64
-	ts.StoreAppDataChan = make(chan string, 1)
 	ts.DBStoreTicker = time.NewTicker(ts.EpochTime)
 	ts.TSDataChan = make(chan []byte)
 	ts.ADataChan = make(chan []byte)
 	ts.UpgdChan = make(chan bool)
-	ts.MDChan = make(chan *model.AppData)
 	//Sending TS to Frontend UI
 	go func() { //Goroutine to feed the front end React UI
 		log.Printf("Ready to send TS to Frontend UI")
@@ -217,13 +223,13 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom string
 				trade.NextProfitSeLLPrice = ts.NextProfitSeLLPrice
 			}
 
-			// Serialize the DBAppData object to JSON
-			appDataJSON, err := json.Marshal(trade)
+			// Serialize the TradeSys object to JSON
+			TradeSysJSON, err := json.Marshal(trade)
 			if err != nil {
 				log.Printf("Error marshaling TradingSystem to JSON: %v", err)
 			} else {
 				select {
-				case ts.TSDataChan <- appDataJSON:
+				case ts.TSDataChan <- TradeSysJSON:
 					// log.Printf("Sent TS to Frontend UI DataPoint: %d", ts.DataPoint)
 				}
 			}
@@ -251,115 +257,12 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom string
 						}
 					}
 					ts.Log.Printf("Creating TradingSystem happening with Id: %d and Stage: %d where %v", ts.ID, len(ts.StopLossRecover), err)
-					ts.StoreAppDataChan <- ""
 					time.Sleep(time.Second * 10)
 				}
 			}
 		}()
 	}
 	return ts, nil
-}
-func (ts *TradingSystem) NewAppData(loadExchFrom string) *model.AppData {
-	// Initialize the App Data
-	// loadDataFrom := ""
-	var (
-		md  *model.AppData
-		err error
-	)
-	if loadExchFrom == "BinanceTestnet" {
-		md, err = &model.AppData{}, fmt.Errorf(("Testnet Error simulation"))
-		if err != nil {
-			fmt.Println("MD = ", md)
-			log.Printf("\n%v: But going ahead to initialize empty AppData struct\n", err)
-			md = &model.AppData{}
-			md.DataPoint = 0
-			md.Strategy = "EMA"
-			md.ShortPeriod = 10 //10 Define moving average short period for the strategy.
-			md.LongPeriod = 30  //30 Define moving average long period for the strategy.
-			md.ShortEMA = 0.0
-			md.LongEMA = 0.0
-			md.TargetProfit = mainValue * ts.RiskProfitLossPercentage
-			md.TargetStopLoss = mainValue * ts.RiskProfitLossPercentage
-			if !ts.InTrade {
-				md.RiskPositionPercentage = ts.LowestPrice // Define risk management parameter 5% balance
-			} else {
-				md.RiskPositionPercentage = ts.HighestPrice // Define risk management parameter 5% balance
-			}
-			md.TotalProfitLoss = 0.0
-		}
-	} else {
-		rDBServices := NewRDBServices(loadExchFrom)
-		md, err = rDBServices.ReadDBAppData(0)
-		if err != nil {
-			fmt.Println("MD = ", md)
-			log.Printf("\n%v: But going ahead to initialize empty AppData struct\n", err)
-			md = &model.AppData{}
-			md.DataPoint = 0
-			md.Strategy = "EMA"
-			md.ShortPeriod = 10 // Define moving average short period for the strategy.
-			md.LongPeriod = 30  // Define moving average long period for the strategy.
-			md.ShortEMA = 0.0
-			md.LongEMA = 0.0
-			md.TargetProfit = mainValue * ts.RiskProfitLossPercentage
-			md.TargetStopLoss = mainValue * ts.RiskProfitLossPercentage
-			if !ts.InTrade {
-				md.RiskPositionPercentage = ts.LowestPrice // Define risk management parameter 5% balance
-			} else {
-				md.RiskPositionPercentage = ts.HighestPrice // Define risk management parameter 5% balance
-			}
-
-			//Image Rebuilding
-			// md.TotalProfitLoss = 14.772279
-		} else {
-			// md.ShortPeriod = 15 //10 Define moving average short period for the strategy.
-			// md.LongPeriod = 95  //30 Define moving average long period for the strategy.
-			// md.TargetProfit = mainValue * 0.001
-			// md.TargetStopLoss = mainValue * 0.001
-			// md.TotalProfitLoss = 16.0
-		}
-	}
-	fmt.Println("MD = ", md)
-	go func() {
-		for {
-			select {
-			case ts.MDChan <- md:
-			}
-		}
-	}()
-	//Sending md to react Frontend UI for usage of TargetStopLoss, TargetProfit, TotalProfitLoss, RiskPositionPercentage 
-	go func() {
-		log.Printf("Ready to send AppDatat to Frontend UI")
-		for { // Serialize the DBAppData object to JSON for the UI frontend
-			appDataJSON, err := json.Marshal(md)
-			if err != nil {
-				log.Printf("Error2 marshaling DBAppData to JSON: %v", err)
-				// panic(fmt.Sprintf("Do not panic just look up the trail path: AppData at this panic = %v", md))
-			} else {
-				select {
-				case ts.ADataChan <- appDataJSON:
-				}
-			}
-			time.Sleep(time.Second * 1)
-		}
-	}()
-	//Updating md to Database
-	go func() {
-		var err error
-		log.Printf("Ready to send AppDatat to Database")
-		for {
-			select {
-			case <-ts.StoreAppDataChan:
-				if err = ts.RDBServices.UpdateDBAppData(md); err != nil {
-					log.Printf("Creating AppData happening now!!!")
-					md.ID, err = ts.RDBServices.CreateDBAppData(md)
-					if err != nil {
-						log.Printf("Error Storing AppData: %v", err)
-					}
-				}
-			}
-		}
-	}()
-	return md
 }
 func (ts *TradingSystem) NewDataPoint(loadExchFrom string) *model.DataPoint {
 	// Initialize the App Data
@@ -555,10 +458,9 @@ func (ts *TradingSystem) TickerQueueAdjustment() {
 func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl, syscall.SIGINT)
-	md := ts.NewAppData(loadExchFrom)
 	dataPoint := ts.NewDataPoint(loadExchFrom)
 	fmt.Println("App started. Press Ctrl+C to exit.")
-	go ts.ShutDown(md, sigchnl)
+	go ts.ShutDown(sigchnl)
 	// Initialize variables for tracking trading performance.
 	var err error
 	log.Println("Live Trading sarting now!!!")
@@ -570,21 +472,20 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			continue
 		}
 		ts.DataPoint++
-		md.DataPoint++
 		ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 		ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
-		ts.Trading(md, dataPoint, loadExchFrom)
+		ts.Trading(dataPoint, loadExchFrom)
 
 		err = ts.DataPointtoCSV(dataPoint)
 		if err != nil {
 			fmt.Printf("Error creating Writing to CSV File %v", err)
 		}
-		
+
 		ts.TickerQueueAdjustment() //At this point you have all three(ts.ClosingPrices, ts.Timestamps and ts.Signals) assigned
 
-		err = ts.Reporting(md, "Live Trading")
+		err = ts.Reporting("Live Trading")
 		if err != nil {
 			fmt.Println("Error Reporting Live Trade: ", err)
 			return
@@ -617,7 +518,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 				ts.Log.Printf("NextProfitSeLLPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
 				ts.StartTime = time.Now()
 				ts.HighestPrice = 0.0
-			} 
+			}
 		} else if len(ts.EntryPrice) > 0 {
 			//NextBuy Re-Adjustment
 			nextInvBuYPrice := (-(ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
@@ -638,9 +539,9 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			}
 		}
 		if !ts.InTrade {
-			md.RiskPositionPercentage = ts.LowestPrice // Define risk management parameter 5% balance
+			ts.RiskPositionPercentage = ts.LowestPrice // Define risk management parameter 5% balance
 		} else {
-			md.RiskPositionPercentage = ts.HighestPrice // Define risk management parameter 5% balance
+			ts.RiskPositionPercentage = ts.HighestPrice // Define risk management parameter 5% balance
 		}
 	}
 }
@@ -709,60 +610,49 @@ func elapseTimeSeLL(level int) time.Duration {
 func (ts *TradingSystem) Backtest(loadExchFrom string) {
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl)
-	//Count,Strategy,ShortPeriod,LongPeriod,ShortMACDPeriod,LongMACDPeriod,
-	//SignalMACDPeriod,RSIPeriod,StochRSIPeriod,SmoothK,SmoothD,RSIOverbought,RSIOversold,
-	//StRSIOverbought,StRSIOversold,BollingerPeriod,BollingerNumStdDev,TargetProfit,
-	//TargetStopLoss,RiskPositionPercentage
-	backT := []*model.AppData{ //StochRSI
-		{0, 0, "EMA", 20, 95, 0.0, 0.0, 0.5, 3.0, 0.25, 0.0},
-	}
 
 	fmt.Println("App started. Press Ctrl+C to exit.")
 	var err error
-	for i, md := range backT {
-		md = ts.NewAppData(loadExchFrom)
-		dataPoint := ts.NewDataPoint(loadExchFrom)
-		// Simulate the backtesting process using historical price data.
-		for ts.DataPoint, ts.CurrentPrice = range ts.ClosingPrices {
-			select {
-			case <-sigchnl:
-				fmt.Println("ShutDown Requested: Press Ctrl+C again to shutdown...")
-				sigchnl := make(chan os.Signal, 1)
-				signal.Notify(sigchnl)
-				ts.ShutDown(md, sigchnl)
-			default:
-			}
-
-			ts.Trading(md, dataPoint, loadExchFrom)
-
-			err = ts.DataPointtoCSV(dataPoint)
-			if err != nil {
-				fmt.Printf("Error creating Writing to CSV File %v", err)
-			}
-			// time.Sleep(ts.EpochTime)
-		}
-		err = ts.Reporting(md, "Backtesting")
-		if err != nil {
-			fmt.Println("Error Reporting BackTest Trading: ", err)
-			return
-		}
-
-		fmt.Println("Press Ctrl+C to continue...", md.ID)
-		<-sigchnl
-		if i == len(backT)-1 {
-			fmt.Println("End of Backtesting: Press Ctrl+C again to shutdown...")
-			sigchnl = make(chan os.Signal, 1)
+	dataPoint := ts.NewDataPoint(loadExchFrom)
+	// Simulate the backtesting process using historical price data.
+	for ts.DataPoint, ts.CurrentPrice = range ts.ClosingPrices {
+		select {
+		case <-sigchnl:
+			fmt.Println("ShutDown Requested: Press Ctrl+C again to shutdown...")
+			sigchnl := make(chan os.Signal, 1)
 			signal.Notify(sigchnl)
-			ts.ShutDown(md, sigchnl)
+			ts.ShutDown(sigchnl)
+		default:
 		}
 
+		ts.Trading(dataPoint, loadExchFrom)
+
+		err = ts.DataPointtoCSV(dataPoint)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("Error creating Writing to CSV File %v", err)
 		}
+		// time.Sleep(ts.EpochTime)
 	}
+	err = ts.Reporting("Backtesting")
+	if err != nil {
+		fmt.Println("Error Reporting BackTest Trading: ", err)
+		return
+	}
+
+	fmt.Println("Press Ctrl+C to continue...")
+	<-sigchnl
+	fmt.Println("End of Backtesting: Press Ctrl+C again to shutdown...")
+	sigchnl = make(chan os.Signal, 1)
+	signal.Notify(sigchnl)
+	ts.ShutDown(sigchnl)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
 }
 
-func (ts *TradingSystem) Trading(md *model.AppData, dp *model.DataPoint, loadExchFrom string) {
+func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 	// Execute the trade if entry conditions are met.
 	passed := false
 	v := 0.0
@@ -775,9 +665,9 @@ func (ts *TradingSystem) Trading(md *model.AppData, dp *model.DataPoint, loadExc
 	} else {
 		targetCrossed = true
 	}
-	if targetCrossed && ts.EntryRule(md, dp, "Entry") {
+	if targetCrossed && ts.EntryRule(dp, "Entry") {
 		// Execute the buy order using the ExecuteStrategy function.
-		resp, err := ts.ExecuteStrategy(md, dp, "Buy")
+		resp, err := ts.ExecuteStrategy(dp, "Buy")
 		if err != nil {
 			// fmt.Println("Error executing buy order:", err)
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
@@ -791,8 +681,8 @@ func (ts *TradingSystem) Trading(md *model.AppData, dp *model.DataPoint, loadExc
 		}
 		// Close the trade if exit conditions are met.
 		passed = true
-	}else if targetCrossed{
-		passed = true                       //To takecare of EMA Calculation and Grphing
+	} else if targetCrossed {
+		passed = true                           //To takecare of EMA Calculation and Grphing
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
 	targetCrossed = false
@@ -803,11 +693,10 @@ func (ts *TradingSystem) Trading(md *model.AppData, dp *model.DataPoint, loadExc
 		}
 	}
 	ts.RiskFactor = float64(ts.Index)
-	if targetCrossed && ts.ExitRule(md, dp, "Exit"){
+	if targetCrossed && ts.ExitRule(dp, "Exit") {
 		// Execute the sell order using the ExecuteStrategy function.
-		resp, err := ts.ExecuteStrategy(md, dp, "Sell")
+		resp, err := ts.ExecuteStrategy(dp, "Sell")
 		if err != nil {
-			// fmt.Println("Error:", err, " at:", ts.CurrentPrice, ", TargetStopLoss:", md.TargetStopLoss)
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 		} else if strings.Contains(resp, "SELL") {
 			// Record Signal for plotting graph later.
@@ -820,30 +709,30 @@ func (ts *TradingSystem) Trading(md *model.AppData, dp *model.DataPoint, loadExc
 		passed = true
 	}
 	if !passed {
-		ts.EntryRule(md, dp, "bypass")                        //To takecare of EMA Calculation and Grphing
+		ts.EntryRule(dp, "bypass")              //To takecare of EMA Calculation and Grphing
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
-	dp.TotalProfitLoss = md.TotalProfitLoss
-	dp.TotalProfitLoss = md.TotalProfitLoss
-	dp.QuoteBalance  = ts.QuoteBalance
-	dp.BaseBalance   = ts.BaseBalance
-	dp.CurrentPrice   = ts.CurrentPrice
-	dp.TargetProfit  = md.TargetProfit
-	dp.TargetStopLoss  = md.TargetStopLoss
-	dp.LowestPrice  = ts.LowestPrice
-	dp.HighestPrice  = ts.HighestPrice
+	dp.TotalProfitLoss = ts.TotalProfitLoss
+	dp.TotalProfitLoss = ts.TotalProfitLoss
+	dp.QuoteBalance = ts.QuoteBalance
+	dp.BaseBalance = ts.BaseBalance
+	dp.CurrentPrice = ts.CurrentPrice
+	dp.TargetProfit = ts.TargetProfit
+	dp.TargetStopLoss = ts.TargetStopLoss
+	dp.LowestPrice = ts.LowestPrice
+	dp.HighestPrice = ts.HighestPrice
 }
 
 // ExecuteStrategy executes the trade based on the provided trade action and current price.
 // The tradeAction parameter should be either "Buy" or "Sell".
-func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, dp *model.DataPoint, tradeAction string) (string, error) {
+func (ts *TradingSystem) ExecuteStrategy(dp *model.DataPoint, tradeAction string) (string, error) {
 	var (
 		orderResp model.Response
 		err       error
 	)
 	switch tradeAction {
 	case "Buy":
-		ts.RiskManagement(md, dp)
+		ts.RiskManagement(dp)
 		// adjustedPrice := math.Floor(price/lotSizeStep) * lotSizeStep
 		quantity := math.Floor(ts.PositionSize/ts.MiniQty) * ts.MiniQty
 		// Calculate the total cost of the trade
@@ -881,14 +770,14 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, dp *model.DataPoint,
 		// Update the profit, quote and base balances after the trade.
 		ts.QuoteBalance -= totalCost
 		ts.BaseBalance += quantity
-		md.TotalProfitLoss -= (ts.CommissionPercentage * quantity * ts.CurrentPrice)
-		
+		ts.TotalProfitLoss -= (ts.CommissionPercentage * quantity * ts.CurrentPrice)
+
 		//Record entry entities for calculating profit/loss and stoploss later.
 		ts.EntryPrice = append(ts.EntryPrice, ts.CurrentPrice)
 		ts.EntryQuantity = append(ts.EntryQuantity, quantity)
 		ts.EntryCostLoss = append(ts.EntryCostLoss, (ts.CommissionPercentage * quantity * ts.CurrentPrice))
-		nextProfitSeLLPrice := ((md.TargetProfit + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / quantity) + ts.EntryPrice[len(ts.EntryPrice)-1]
-		nextInvBuYPrice := (-(md.TargetStopLoss + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / quantity) + ts.EntryPrice[len(ts.EntryPrice)-1]
+		nextProfitSeLLPrice := ((ts.TargetProfit + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / quantity) + ts.EntryPrice[len(ts.EntryPrice)-1]
+		nextInvBuYPrice := (-(ts.TargetStopLoss + ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / quantity) + ts.EntryPrice[len(ts.EntryPrice)-1]
 		commissionAtProfitSeLLPrice := nextProfitSeLLPrice * quantity * ts.CommissionPercentage
 		commissionAtInvBuYPrice := nextInvBuYPrice * quantity * ts.CommissionPercentage
 		ts.NextProfitSeLLPrice = append(ts.NextProfitSeLLPrice, nextProfitSeLLPrice+commissionAtProfitSeLLPrice)
@@ -900,12 +789,12 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, dp *model.DataPoint,
 		ts.TradingLevel = len(ts.EntryPrice)
 		ts.LowestPrice = math.MaxFloat64
 		ts.StartTime = time.Now()
-		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, EntryCostLoss[%d]: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice[%d]: %.8f nextInvBuYPrice[%d]: %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d, mdDataPt: %d \n",
-			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], md.RiskPositionPercentage, md.TotalProfitLoss, len(ts.NextProfitSeLLPrice)-1, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], len(ts.NextInvestBuYPrice)-1, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
-		
+		resp := fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, EntryCostLoss[%d]: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice[%d]: %.8f nextInvBuYPrice[%d]: %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d\n",
+			len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], ts.RiskPositionPercentage, ts.TotalProfitLoss, len(ts.NextProfitSeLLPrice)-1, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], len(ts.NextInvestBuYPrice)-1, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], ts.TargetProfit, -ts.TargetStopLoss, ts.DataPoint)
+
 		<-ts.UpgdChan
 		<-ts.UpgdChan
-		if ((!ts.InTrade) && (ts.StopLossTrigered)) || (ts.TradingLevel >= 5){
+		if ((!ts.InTrade) && (ts.StopLossTrigered)) || (ts.TradingLevel >= 5) {
 			//upgrade to next stage
 			ts.ID, err = ts.RDBServices.CreateDBTradingSystem(ts)
 			<-ts.UpgdChan
@@ -926,8 +815,8 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, dp *model.DataPoint,
 		} else {
 			<-ts.UpgdChan
 		}
-		
-		ts.RiskManagement(md, dp)
+
+		ts.RiskManagement(dp)
 		// adjustedPrice := math.Floor(price/lotSizeStep) * lotSizeStep
 		quantity = math.Floor(ts.PositionSize/ts.MiniQty) * ts.MiniQty
 		// Calculate the total cost of the trade
@@ -938,7 +827,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, dp *model.DataPoint,
 			before = ts.NextInvestBuYPrice[i-2]
 		}
 		//Check whether to move to next stage due to insufficiency in next buy
-		if (ts.QuoteBalance < totalCost) { //level
+		if ts.QuoteBalance < totalCost { //level
 			if (!ts.InTrade) && (ts.StopLossTrigered) {
 				ts.InTrade = false
 				ts.StopLossTrigered = false
@@ -954,7 +843,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, dp *model.DataPoint,
 				}
 				ts.Log.Printf("NextSell Re-Adjusting Switched ON for %s: as Balance = %.8f is Less than NextRiskCost = %.8f and NextInvestBuYPrice[%d] updated with [%d] from %.8f to %.8f \n", ts.Symbol, ts.QuoteBalance, totalCost, i-2, i-1, before, ts.NextInvestBuYPrice[i-1])
 				resp = fmt.Sprintf("- BUY at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, EntryCostLoss[%d]: %.8f PosPcent: %.8f, \nGlobalP&L %.2f, nextProfitSeLLPrice[%d]: %.8f nextInvBuYPrice[%d]: %.8f TargProfit %.8f TargLoss %.8f, tsDataPt: %d, mdDataPt: %d \n",
-					len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], md.RiskPositionPercentage, md.TotalProfitLoss, len(ts.NextProfitSeLLPrice)-1, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], len(ts.NextInvestBuYPrice)-1, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], md.TargetProfit, -md.TargetStopLoss, ts.DataPoint, md.DataPoint)
+					len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, len(ts.EntryCostLoss)-1, ts.EntryCostLoss[len(ts.EntryCostLoss)-1], ts.RiskPositionPercentage, ts.TotalProfitLoss, len(ts.NextProfitSeLLPrice)-1, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1], len(ts.NextInvestBuYPrice)-1, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1], ts.TargetProfit, -ts.TargetStopLoss, ts.DataPoint, ts.DataPoint)
 			}
 		} else {
 			if !ts.InTrade {
@@ -965,7 +854,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, dp *model.DataPoint,
 		}
 		return resp, nil
 	case "Sell":
-		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", ts.CurrentPrice, md.TargetProfit)
+		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", ts.CurrentPrice, ts.TargetProfit)
 		suplemented := false
 		floatHd := 0.0
 		dp.Asset = (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
@@ -994,7 +883,7 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, dp *model.DataPoint,
 				}
 			}
 		}
-		
+
 		quantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
 		if ts.BaseBalance < quantity {
 			ts.Log.Printf("But BaseBalance %.8f is < quantity %.8f", ts.BaseBalance, quantity)
@@ -1065,10 +954,10 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, dp *model.DataPoint,
 		} else {
 			localProfitLoss = CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
 		}
-		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
-		md.TotalProfitLoss += localProfitLoss
-		dp.TotalProfitLoss = md.TotalProfitLoss
-		// ts.Log.Printf("Profit After Global: %v, Local: %v\n",md.TotalProfitLoss, localProfitLoss)
+		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",ts.TotalProfitLoss, localProfitLoss)
+		ts.TotalProfitLoss += localProfitLoss
+		dp.TotalProfitLoss = ts.TotalProfitLoss
+		// ts.Log.Printf("Profit After Global: %v, Local: %v\n",ts.TotalProfitLoss, localProfitLoss)
 		if localProfitLoss >= 0 {
 			ts.ClosedWinTrades += 2
 		}
@@ -1079,8 +968,8 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, dp *model.DataPoint,
 		ts.StartTime = time.Now()
 		ts.LowestPrice = math.MaxFloat64
 		ts.HighestPrice = 0.0
-		resp := fmt.Sprintf("- SELL at ts.CurrentPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, SupposedIndex: [%d], QBal: %.8f, BBal: %.8f, \nGlobalP&L: %.2f localP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
-			ts.CurrentPrice, ts.Index, ts.EntryPrice[ts.Index], ts.Index, ts.EntryQuantity[ts.Index], len(ts.EntryPrice)-1, ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, orderResp.Commission, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
+		resp := fmt.Sprintf("- SELL at ts.CurrentPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, SupposedIndex: [%d], QBal: %.8f, BBal: %.8f, \nGlobalP&L: %.2f localP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d \n",
+			ts.CurrentPrice, ts.Index, ts.EntryPrice[ts.Index], ts.Index, ts.EntryQuantity[ts.Index], len(ts.EntryPrice)-1, ts.QuoteBalance, ts.BaseBalance, ts.TotalProfitLoss, localProfitLoss, orderResp.Commission, ts.RiskPositionPercentage, ts.DataPoint)
 		if (len(ts.EntryPrice) - 1) > ts.Index {
 			ts.Log.Printf("Bursted:[%d] !!! at [%d]\n", ts.Index, len(ts.EntryPrice)-1)
 			ts.TLevelValue = ts.Index
@@ -1127,16 +1016,16 @@ func (ts *TradingSystem) ExecuteStrategy(md *model.AppData, dp *model.DataPoint,
 		return "", fmt.Errorf("invalid trade action: %s", tradeAction)
 	}
 }
-func Qfactor(qpcent float64)float64{
+func Qfactor(qpcent float64) float64 {
 	if qpcent > 20.0 {
-		return 2.0/6.0
-	}else if qpcent > 15.0 {
-		return 3.0/6.0
-	}else if qpcent > 10.0 {
-		return 4.0/6.0
-	}else if qpcent > 5.0 {
-		return 5.0/6.0
-	}else{
+		return 2.0 / 6.0
+	} else if qpcent > 15.0 {
+		return 3.0 / 6.0
+	} else if qpcent > 10.0 {
+		return 4.0 / 6.0
+	} else if qpcent > 5.0 {
+		return 5.0 / 6.0
+	} else {
 		return 1.0
 	}
 }
@@ -1197,7 +1086,7 @@ func (ts *TradingSystem) AggregateEntries() string {
 // RiskManagement applies risk management rules to limit potential losses.
 // It calculates the stop-loss price based on the fixed percentage of risk per trade and the position size.
 // If the current price breaches the stop-loss level, it triggers a sell signal and exits the trade.
-func (ts *TradingSystem) RiskManagement(md *model.AppData, dp *model.DataPoint) {
+func (ts *TradingSystem) RiskManagement(dp *model.DataPoint) {
 	// Calculate position size based on the fixed percentage of risk per trade.
 	dp.Asset = (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
 	num := (ts.MinNotional + 1.0) / ts.StepSize
@@ -1217,303 +1106,296 @@ func (ts *TradingSystem) RiskManagement(md *model.AppData, dp *model.DataPoint) 
 	// case 0:
 	// 	ts.RiskCost += 35.0 + 10.0 + 5.0
 	// 	ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	// 	md.TargetProfit = mainValue * 0.00095
-	// 	md.TargetStopLoss = mainValue * 0.003
+	// 	ts.TargetProfit = mainValue * 0.00095
+	// 	ts.TargetStopLoss = mainValue * 0.003
 	case 0:
 		ts.RiskCost += 40.0 + 12.5 + 7.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.001
-		md.TargetStopLoss = mainValue * 0.0035
+		ts.TargetProfit = mainValue * 0.001
+		ts.TargetStopLoss = mainValue * 0.0035
 	case 1:
 		ts.RiskCost += 45.0 + 15. + 10.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.0015
-		md.TargetStopLoss = mainValue * 0.004
+		ts.TargetProfit = mainValue * 0.0015
+		ts.TargetStopLoss = mainValue * 0.004
 	case 2:
 		ts.RiskCost += 50.0 + 17.5 + 12.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.002
-		md.TargetStopLoss = mainValue * 0.0045
+		ts.TargetProfit = mainValue * 0.002
+		ts.TargetStopLoss = mainValue * 0.0045
 	case 3:
 		ts.RiskCost += 55.0 + 19.5 + 15.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.0025
-		md.TargetStopLoss = mainValue * 0.005
+		ts.TargetProfit = mainValue * 0.0025
+		ts.TargetStopLoss = mainValue * 0.005
 	case 4:
 		ts.RiskCost += (60.0 + 22.0 + 17.5) * 2.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = (mainValue * 0.003) * 2.0
-		md.TargetStopLoss = mainValue * 0.0055
+		ts.TargetProfit = (mainValue * 0.003) * 2.0
+		ts.TargetStopLoss = mainValue * 0.0055
 	case 5:
 		ts.RiskCost += 65.0 + 24.5 + 19.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.0035
-		md.TargetStopLoss = mainValue * 0.006
+		ts.TargetProfit = mainValue * 0.0035
+		ts.TargetStopLoss = mainValue * 0.006
 	case 6:
 		ts.RiskCost += 70.0 + 27.0 + 22.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.004
-		md.TargetStopLoss = mainValue * 0.0065
+		ts.TargetProfit = mainValue * 0.004
+		ts.TargetStopLoss = mainValue * 0.0065
 	default:
 		ts.RiskCost += 75.0 + 29.5 + 24.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		md.TargetProfit = mainValue * 0.0045
-		md.TargetStopLoss = mainValue * 0.007
+		ts.TargetProfit = mainValue * 0.0045
+		ts.TargetStopLoss = mainValue * 0.007
 	}
 }
-func (ts *TradingSystem)AIAnalysis(dp *model.DataPoint, Action string)(buySignal, sellSignal bool){
-	    // Create an instance of DataPointRequest and populate it with data
-		if strings.Contains(ts.RDBServices.loadExchFrom, "TestnetWithOutAI") {
-			return true, true
-		}
-		dataPoint := model.DataPointRequest{
-			DiffL95S15:      dp.DiffL95S15,
-			DiffL8S4:        dp.DiffL8S4,
-			RoCL95:          dp.RoCL95,
-			RoCS15:          dp.RoCS15,
-			MA5DiffL95S15:   dp.MA5DiffL95S15,
-			MA5DiffL8S4:     dp.MA5DiffL8S4,
-			StdDevL95:       dp.StdDevL95,
-			StdDevS15:       dp.StdDevS15,
-			LaggedL95EMA:    dp.LaggedL95EMA,
-			LaggedS15EMA:    dp.LaggedS15EMA,
-			CurrentPrice:    dp.CurrentPrice,
-		}
+func (ts *TradingSystem) AIAnalysis(dp *model.DataPoint, Action string) (buySignal, sellSignal bool) {
+	// Create an instance of DataPointRequest and populate it with data
+	if strings.Contains(ts.RDBServices.loadExchFrom, "TestnetWithOutAI") {
+		return true, true
+	}
+	dataPoint := model.DataPointRequest{
+		DiffL95S15:    dp.DiffL95S15,
+		DiffL8S4:      dp.DiffL8S4,
+		RoCL95:        dp.RoCL95,
+		RoCS15:        dp.RoCS15,
+		MA5DiffL95S15: dp.MA5DiffL95S15,
+		MA5DiffL8S4:   dp.MA5DiffL8S4,
+		StdDevL95:     dp.StdDevL95,
+		StdDevS15:     dp.StdDevS15,
+		LaggedL95EMA:  dp.LaggedL95EMA,
+		LaggedS15EMA:  dp.LaggedS15EMA,
+		CurrentPrice:  dp.CurrentPrice,
+	}
 
-		
-    // Convert dataPoint to JSON
-    jsonData, err := json.Marshal(dataPoint)
-    if err != nil {
-        log.Fatalf("Error occurred during marshaling. Error: %s", err.Error())
-    }
+	// Convert dataPoint to JSON
+	jsonData, err := json.Marshal(dataPoint)
+	if err != nil {
+		log.Fatalf("Error occurred during marshaling. Error: %s", err.Error())
+	}
 
-    // Send POST request
+	// Send POST request
 	var response *http.Response
-	if strings.Contains(ts.RDBServices.loadExchFrom, "Testnet"){
-    	response, err = http.Post("http://localhost:5000/predict", "application/json", bytes.NewBuffer(jsonData))
-	}else{
+	if strings.Contains(ts.RDBServices.loadExchFrom, "Testnet") {
+		response, err = http.Post("http://localhost:5000/predict", "application/json", bytes.NewBuffer(jsonData))
+	} else {
 		response, err = http.Post("http://flask-app:5000/predict", "application/json", bytes.NewBuffer(jsonData))
 	}
 	if err != nil {
-        ts.Log.Printf("Error occurred while sending POST request to AI Model!!!. Error: %s", err.Error())
+		ts.Log.Printf("Error occurred while sending POST request to AI Model!!!. Error: %s", err.Error())
 		return true, true
-    }
-    defer response.Body.Close()
-    // Read the response body
-    responseData, err := ioutil.ReadAll(response.Body)
-    if err != nil {
-        ts.Log.Printf("Error occurred while reading the response body of AI Model!!!. Error: %s", err.Error())
+	}
+	defer response.Body.Close()
+	// Read the response body
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		ts.Log.Printf("Error occurred while reading the response body of AI Model!!!. Error: %s", err.Error())
 		return true, true
-    }
-
-    // Unmarshal the response data into PredictionResponse struct
-    var prediction model.PredictionResponse
-    err = json.Unmarshal(responseData, &prediction)
-    if err != nil {
-        ts.Log.Printf("Error occurred during unmarshaling of AI Model!!!. Error: %s", err.Error())
-    	return true, true
 	}
 
-    // Use the prediction as needed
-    ts.Log.Printf("Received prediction: %d ts.DataPoint %d ts.CurrentPrice %.8f, Action %s", prediction.Prediction, ts.DataPoint, ts.CurrentPrice, Action)
+	// Unmarshal the response data into PredictionResponse struct
+	var prediction model.PredictionResponse
+	err = json.Unmarshal(responseData, &prediction)
+	if err != nil {
+		ts.Log.Printf("Error occurred during unmarshaling of AI Model!!!. Error: %s", err.Error())
+		return true, true
+	}
 
-	if prediction.Prediction == -1{
+	// Use the prediction as needed
+	ts.Log.Printf("Received prediction: %d ts.DataPoint %d ts.CurrentPrice %.8f, Action %s", prediction.Prediction, ts.DataPoint, ts.CurrentPrice, Action)
+
+	if prediction.Prediction == -1 {
 		return false, true
-	}else if  prediction.Prediction == 1{
+	} else if prediction.Prediction == 1 {
 		return true, false
 	}
 	return false, false
 }
+
 // TechnicalAnalysis(): This function performs technical analysis using the
 // calculated moving averages (short and long EMA), RSI, MACD line, and Bollinger
 // Bands. It determines the buy and sell signals based on various strategy rules.
-func (ts *TradingSystem) TechnicalAnalysis(md *model.AppData, dataPoint *model.DataPoint, Action string) (buySignal, sellSignal bool) {
+func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint, Action string) (buySignal, sellSignal bool) {
 	// Calculate moving averages (MA) using historical data.
 	ch1 := make(chan bool)
 	ch2 := make(chan bool)
 	ch3 := make(chan bool)
 	var (
-		err1, err2, err3, err4 error
-		short4EMA, long8EMA []float64
+		short4EMA, long8EMA   []float64
 		short15EMA, long95EMA []float64
 	)
-	ema4 := CandleExponentialMovingAverageV1(ts.ClosingPrices, 4)
-	go func(ch1 chan bool) {
-		short4EMA, err1 = CandleExponentialMovingAverageV2(ema4, 4)
-		ch1 <- true
-	}(ch1)
-	go func(ch2 chan bool) {
-		long8EMA, err2 = CandleExponentialMovingAverageV2(ema4, 8)
-		ch2 <- true
-	}(ch2)
-	go func(ch3 chan bool) {
-		long95EMA, err3 = CandleExponentialMovingAverageV2(ema4, 95)
-		ch3 <- true
-	}(ch3)
-	short15EMA, err4 = CandleExponentialMovingAverageV2(ema4, 15)
-	<-ch1
-	<-ch2
-	<-ch3
-
-	if (err1 != nil) || (err2 != nil) || (err3 != nil) || (err4 != nil) {
-		// log.Printf("Error: in TechnicalAnalysis Unable to get EMA: %v", err)
-		md.LongEMA, md.ShortEMA = 0.0, 0.0
-	} else {
-		md.LongEMA, md.ShortEMA = long8EMA[ts.DataPoint], short4EMA[ts.DataPoint]
-	}
-	window := 20
+	if len(ts.ClosingPrices) > 95 && ts.DataPoint >= 95 {
+		ema4 := CandleExponentialMovingAverageV1(ts.ClosingPrices, 4)
+		go func(ch1 chan bool) {
+			short4EMA = CandleExponentialMovingAverageV1(ema4, 4)
+			ch1 <- true
+		}(ch1)
+		go func(ch2 chan bool) {
+			long8EMA = CandleExponentialMovingAverageV1(ema4, 8)
+			ch2 <- true
+		}(ch2)
+		go func(ch3 chan bool) {
+			long95EMA = CandleExponentialMovingAverageV1(ema4, 95)
+			ch3 <- true
+		}(ch3)
+		short15EMA = CandleExponentialMovingAverageV1(ema4, 15)
+		<-ch1
+		<-ch2
+		<-ch3
+		window := 20
 	// Determine the buy and sell signals based on the moving averages, RSI, MACD line, and Bollinger Bands.
-	if len(short15EMA) > window && len(long95EMA) > window && ts.DataPoint >= window {
-		if strings.Contains(md.Strategy, "EMA") && ts.DataPoint > 1 {
-			md.ShortPeriod = 15
-			md.LongPeriod = 95
-			ts.Container1 = short15EMA
-			ts.Container2 = long95EMA
-			//for price determination
-			L8EMA3, L8EMA0 := long8EMA[ts.DataPoint-3], long8EMA[ts.DataPoint]
-			S4EMA3, S4EMA0 := short4EMA[ts.DataPoint-3], short4EMA[ts.DataPoint]
+	
+		ts.ShortPeriod = 15
+		ts.LongPeriod = 95
+		ts.Container1 = short15EMA
+		ts.Container2 = long95EMA
+		//for price determination
+		L8EMA3, L8EMA0 := long8EMA[ts.DataPoint-3], long8EMA[ts.DataPoint]
+		S4EMA3, S4EMA0 := short4EMA[ts.DataPoint-3], short4EMA[ts.DataPoint]
 
-			cch1 := make(chan bool)
-			cch2 := make(chan bool)
-			cch3 := make(chan bool)
+		cch1 := make(chan bool)
+		cch2 := make(chan bool)
+		cch3 := make(chan bool)
 
-			go func(cch1 chan bool){
-				dataPoint.PriceDownGoingDown = (L8EMA3 > S4EMA3) && (L8EMA0-S4EMA0 > L8EMA3-S4EMA3) && (L8EMA0 > S4EMA0)
-				dataPoint.PriceDownGoingUp = (L8EMA0 > S4EMA0) && (L8EMA0-S4EMA0 < L8EMA3-S4EMA3) && (L8EMA3 > S4EMA3)
-				cch1 <- true
-			}(cch1)
-			go func (cch2 chan bool){
-				dataPoint.PriceUpGoingUp = (S4EMA3 > L8EMA3) && (S4EMA0-L8EMA0 > S4EMA3-L8EMA3) && (S4EMA0 > L8EMA0)
-				dataPoint.PriceUpGoingDown = (S4EMA0 > L8EMA0) &&	(S4EMA0-L8EMA0 < S4EMA3-L8EMA3) && (S4EMA3 > L8EMA3)
-				cch2 <- true
-			}(cch2)
+		go func(cch1 chan bool) {
+			dataPoint.PriceDownGoingDown = (L8EMA3 > S4EMA3) && (L8EMA0-S4EMA0 > L8EMA3-S4EMA3) && (L8EMA0 > S4EMA0)
+			dataPoint.PriceDownGoingUp = (L8EMA0 > S4EMA0) && (L8EMA0-S4EMA0 < L8EMA3-S4EMA3) && (L8EMA3 > S4EMA3)
+			cch1 <- true
+		}(cch1)
+		go func(cch2 chan bool) {
+			dataPoint.PriceUpGoingUp = (S4EMA3 > L8EMA3) && (S4EMA0-L8EMA0 > S4EMA3-L8EMA3) && (S4EMA0 > L8EMA0)
+			dataPoint.PriceUpGoingDown = (S4EMA0 > L8EMA0) && (S4EMA0-L8EMA0 < S4EMA3-L8EMA3) && (S4EMA3 > L8EMA3)
+			cch2 <- true
+		}(cch2)
 
-			//for market determination 
-			dataPoint.L95EMA6, dataPoint.L95EMA3, dataPoint.L95EMA1, dataPoint.L95EMA0 = long95EMA[ts.DataPoint-6], long95EMA[ts.DataPoint-3], long95EMA[ts.DataPoint-1], long95EMA[ts.DataPoint]
-			dataPoint.S15EMA6, dataPoint.S15EMA3, dataPoint.S15EMA1, dataPoint.S15EMA0 = short15EMA[ts.DataPoint-6], short15EMA[ts.DataPoint-3], short15EMA[ts.DataPoint-1], short15EMA[ts.DataPoint]
-			
-			go func (cch3 chan bool){
-				dataPoint.MarketDownGoneDown =(dataPoint.L95EMA0 > dataPoint.S15EMA0) && (dataPoint.L95EMA6 > dataPoint.S15EMA6) && (dataPoint.L95EMA0 - dataPoint.S15EMA0) < (dataPoint.L95EMA1 - dataPoint.S15EMA1) && (dataPoint.L95EMA1 - dataPoint.S15EMA1) > (dataPoint.L95EMA3 - dataPoint.S15EMA3) && (dataPoint.L95EMA3 - dataPoint.S15EMA3) > (dataPoint.L95EMA6 - dataPoint.S15EMA6)
-				dataPoint.MarketUpGoneUp = (dataPoint.S15EMA0 > dataPoint.L95EMA0) && (dataPoint.S15EMA6 > dataPoint.L95EMA6) && (dataPoint.S15EMA0 - dataPoint.L95EMA0) < (dataPoint.S15EMA1 - dataPoint.L95EMA1) && (dataPoint.S15EMA1 - dataPoint.L95EMA1) > (dataPoint.S15EMA3 - dataPoint.L95EMA3) && (dataPoint.S15EMA3 - dataPoint.L95EMA3) > (dataPoint.S15EMA6 - dataPoint.L95EMA6)
-				cch3 <- true
-			}(cch3)
+		//for market determination
+		dataPoint.L95EMA6, dataPoint.L95EMA3, dataPoint.L95EMA1, dataPoint.L95EMA0 = long95EMA[ts.DataPoint-6], long95EMA[ts.DataPoint-3], long95EMA[ts.DataPoint-1], long95EMA[ts.DataPoint]
+		dataPoint.S15EMA6, dataPoint.S15EMA3, dataPoint.S15EMA1, dataPoint.S15EMA0 = short15EMA[ts.DataPoint-6], short15EMA[ts.DataPoint-3], short15EMA[ts.DataPoint-1], short15EMA[ts.DataPoint]
 
-			go func (ch3 chan bool){
-				// Cross-EMA Relationships
-				dataPoint.CrossL95S15UP = (dataPoint.L95EMA6 > dataPoint.S15EMA6) &&  (dataPoint.L95EMA0 < dataPoint.S15EMA0)
-				if dataPoint.CrossL95S15UP{
-					dataPoint.CrossUPTime = time.Now()
-				}
-				// dataPoint.CrossL95S15DN = (dataPoint.L95EMA6 < dataPoint.S15EMA6) &&  (dataPoint.L95EMA0 > dataPoint.S15EMA0)
-				// if dataPoint.CrossL95S15DN{
-				// 	dataPoint.CrossDNTime = time.Now()
-				// }
-				if time.Since(dataPoint.CrossUPTime) > time.Minute * 6.0{
-					dataPoint.CrossUPTime = time.Time{}
-				}
-				// if time.Since(dataPoint.CrossDNTime) > time.Minute * 6.0{
-				// 	dataPoint.CrossDNTime = time.Time{}
-				// }
-				ch3 <- true
-			}(ch3)
+		go func(cch3 chan bool) {
+			dataPoint.MarketDownGoneDown = (dataPoint.L95EMA0 > dataPoint.S15EMA0) && (dataPoint.L95EMA6 > dataPoint.S15EMA6) && (dataPoint.L95EMA0-dataPoint.S15EMA0) < (dataPoint.L95EMA1-dataPoint.S15EMA1) && (dataPoint.L95EMA1-dataPoint.S15EMA1) > (dataPoint.L95EMA3-dataPoint.S15EMA3) && (dataPoint.L95EMA3-dataPoint.S15EMA3) > (dataPoint.L95EMA6-dataPoint.S15EMA6)
+			dataPoint.MarketUpGoneUp = (dataPoint.S15EMA0 > dataPoint.L95EMA0) && (dataPoint.S15EMA6 > dataPoint.L95EMA6) && (dataPoint.S15EMA0-dataPoint.L95EMA0) < (dataPoint.S15EMA1-dataPoint.L95EMA1) && (dataPoint.S15EMA1-dataPoint.L95EMA1) > (dataPoint.S15EMA3-dataPoint.L95EMA3) && (dataPoint.S15EMA3-dataPoint.L95EMA3) > (dataPoint.S15EMA6-dataPoint.L95EMA6)
+			cch3 <- true
+		}(cch3)
 
-			go func(ch1 chan bool){
-				dataPoint.MarketDownGoingDown = (dataPoint.L95EMA3 > dataPoint.S15EMA3) && (dataPoint.L95EMA0-dataPoint.S15EMA0 > dataPoint.L95EMA3-dataPoint.S15EMA3) && (dataPoint.L95EMA0 > dataPoint.S15EMA0)
-				dataPoint.MarketDownGoingUp = (dataPoint.L95EMA0 > dataPoint.S15EMA0) && (dataPoint.L95EMA0-dataPoint.S15EMA0 < dataPoint.L95EMA3-dataPoint.S15EMA3) && (dataPoint.L95EMA3 > dataPoint.S15EMA3)
-				ch1 <- true
-			}(ch1)
-			go func (ch2 chan bool){
-				dataPoint.MarketUpGoingUp = (dataPoint.S15EMA3 > dataPoint.L95EMA3) && (dataPoint.S15EMA0-dataPoint.L95EMA0 > dataPoint.S15EMA3-dataPoint.L95EMA3) && (dataPoint.S15EMA0 > dataPoint.L95EMA0)
-				dataPoint.MarketUpGoingDown = (dataPoint.S15EMA0 > dataPoint.L95EMA0) &&	(dataPoint.S15EMA0-dataPoint.L95EMA0 < dataPoint.S15EMA3-dataPoint.L95EMA3) && (dataPoint.S15EMA3 > dataPoint.L95EMA3)
-				ch2 <- true
-			}(ch2)
-
-			<-cch1			
-			<- cch2		
-			<- cch3
-			<- ch3
-			<-ch1			
-			<- ch2
-			
-			go func (ch1 chan bool)  {				
-				// Moving Averages of Differences
-				dataPoint.MA5DiffL95S15 = rollingMean(rollingDiff(long95EMA[len(long95EMA)-window:], short15EMA[len(short15EMA)-window:]), window)
-				dataPoint.MA5DiffL8S4 = rollingMean(rollingDiff(long8EMA[len(long8EMA)-window:], short4EMA[len(short4EMA)-window:]), window)
-				ch1 <- true
-			}(ch1)
-			go func (ch2 chan bool)  {	
-				// Volatility Measures
-				dataPoint.StdDevL95 = rollingStdDev(long95EMA[len(long95EMA)-window:], window)
-				dataPoint.StdDevS15 = rollingStdDev(short15EMA[len(short15EMA)-window:], window)
-				ch2 <- true
-			}(ch2)
-			go func (ch3 chan bool)  {	
-				// Historical Trends
-				dataPoint.RoCL95 = CalculatePercentileRank(dataPoint.L95EMA0, long95EMA[len(long95EMA)-window:])
-				dataPoint.RoCS15 = CalculatePercentileRank(dataPoint.S15EMA0, short15EMA[len(short15EMA)-window:])
-				ch3 <- true
-			}(ch3)
-
-			// Derived Metrics
-			dataPoint.DiffL95S15 = dataPoint.L95EMA0 - dataPoint.S15EMA0
-			dataPoint.DiffL8S4 = L8EMA0 - S4EMA0
-			
-			if Action == "Entry" {
-				if (dataPoint.CrossUPTime != time.Time{}) && (ts.CurrentPrice < dataPoint.S15EMA0) {
-					buySignal = true		
-					dataPoint.Label = 1
-					ts.Log.Printf("TAB1 Signalled: BuY: at currentPrice: %.8f, CrossL95S15UP %v Secs", ts.CurrentPrice, time.Since(dataPoint.CrossUPTime).Seconds())
-				}else if (dataPoint.MarketUpGoingUp && dataPoint.PriceDownGoingUp) || (dataPoint.MarketDownGoingUp && dataPoint.PriceUpGoingUp){	
-					buySignal = true				
-					dataPoint.Label = 1
-					ts.Log.Printf("TAB3 Signalled: BuY: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, dataPoint.PriceDownGoingDown, dataPoint.PriceDownGoingUp, dataPoint.PriceUpGoingUp, dataPoint.PriceUpGoingDown, dataPoint.MarketDownGoingDown, dataPoint.MarketDownGoingUp, dataPoint.MarketUpGoingUp, dataPoint.MarketUpGoingDown)
-				}else if dataPoint.MarketDownGoneDown{
-					buySignal = true				
-					dataPoint.Label = 1
-					ts.Log.Printf("TAB4 Signalled: BuY: at currentPrice: %.8f, MarketDownGoneDown: %v,  DiffL95S15: %.8f", ts.CurrentPrice, dataPoint.MarketDownGoneDown, math.Abs(dataPoint.DiffL95S15))
-				}else{		
-					dataPoint.Label = 0
-					ts.Log.Printf("TAB0 Signalled: Missed BuY: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v ((L95EMA0-S15EMA0) * 1.75 = %.8f < S15EMA0-ts.CurrentPrice = %.8f) = %v", ts.CurrentPrice, dataPoint.PriceDownGoingDown, dataPoint.PriceDownGoingUp, dataPoint.PriceUpGoingUp, dataPoint.PriceUpGoingDown, dataPoint.MarketDownGoingDown, dataPoint.MarketDownGoingUp, dataPoint.MarketUpGoingUp, dataPoint.MarketUpGoingDown, (dataPoint.L95EMA0-dataPoint.S15EMA0) * 1.75, dataPoint.S15EMA0-ts.CurrentPrice, ((dataPoint.L95EMA0-dataPoint.S15EMA0) * 1.75 < dataPoint.S15EMA0-ts.CurrentPrice))
-				}
+		go func(ch3 chan bool) {
+			// Cross-EMA Relationships
+			dataPoint.CrossL95S15UP = (dataPoint.L95EMA6 > dataPoint.S15EMA6) && (dataPoint.L95EMA0 < dataPoint.S15EMA0)
+			if dataPoint.CrossL95S15UP {
+				dataPoint.CrossUPTime = time.Now()
 			}
-			if Action == "Exit" {
-				if (dataPoint.MarketUpGoingDown && dataPoint.PriceDownGoingDown) || (dataPoint.MarketDownGoingDown && dataPoint.PriceUpGoingDown){
-					sellSignal = true		
-					dataPoint.Label = -1
-					ts.Log.Printf("TAS3 Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, dataPoint.PriceDownGoingDown, dataPoint.PriceDownGoingUp, dataPoint.PriceUpGoingUp, dataPoint.PriceUpGoingDown, dataPoint.MarketDownGoingDown, dataPoint.MarketDownGoingUp, dataPoint.MarketUpGoingUp, dataPoint.MarketUpGoingDown)
-				} else if dataPoint.MarketUpGoneUp{
-					sellSignal = true		
-					dataPoint.Label = -1
-					ts.Log.Printf("TAS4 Signalled: SeLL: at currentPrice: %.8f, MarketUpGoneUp: %v, DiffL95S15: %.8f", ts.CurrentPrice, dataPoint.MarketUpGoneUp, math.Abs(dataPoint.DiffL95S15))
-				} else{		
-					dataPoint.Label = 0
-					ts.Log.Printf("TAS0 Signalled: Missed SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, dataPoint.PriceDownGoingDown, dataPoint.PriceDownGoingUp, dataPoint.PriceUpGoingUp, dataPoint.PriceUpGoingDown, dataPoint.MarketDownGoingDown, dataPoint.MarketDownGoingUp, dataPoint.MarketUpGoingUp, dataPoint.MarketUpGoingDown)
-				}
+			// dataPoint.CrossL95S15DN = (dataPoint.L95EMA6 < dataPoint.S15EMA6) &&  (dataPoint.L95EMA0 > dataPoint.S15EMA0)
+			// if dataPoint.CrossL95S15DN{
+			// 	dataPoint.CrossDNTime = time.Now()
+			// }
+			if time.Since(dataPoint.CrossUPTime) > time.Minute*6.0 {
+				dataPoint.CrossUPTime = time.Time{}
 			}
-			if Action == "bypass"{
+			// if time.Since(dataPoint.CrossDNTime) > time.Minute * 6.0{
+			// 	dataPoint.CrossDNTime = time.Time{}
+			// }
+			ch3 <- true
+		}(ch3)
+
+		go func(ch1 chan bool) {
+			dataPoint.MarketDownGoingDown = (dataPoint.L95EMA3 > dataPoint.S15EMA3) && (dataPoint.L95EMA0-dataPoint.S15EMA0 > dataPoint.L95EMA3-dataPoint.S15EMA3) && (dataPoint.L95EMA0 > dataPoint.S15EMA0)
+			dataPoint.MarketDownGoingUp = (dataPoint.L95EMA0 > dataPoint.S15EMA0) && (dataPoint.L95EMA0-dataPoint.S15EMA0 < dataPoint.L95EMA3-dataPoint.S15EMA3) && (dataPoint.L95EMA3 > dataPoint.S15EMA3)
+			ch1 <- true
+		}(ch1)
+		go func(ch2 chan bool) {
+			dataPoint.MarketUpGoingUp = (dataPoint.S15EMA3 > dataPoint.L95EMA3) && (dataPoint.S15EMA0-dataPoint.L95EMA0 > dataPoint.S15EMA3-dataPoint.L95EMA3) && (dataPoint.S15EMA0 > dataPoint.L95EMA0)
+			dataPoint.MarketUpGoingDown = (dataPoint.S15EMA0 > dataPoint.L95EMA0) && (dataPoint.S15EMA0-dataPoint.L95EMA0 < dataPoint.S15EMA3-dataPoint.L95EMA3) && (dataPoint.S15EMA3 > dataPoint.L95EMA3)
+			ch2 <- true
+		}(ch2)
+
+		<-cch1
+		<-cch2
+		<-cch3
+		<-ch3
+		<-ch1
+		<-ch2
+
+		go func(ch1 chan bool) {
+			// Moving Averages of Differences
+			dataPoint.MA5DiffL95S15 = rollingMean(rollingDiff(long95EMA[len(long95EMA)-window:], short15EMA[len(short15EMA)-window:]), window)
+			dataPoint.MA5DiffL8S4 = rollingMean(rollingDiff(long8EMA[len(long8EMA)-window:], short4EMA[len(short4EMA)-window:]), window)
+			ch1 <- true
+		}(ch1)
+		go func(ch2 chan bool) {
+			// Volatility Measures
+			dataPoint.StdDevL95 = rollingStdDev(long95EMA[len(long95EMA)-window:], window)
+			dataPoint.StdDevS15 = rollingStdDev(short15EMA[len(short15EMA)-window:], window)
+			ch2 <- true
+		}(ch2)
+		go func(ch3 chan bool) {
+			// Historical Trends
+			dataPoint.RoCL95 = CalculatePercentileRank(dataPoint.L95EMA0, long95EMA[len(long95EMA)-window:])
+			dataPoint.RoCS15 = CalculatePercentileRank(dataPoint.S15EMA0, short15EMA[len(short15EMA)-window:])
+			ch3 <- true
+		}(ch3)
+
+		// Derived Metrics
+		dataPoint.DiffL95S15 = dataPoint.L95EMA0 - dataPoint.S15EMA0
+		dataPoint.DiffL8S4 = L8EMA0 - S4EMA0
+
+		if Action == "Entry" {
+			if (dataPoint.CrossUPTime != time.Time{}) && (ts.CurrentPrice < dataPoint.S15EMA0) {
+				buySignal = true
+				dataPoint.Label = 1
+				ts.Log.Printf("TAB1 Signalled: BuY: at currentPrice: %.8f, CrossL95S15UP %v Secs", ts.CurrentPrice, time.Since(dataPoint.CrossUPTime).Seconds())
+			} else if (dataPoint.MarketUpGoingUp && dataPoint.PriceDownGoingUp) || (dataPoint.MarketDownGoingUp && dataPoint.PriceUpGoingUp) {
+				buySignal = true
+				dataPoint.Label = 1
+				ts.Log.Printf("TAB3 Signalled: BuY: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, dataPoint.PriceDownGoingDown, dataPoint.PriceDownGoingUp, dataPoint.PriceUpGoingUp, dataPoint.PriceUpGoingDown, dataPoint.MarketDownGoingDown, dataPoint.MarketDownGoingUp, dataPoint.MarketUpGoingUp, dataPoint.MarketUpGoingDown)
+			} else if dataPoint.MarketDownGoneDown {
+				buySignal = true
+				dataPoint.Label = 1
+				ts.Log.Printf("TAB4 Signalled: BuY: at currentPrice: %.8f, MarketDownGoneDown: %v,  DiffL95S15: %.8f", ts.CurrentPrice, dataPoint.MarketDownGoneDown, math.Abs(dataPoint.DiffL95S15))
+			} else {
 				dataPoint.Label = 0
-				ts.Log.Printf("TAS00 Signalled: HoLD: at currentPrice: %.8f, MarketUpGoneUp: %v, MarketDownGoneDown: %v, DiffL95S15: %.8f", ts.CurrentPrice, dataPoint.MarketUpGoneUp, dataPoint.MarketDownGoneDown, math.Abs(dataPoint.DiffL95S15))
+				ts.Log.Printf("TAB0 Signalled: Missed BuY: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v ((L95EMA0-S15EMA0) * 1.75 = %.8f < S15EMA0-ts.CurrentPrice = %.8f) = %v", ts.CurrentPrice, dataPoint.PriceDownGoingDown, dataPoint.PriceDownGoingUp, dataPoint.PriceUpGoingUp, dataPoint.PriceUpGoingDown, dataPoint.MarketDownGoingDown, dataPoint.MarketDownGoingUp, dataPoint.MarketUpGoingUp, dataPoint.MarketUpGoingDown, (dataPoint.L95EMA0-dataPoint.S15EMA0)*1.75, dataPoint.S15EMA0-ts.CurrentPrice, ((dataPoint.L95EMA0-dataPoint.S15EMA0)*1.75 < dataPoint.S15EMA0-ts.CurrentPrice))
 			}
-			// Lagged Features (1-day lag)
-			if ts.DataPoint > 0 {
-				dataPoint.LaggedL95EMA = long95EMA[ts.DataPoint-1]
-				dataPoint.LaggedS15EMA = short15EMA[ts.DataPoint-1]
-			}
-			dataPoint.Date = time.Now()
-			<-ch1
-			<-ch2
-			<-ch3
 		}
+		if Action == "Exit" {
+			if (dataPoint.MarketUpGoingDown && dataPoint.PriceDownGoingDown) || (dataPoint.MarketDownGoingDown && dataPoint.PriceUpGoingDown) {
+				sellSignal = true
+				dataPoint.Label = -1
+				ts.Log.Printf("TAS3 Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, dataPoint.PriceDownGoingDown, dataPoint.PriceDownGoingUp, dataPoint.PriceUpGoingUp, dataPoint.PriceUpGoingDown, dataPoint.MarketDownGoingDown, dataPoint.MarketDownGoingUp, dataPoint.MarketUpGoingUp, dataPoint.MarketUpGoingDown)
+			} else if dataPoint.MarketUpGoneUp {
+				sellSignal = true
+				dataPoint.Label = -1
+				ts.Log.Printf("TAS4 Signalled: SeLL: at currentPrice: %.8f, MarketUpGoneUp: %v, DiffL95S15: %.8f", ts.CurrentPrice, dataPoint.MarketUpGoneUp, math.Abs(dataPoint.DiffL95S15))
+			} else {
+				dataPoint.Label = 0
+				ts.Log.Printf("TAS0 Signalled: Missed SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, dataPoint.PriceDownGoingDown, dataPoint.PriceDownGoingUp, dataPoint.PriceUpGoingUp, dataPoint.PriceUpGoingDown, dataPoint.MarketDownGoingDown, dataPoint.MarketDownGoingUp, dataPoint.MarketUpGoingUp, dataPoint.MarketUpGoingDown)
+			}
+		}
+		if Action == "bypass" {
+			dataPoint.Label = 0
+			ts.Log.Printf("TAS00 Signalled: HoLD: at currentPrice: %.8f, MarketUpGoneUp: %v, MarketDownGoneDown: %v, DiffL95S15: %.8f", ts.CurrentPrice, dataPoint.MarketUpGoneUp, dataPoint.MarketDownGoneDown, math.Abs(dataPoint.DiffL95S15))
+		}
+		// Lagged Features (1-day lag)
+		if ts.DataPoint > 0 {
+			dataPoint.LaggedL95EMA = long95EMA[ts.DataPoint-1]
+			dataPoint.LaggedS15EMA = short15EMA[ts.DataPoint-1]
+		}
+		dataPoint.Date = time.Now()
+		<-ch1
+		<-ch2
+		<-ch3
+
 	}
 	return buySignal, sellSignal
 }
 
-func rollingDiff(L, S []float64)(diff []float64){
-	for k, v := range L{
-		diff = append(diff, v - S[k])
+func rollingDiff(L, S []float64) (diff []float64) {
+	for k, v := range L {
+		diff = append(diff, v-S[k])
 	}
 	return diff
 }
+
 // Function to calculate rolling mean with handling for NaN
 func rollingMean(data []float64, window int) float64 {
 	if len(data) < window {
@@ -1526,6 +1408,7 @@ func rollingMean(data []float64, window int) float64 {
 
 	return stat.Mean(data, nil)
 }
+
 // Function to calculate rolling standard deviation with handling for NaN
 func rollingStdDev(data []float64, window int) float64 {
 	if len(data) < window {
@@ -1541,14 +1424,15 @@ func rollingStdDev(data []float64, window int) float64 {
 
 // CalculatePercentileRank calculates the percentile rank of a value in a dataset.
 func CalculatePercentileRank(value float64, data []float64) float64 {
-    count := 0
-    for _, v := range data {
-        if v <= value {
-            count++
-        }
-    }
-    return float64(count) / float64(len(data))
+	count := 0
+	for _, v := range data {
+		if v <= value {
+			count++
+		}
+	}
+	return float64(count) / float64(len(data))
 }
+
 // FundamentalAnalysis performs fundamental analysis and generates trading signals.
 func (ts *TradingSystem) FundamentalAnalysis() (buySignal, sellSignal bool) {
 	// Implement your fundamental analysis logic here.
@@ -1559,28 +1443,28 @@ func (ts *TradingSystem) FundamentalAnalysis() (buySignal, sellSignal bool) {
 }
 
 // EntryRule defines the entry conditions for a trade.
-func (ts *TradingSystem) EntryRule(md *model.AppData, dataPoint *model.DataPoint, Action string) bool {
+func (ts *TradingSystem) EntryRule(dataPoint *model.DataPoint, Action string) bool {
 	// Combine the results of technical and fundamental analysis to decide entry conditions.
-	technicalBuy, _ := ts.TechnicalAnalysis(md, dataPoint, Action)
+	technicalBuy, _ := ts.TechnicalAnalysis(dataPoint, Action)
 	AIBuy, _ := ts.AIAnalysis(dataPoint, Action)
 	return technicalBuy && AIBuy
 }
 
 // ExitRule defines the exit conditions for a trade.
-func (ts *TradingSystem) ExitRule(md *model.AppData, dataPoint *model.DataPoint, Action string) bool {
+func (ts *TradingSystem) ExitRule(dataPoint *model.DataPoint, Action string) bool {
 	// Combine the results of technical and fundamental analysis to decide exit conditions.
-	_, technicalSell := ts.TechnicalAnalysis(md, dataPoint, Action)
+	_, technicalSell := ts.TechnicalAnalysis(dataPoint, Action)
 	_, AISell := ts.AIAnalysis(dataPoint, Action)
 	return technicalSell && AISell
 }
 
-func (ts *TradingSystem) Reporting(md *model.AppData, from string) error {
+func (ts *TradingSystem) Reporting(from string) error {
 	var err error
 
-	if (len(ts.Container1) > 0) && (len(ts.Container1) <= md.LongPeriod) {
-		err = ts.CreateLineChartWithSignals(md, ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
+	if (len(ts.Container1) > 0) && (len(ts.Container1) <= ts.LongPeriod) {
+		err = ts.CreateLineChartWithSignals(ts.Timestamps, ts.ClosingPrices, ts.Signals, "")
 	} else if len(ts.Container1) <= ts.Zoom {
-		err = ts.CreateLineChartWithSignalsV3(md, ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
+		err = ts.CreateLineChartWithSignalsV3(ts.Timestamps, ts.ClosingPrices, ts.Container1, ts.Container2, ts.Signals, "")
 	} else {
 		if len(ts.Signals) < len(ts.ClosingPrices) {
 			log.Printf("Lengths of ts.Timestamps %d, ts.Container1 %d, ts.Container2 %d, ts.Signals %d, ts.ClosingPrices %d\n", len(ts.Timestamps), len(ts.Container1), len(ts.Container2), len(ts.Signals), len(ts.ClosingPrices))
@@ -1589,7 +1473,7 @@ func (ts *TradingSystem) Reporting(md *model.AppData, from string) error {
 		}
 		b := len(ts.ClosingPrices) - 1
 		a := len(ts.ClosingPrices) - ts.Zoom
-		err = ts.CreateLineChartWithSignalsV3(md, ts.Timestamps[a:b], ts.ClosingPrices[a:b], ts.Container1[a:b], ts.Container2[a:b], ts.Signals[a:b], "")
+		err = ts.CreateLineChartWithSignalsV3(ts.Timestamps[a:b], ts.ClosingPrices[a:b], ts.Container1[a:b], ts.Container2[a:b], ts.Signals[a:b], "")
 	}
 	if err != nil {
 		return fmt.Errorf("Error creating Line Chart with signals: %v", err)
@@ -1597,7 +1481,7 @@ func (ts *TradingSystem) Reporting(md *model.AppData, from string) error {
 	return nil
 }
 
-func (ts *TradingSystem) ShutDown(md *model.AppData, sigchnl chan os.Signal) {
+func (ts *TradingSystem) ShutDown(sigchnl chan os.Signal) {
 	for {
 		select {
 		case sig := <-sigchnl:
@@ -1614,7 +1498,7 @@ func (ts *TradingSystem) ShutDown(md *model.AppData, sigchnl chan os.Signal) {
 					// Store profit/loss for the trade.
 
 					localProfitLoss -= transactionCost
-					// md.TotalProfitLoss += localProfitLoss
+					// ts.TotalProfitLoss += localProfitLoss
 
 					ts.Mu.Lock()
 					ts.QuoteBalance += (ts.BaseBalance * ts.CurrentPrice) - transactionCost
@@ -1622,15 +1506,14 @@ func (ts *TradingSystem) ShutDown(md *model.AppData, sigchnl chan os.Signal) {
 					ts.Signals = append(ts.Signals, "Sell")
 					ts.TradeCount++
 					ts.Mu.Unlock()
-					log.Printf("- SELL-OFF at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L %.2f LocalP&L: %.8f PosPcent: %.8f tsDataPt: %d mdDataPt: %d \n",
-						len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, md.TotalProfitLoss, localProfitLoss, md.RiskPositionPercentage, ts.DataPoint, md.DataPoint)
+					log.Printf("- SELL-OFF at EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, QBal: %.8f, BBal: %.8f, GlobalP&L %.2f LocalP&L: %.8f PosPcent: %.8f tsDataPt: %d \n",
+						len(ts.EntryPrice)-1, ts.EntryPrice[len(ts.EntryPrice)-1], len(ts.EntryQuantity)-1, ts.EntryQuantity[len(ts.EntryQuantity)-1], ts.QuoteBalance, ts.BaseBalance, ts.TotalProfitLoss, localProfitLoss, ts.RiskPositionPercentage, ts.DataPoint)
 				}
 				// Print the overall trading performance after backtesting.
-				log.Printf("Summary: Strategy: %s ", md.Strategy)
 				log.Printf("Total Trades: %d, out of %d trials ", ts.TradeCount, len(ts.Signals))
-				log.Printf("Total Profit/Loss: %.2f, ", md.TotalProfitLoss)
+				log.Printf("Total Profit/Loss: %.2f, ", ts.TotalProfitLoss)
 				log.Printf("Final Capital: %.2f, ", ts.QuoteBalance)
-				log.Printf("Final Asset: %.8f tsDataPoint: %d, mdDataPoint: %d\n\n", ts.BaseBalance, ts.DataPoint, md.DataPoint)
+				log.Printf("Final Asset: %.8f tsDataPoint: %d\n\n", ts.BaseBalance, ts.DataPoint)
 				ts.DBStoreTicker.Stop()
 				// if err := ts.APIServices.CloseDB(); err != nil{
 				// 	log.Printf("Error while closing the DataBase: %v", err)

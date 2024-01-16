@@ -10,9 +10,9 @@ package model
 type TradingSystemData struct {
 	ID                       uint
 	Symbol                   string    `json:"symbol"`
-	ClosingPrices            []float64   `json:"closing_prices"`
-	Timestamps               []int64     `json:"timestamps"`
-	Signals                  []string    `json:"signals"`
+	ClosingPrices            []float64 `json:"closing_prices"`
+	Timestamps               []int64   `json:"timestamps"`
+	Signals                  []string  `json:"signals"`
 	NextInvestBuYPrice       []float64 `json:"next_invest_buy_price"`
 	NextProfitSeLLPrice      []float64 `json:"next_profit_sell_price"`
 	CommissionPercentage     float64   `json:"commission_percentage"`
@@ -42,20 +42,10 @@ type TradingSystemData struct {
 	MaxQty                   float64   `json:"max_qty"`
 	MinNotional              float64   `json:"min_notional"`
 	StepSize                 float64   `json:"step_size"`
-}
-
-// type AppID uint64
-
-type AppData struct {
-	ID                     uint    `gorm:"primaryKey" json:"id"`
-	DataPoint              int     `json:"data_point"`
-	Strategy               string  `json:"strategy"`
-	ShortPeriod            int     `json:"short_period"`
-	LongPeriod             int     `json:"long_period"`
-	ShortEMA               float64 `json:"short_ema"`
-	LongEMA                float64 `json:"long_ema"`
-	TargetProfit           float64 `json:"target_profit"`
-	TargetStopLoss         float64 `json:"target_stop_loss"`
-	RiskPositionPercentage float64 `json:"risk_position_percentage"`
-	TotalProfitLoss        float64 `json:"total_profit_loss"`
+	TargetStopLoss           float64   `json:"target_stop_loss"`
+	TargetProfit             float64   `json:"target_profit"`
+	TotalProfitLoss          float64   `json:"total_profit_loss"`
+	RiskPositionPercentage   float64   `json:"risk_position_percentage"`
+	ShortPeriod              int       `json:"short_period"`
+	LongPeriod               int       `json:"long_period"`
 }

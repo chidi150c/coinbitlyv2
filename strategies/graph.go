@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"image/color"
 	"time"
-
-	"coinbitly.com/model"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
 )
 
-func (ts *TradingSystem)CreateLineChartWithSignals(md *model.AppData, timeSeries []int64, dataSeries []float64, signals []string, graph string) error {
+func (ts *TradingSystem)CreateLineChartWithSignals(timeSeries []int64, dataSeries []float64, signals []string, graph string) error {
 	p := plot.New()
 	p.Title.Text = ts.BaseCurrency+ " Price and Buy/Sell Signal Trading Chart"
 	p.X.Label.Text = "Time"
@@ -106,7 +104,7 @@ func (ts *TradingSystem)CreateLineChartWithSignals(md *model.AppData, timeSeries
 	return nil
 }
 
-func (ts *TradingSystem)CreateLineChartWithSignalsV3(md *model.AppData, timeSeries []int64, dataSeries []float64, greenDataSeries []float64, yellowDataSeries []float64, signals []string, graph string) error {
+func (ts *TradingSystem)CreateLineChartWithSignalsV3(timeSeries []int64, dataSeries []float64, greenDataSeries []float64, yellowDataSeries []float64, signals []string, graph string) error {
 	p := plot.New()
 	p.Title.Text = ts.BaseCurrency+ " Price, EMA and Buy/Sell Signal Trading Chart"
 	p.X.Label.Text = "Time"
@@ -222,8 +220,8 @@ func (ts *TradingSystem)CreateLineChartWithSignalsV3(md *model.AppData, timeSeri
 
 	// Create a legend and add entries for your plots.
 	p.Legend.Add(ts.BaseCurrency+" Price", line)
-	p.Legend.Add(fmt.Sprintf("%d", md.ShortPeriod)+"PeriodEMA", greenLine)
-	p.Legend.Add(fmt.Sprintf("%d", md.LongPeriod)+"PeriodEMA", yellowLine)
+	p.Legend.Add(fmt.Sprintf("%d", ts.ShortPeriod)+"PeriodEMA", greenLine)
+	p.Legend.Add(fmt.Sprintf("%d", ts.LongPeriod)+"PeriodEMA", yellowLine)
 	p.Legend.Add("Buy Signals", buyScatter)
 	p.Legend.Add("Sell Signals", sellScatter)
 	p.Legend.Top = true

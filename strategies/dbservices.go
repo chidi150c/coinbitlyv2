@@ -65,6 +65,12 @@ func (dbs *RDBServices) CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, 
 		MaxQty:                   ts.MaxQty,
 		MinNotional:              ts.MinNotional,
 		StepSize:                 ts.StepSize,
+		TargetStopLoss:           ts.TargetStopLoss,
+		TargetProfit:             ts.TargetProfit,
+		TotalProfitLoss:          ts.TotalProfitLoss,
+		RiskPositionPercentage:   ts.RiskPositionPercentage,
+		ShortPeriod:              ts.ShortPeriod,
+		LongPeriod:               ts.LongPeriod,
 	}
 	if len(ts.EntryPrice) >= 1 {
 		trade.EntryCostLoss = ts.EntryCostLoss
@@ -75,7 +81,7 @@ func (dbs *RDBServices) CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, 
 	}
 
 	// Serialize the TradingSystemData object to JSON
-	appDataJSON, err := json.Marshal(trade)
+	tadeSysJSON, err := json.Marshal(trade)
 	if err != nil {
 		return 0, fmt.Errorf("Error1 marshaling TradingSystemData to JSON: %v", err)
 	}
@@ -83,7 +89,7 @@ func (dbs *RDBServices) CreateDBTradingSystem(ts *TradingSystem) (tradeID uint, 
 	request := map[string]interface{}{
 		"action": "create",
 		"entity": "trading-system",
-		"data":   json.RawMessage(appDataJSON), // RawMessage to keep it as JSON
+		"data":   json.RawMessage(tadeSysJSON), // RawMessage to keep it as JSON
 	}
 
 	// Send the message
@@ -133,7 +139,7 @@ func (dbs *RDBServices) ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, er
 	ap := model.TradingSystemData{ID: tradeID}
 
 	// Serialize the TradingSystemData object to JSON
-	appDataJSON, err := json.Marshal(ap)
+	tadeSysJSON, err := json.Marshal(ap)
 	if err != nil {
 		return nil, fmt.Errorf("Error2 marshaling TradingSystemData to JSON: %v", err)
 	}
@@ -142,7 +148,7 @@ func (dbs *RDBServices) ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, er
 	request := map[string]interface{}{
 		"action": "read",
 		"entity": "trading-system",
-		"data":   json.RawMessage(appDataJSON), // RawMessage to keep it as JSON
+		"data":   json.RawMessage(tadeSysJSON), // RawMessage to keep it as JSON
 	}
 
 	// Send the message
@@ -210,6 +216,12 @@ func (dbs *RDBServices) ReadDBTradingSystem(tradeID uint) (ts *TradingSystem, er
 	ts.MaxQty = dbts.MaxQty
 	ts.MinNotional = dbts.MinNotional
 	ts.StepSize = dbts.StepSize
+	ts.TargetStopLoss = dbts.TargetStopLoss
+	ts.TargetProfit = dbts.TargetProfit
+	ts.TotalProfitLoss = dbts.TotalProfitLoss
+	ts.RiskPositionPercentage = dbts.RiskPositionPercentage
+	ts.ShortPeriod = dbts.ShortPeriod
+	ts.LongPeriod = dbts.LongPeriod
 	fmt.Printf("%v with id: %v\n", ms, ts.ID)
 	return ts, nil
 }
@@ -259,6 +271,12 @@ func (dbs *RDBServices) UpdateDBTradingSystem(ts *TradingSystem) (err error) {
 		MaxQty:                   ts.MaxQty,
 		MinNotional:              ts.MinNotional,
 		StepSize:                 ts.StepSize,
+		TargetStopLoss:           ts.TargetStopLoss,
+		TargetProfit:             ts.TargetProfit,
+		TotalProfitLoss:          ts.TotalProfitLoss,
+		RiskPositionPercentage:   ts.RiskPositionPercentage,
+		ShortPeriod:              ts.ShortPeriod,
+		LongPeriod:               ts.LongPeriod,
 	}
 	if len(ts.EntryPrice) >= 1 {
 		trade.EntryCostLoss = ts.EntryCostLoss
@@ -269,7 +287,7 @@ func (dbs *RDBServices) UpdateDBTradingSystem(ts *TradingSystem) (err error) {
 	}
 
 	// Serialize the TradingSystemData object to JSON
-	appDataJSON, err := json.Marshal(trade)
+	tadeSysJSON, err := json.Marshal(trade)
 	if err != nil {
 		return fmt.Errorf("Error4 marshaling TradingSystemData to JSON: %v", err)
 	}
@@ -278,7 +296,7 @@ func (dbs *RDBServices) UpdateDBTradingSystem(ts *TradingSystem) (err error) {
 	request := map[string]interface{}{
 		"action": "update",
 		"entity": "trading-system",
-		"data":   json.RawMessage(appDataJSON), // RawMessage to keep it as JSON
+		"data":   json.RawMessage(tadeSysJSON), // RawMessage to keep it as JSON
 	}
 
 	// Send the message
@@ -324,10 +342,10 @@ func (dbs *RDBServices) DeleteDBTradingSystem(tradeID uint) (err error) {
 		return fmt.Errorf("Failed9 to connect to WebSocket: %v", err)
 	}
 	defer conn.Close()
-	ap := model.AppData{ID: tradeID}
+	ts := model.TradingSystemData{ID: tradeID}
 
 	// Serialize the TradingSystemData object to JSON
-	appDataJSON, err := json.Marshal(ap)
+	tadeSysJSON, err := json.Marshal(ts)
 	if err != nil {
 		return fmt.Errorf("Error5 marshaling TradingSystemData to JSON: %v", err)
 	}
@@ -336,7 +354,7 @@ func (dbs *RDBServices) DeleteDBTradingSystem(tradeID uint) (err error) {
 	request := map[string]interface{}{
 		"action": "delete",
 		"entity": "trading-system",
-		"data":   json.RawMessage(appDataJSON), // RawMessage to keep it as JSON
+		"data":   json.RawMessage(tadeSysJSON), // RawMessage to keep it as JSON
 	}
 
 	// Send the message
@@ -358,233 +376,5 @@ func (dbs *RDBServices) DeleteDBTradingSystem(tradeID uint) (err error) {
 		return fmt.Errorf("Invalid4 response format %v and resp: %v", ms, response)
 	}
 	fmt.Printf("%v\n", ms)
-	return err
-}
-func (dbs *RDBServices) CreateDBAppData(data *model.AppData) (id uint, err error) {
-	// Create a mock WebSocket connection
-	var (
-		conn *websocket.Conn
-	)
-	if strings.Contains(dbs.loadExchFrom, "Testnet") {
-		conn, _, err = websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
-	} else {
-		conn, _, err = websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
-	}
-	if err != nil {
-		return 0, fmt.Errorf("Failed12 to connect to WebSocket: %v", err)
-	}
-	defer conn.Close()
-
-	// Serialize the DBAppData object to JSON
-	appDataJSON, err := json.Marshal(data)
-	if err != nil {
-		return 0, fmt.Errorf("Error6 marshaling DBAppData to JSON: %v", err)
-	}
-
-	// Create a message (request) to send
-	request := map[string]interface{}{
-		"action": "create",
-		"entity": "app-data",
-		"data":   json.RawMessage(appDataJSON), // RawMessage to keep it as JSON
-	}
-	// Send the message
-	err = conn.WriteJSON(request)
-	if err != nil {
-		return 0, fmt.Errorf("Failed13 to send WebSocket message: %v", err)
-	}
-
-	// Receive and parse the response
-	var response map[string]interface{}
-	err = conn.ReadJSON(&response)
-	if err != nil {
-		return 0, fmt.Errorf("Failed14 to read WebSocket response: %v", err)
-	}
-
-	// Perform assertions to verify the response
-	ms, ok := response["message"].(string)
-	if !ok {
-		return 0, fmt.Errorf("Invalid5 response format %v", ms)
-	}
-	// Perform assertions to verify the response
-	uid, ok := response["data_id"].(float64)
-	if !ok {
-		return 0, fmt.Errorf("Invalid6 response format %v", id)
-	}
-	fmt.Printf("%v with id: %v\n", ms, uint(uid))
-	if !strings.Contains(ms, "successfully") {
-		return 0, fmt.Errorf("Something AppData went wrong: %v", ms)
-	}
-	return uint(uid), nil
-}
-func (dbs *RDBServices) ReadDBAppData(dataID uint) (dbts *model.AppData, err error) {
-	// Create a mock WebSocket connection
-	var (
-		conn *websocket.Conn
-	)
-	if strings.Contains(dbs.loadExchFrom, "TestnetWithDBRemote") {
-		conn, _, err = websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
-	} else if strings.Contains(dbs.loadExchFrom, "Testnet") {
-		conn, _, err = websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
-	} else {
-		conn, _, err = websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("Failed15 to connect to WebSocket: %v", err)
-	}
-	defer conn.Close()
-	ap := model.AppData{ID: dataID}
-
-	// Serialize the DBAppData object to JSON
-	appDataJSON, err := json.Marshal(ap)
-	if err != nil {
-		return nil, fmt.Errorf("Error marshaling DBAppData to JSON: %v", err)
-	}
-
-	// Create a message (request) to send
-	request := map[string]interface{}{
-		"action": "read",
-		"entity": "app-data",
-		"data":   json.RawMessage(appDataJSON), // RawMessage to keep it as JSON
-	}
-
-	// Send the message
-	err = conn.WriteJSON(request)
-	if err != nil {
-		return nil, fmt.Errorf("Failed16 to send WebSocket message: %v", err)
-	}
-
-	// Receive and parse the response
-	var response map[string]interface{}
-	err = conn.ReadJSON(&response)
-	if err != nil {
-		return nil, fmt.Errorf("Failed17 to read WebSocket response: %v", err)
-	}
-
-	// Perform assertions to verify the response
-	ms, ok := response["message"].(string)
-	if !ok {
-		return nil, fmt.Errorf("Invalid7 response format %v", ms)
-	}
-	if !strings.Contains(ms, "successfully") {
-		return nil, fmt.Errorf("Something AppData went wrong: %v", ms)
-	}
-	dbts = &model.AppData{}
-	dataByte, _ := json.Marshal(response["data"])
-	// Deserialize the WebSocket message directly into the struct
-	if err := json.Unmarshal(dataByte, dbts); err != nil {
-		return nil, fmt.Errorf("Error1 parsing WebSocket message: %v", err)
-	}
-	fmt.Printf("%v with id: %v\n", ms, dbts.ID)
-	return dbts, err
-}
-func (dbs *RDBServices) UpdateDBAppData(data *model.AppData) (err error) {
-	// Create a mock WebSocket connection
-	var (
-		conn *websocket.Conn
-	)
-	if strings.Contains(dbs.loadExchFrom, "TestnetWithDBRemote") {
-		conn, _, err = websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
-	} else if strings.Contains(dbs.loadExchFrom, "Testnet") {
-		conn, _, err = websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
-	} else {
-		conn, _, err = websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
-	}
-	if err != nil {
-		return fmt.Errorf("Failed18 to connect to WebSocket: %v", err)
-	}
-	defer conn.Close()
-
-	// Serialize the DBAppData object to JSON
-	appDataJSON, err := json.Marshal(data)
-	if err != nil {
-		return fmt.Errorf("Error6 marshaling DBAppData to JSON: %v", err)
-	}
-
-	// Create a message (request) to send
-	request := map[string]interface{}{
-		"action": "update",
-		"entity": "app-data",
-		"data":   json.RawMessage(appDataJSON), // RawMessage to keep it as JSON
-	}
-
-	// Send the message
-	err = conn.WriteJSON(request)
-	if err != nil {
-		return fmt.Errorf("Failed19 to send WebSocket message: %v", err)
-	}
-
-	// Receive and parse the response
-	var response map[string]interface{}
-	err = conn.ReadJSON(&response)
-	if err != nil {
-		return fmt.Errorf("Failed20 to read WebSocket response: %v", err)
-	}
-
-	// Perform assertions to verify the response
-	ms, ok := response["message"].(string)
-	if !ok {
-		return fmt.Errorf("Invalid8 response format %v and resp: %v", ms, response)
-	}
-	// Perform assertions to verify the response
-	uid, ok := response["data_id"].(float64)
-	if !ok {
-		return fmt.Errorf("Invalid2 response format %v ", uid)
-	}
-	if !strings.Contains(ms, "successfully") {
-		return fmt.Errorf("Something1a TradingSystem went wrong: %v", ms)
-	}
-	fmt.Printf("%v with id: %v \n", ms, uint(uid))
-	return err
-}
-func (dbs *RDBServices) DeleteDBAppData(dataID uint) (err error) {
-	// Create a mock WebSocket connection
-	var (
-		conn *websocket.Conn
-	)
-	if strings.Contains(dbs.loadExchFrom, "TestnetWithDBRemote") {
-		conn, _, err = websocket.DefaultDialer.Dial("ws://176.58.125.70:35261/database-services/ws", nil)
-	} else if strings.Contains(dbs.loadExchFrom, "Testnet") {
-		conn, _, err = websocket.DefaultDialer.Dial("ws://localhost:35261/database-services/ws", nil)
-	} else {
-		conn, _, err = websocket.DefaultDialer.Dial("ws://my-database-app:35261/database-services/ws", nil)
-	}
-	if err != nil {
-		return fmt.Errorf("Failed21 to connect to WebSocket: %v", err)
-	}
-	defer conn.Close()
-	ap := model.AppData{ID: dataID}
-
-	// Serialize the DBAppData object to JSON
-	appDataJSON, err := json.Marshal(ap)
-	if err != nil {
-		return fmt.Errorf("Error7 marshaling DBAppData to JSON: %v", err)
-	}
-
-	// Create a message (request) to send
-	request := map[string]interface{}{
-		"action": "delete",
-		"entity": "app-data",
-		"data":   json.RawMessage(appDataJSON), // RawMessage to keep it as JSON
-	}
-
-	// Send the message
-	err = conn.WriteJSON(request)
-	if err != nil {
-		return fmt.Errorf("Failed22 to send WebSocket message: %v", err)
-	}
-
-	// Receive and parse the response
-	var response map[string]interface{}
-	err = conn.ReadJSON(&response)
-	if err != nil {
-		return fmt.Errorf("Failed23 to read WebSocket response: %v", err)
-	}
-
-	// Perform assertions to verify the response
-	ms, ok := response["message"].(string)
-	if !ok {
-		return fmt.Errorf("Invalid9 response format %v and resp: %v", ms, response)
-	}
-	fmt.Printf("tradrID in uint correct: %v\n", ms)
 	return err
 }
