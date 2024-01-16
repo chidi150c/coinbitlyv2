@@ -214,6 +214,12 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom string
 				MaxQty:                   ts.MaxQty,
 				MinNotional:              ts.MinNotional,
 				StepSize:                 ts.StepSize,
+				TargetStopLoss:           ts.TargetStopLoss,
+				TargetProfit:             ts.TargetProfit,
+				TotalProfitLoss:          ts.TotalProfitLoss,
+				RiskPositionPercentage:   ts.RiskPositionPercentage,
+				ShortPeriod:              ts.ShortPeriod,
+				LongPeriod:               ts.LongPeriod,
 			}
 			if len(ts.EntryPrice) > 0 {
 				trade.EntryCostLoss = ts.EntryCostLoss
