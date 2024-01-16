@@ -65,7 +65,6 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string) TradeHandler
 	}
 	h.mux.Get("/ImageReceiver/ws", h.ImageReceiverHandler)
 	h.mux.Get("/FeedsTradingSystem/ws", h.realTimeTradingSystemFeed)
-	h.mux.Get("/FeedsAppData/ws", h.realTimeAppDataFeed)
 	h.mux.Post("/updateZoom", h.updateZoomHandler)
 	// Add an OPTIONS route for /updateZoom
 	h.mux.Options("/updateZoom", func(w http.ResponseWriter, r *http.Request) {
@@ -111,7 +110,7 @@ func (h TradeHandler) updateZoomHandler(w http.ResponseWriter, r *http.Request) 
 	// log.Printf("Zoom = %d\n", zoomValue.Zoom)
 
 	// Regenerate the image with the updated zoom
-	err := h.ts.Reporting(<-h.ts.MDChan, "zoomimg")
+	err := h.ts.Reporting("zoomimg")
 	if err != nil {
 		log.Printf("Error repoting zoom at handler %v", err)
 		http.Error(w, "Failed to generate zoomed image", http.StatusInternalServerError)
@@ -122,33 +121,6 @@ func (h TradeHandler) updateZoomHandler(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h TradeHandler) realTimeAppDataFeed(w http.ResponseWriter, r *http.Request) {
-	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		http.Error(w, "Failed to upgrade connection to WebSocket", http.StatusInternalServerError)
-		log.Println("realTimeAppDataFeed: WebSocket upgrade error:", err)
-		return
-	}
-	// log.Println("realTimeAppDataFeed: WebSocket Connected!!!")
-	defer conn.Close()
-	var AppDataJSON []byte
-	// h.ts.ADataChan = make(chan []byte)
-Loop:
-	for {
-		select {
-		case <-time.After(time.Second * 10):
-			break Loop
-		case AppDataJSON = <-h.ts.ADataChan:
-			// Send the JSON data to the WebSocket client
-			if err = conn.WriteMessage(websocket.TextMessage, AppDataJSON); err != nil {
-				log.Println("realTimeAppDataFeed1: WebSocket write error:", err)
-				break Loop
-			}
-		}
-	}
-	log.Println("realTimeAppDataFeed: going away!!!")
-	return
-}
 func (h TradeHandler) realTimeTradingSystemFeed(w http.ResponseWriter, r *http.Request) {
 	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
