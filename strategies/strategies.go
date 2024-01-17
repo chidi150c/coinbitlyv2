@@ -1186,7 +1186,7 @@ func (ts *TradingSystem) AIAnalysis(dp *model.DataPoint, Action string) (buySign
 	var prediction model.PredictionResponse
 	err = json.Unmarshal(responseData, &prediction)
 	if err != nil {
-		ts.Log.Printf("Error occurred during unmarshaling of AI Model!!!. Error: %s", err.Error())
+		ts.Log.Printf("Error occurred during unmarshaling of AI Model!!!. Error: %s jsonResp = %v jsonRequest = %v", err.Error(), responseData, jsonData)
 		return true, true
 	}
 
