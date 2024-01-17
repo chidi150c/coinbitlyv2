@@ -1365,10 +1365,10 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint, Action st
 				volumes []float64
 			)
 			for k, v := range HD{
-				highs[k] = v.High
-				lows[k] = v.Low
-				closes[k] = v.Close
-				volumes[k] = v.Volume
+				highs = append(highs, v.High)
+				lows = append(lows, v.Low)
+				closes = append(closes, v.Close)
+				volumes = append(volumes, v.Volume)
 			}
 			dataPoint.ATR = AverageTrueRange(highs, lows, closes, len(HD))
 			dataPoint.OBV =	OnBalanceVolume(closes, volumes)
