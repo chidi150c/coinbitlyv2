@@ -1364,7 +1364,7 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint, Action st
 				closes []float64 
 				volumes []float64
 			)
-			for k, v := range HD{
+			for _, v := range HD{
 				highs = append(highs, v.High)
 				lows = append(lows, v.Low)
 				closes = append(closes, v.Close)
