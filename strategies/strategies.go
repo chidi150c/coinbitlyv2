@@ -1184,8 +1184,8 @@ func (ts *TradingSystem) AIAnalysis(dp *model.DataPoint, Action string) (buySign
 	}
 
 	
-	// Log raw response data for debugging
-	ts.Log.Printf("Raw response data: %s", string(responseData))
+	// // Log raw response data for debugging
+	// ts.Log.Printf("Raw response data: %s", string(responseData))
 
 	// Unmarshal the response data into PredictionResponse struct
 	var prediction model.PredictionResponse
