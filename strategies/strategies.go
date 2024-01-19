@@ -1154,7 +1154,7 @@ func (ts *TradingSystem) RiskManagement(dp *model.DataPoint) {
 }
 func (ts *TradingSystem) AIAnalysis(dp *model.DataPoint, Action string) (buySignal, sellSignal bool) {
 	// Create an instance of DataPointRequest and populate it with data
-	if strings.Contains(ts.RDBServices.loadExchFrom, "TestnetWithOutAI") || true{
+	if strings.Contains(ts.RDBServices.loadExchFrom, "TestnetWithOutAI"){
 		ts.Log.Printf("ATAnalysis reached with: %v", dp)
 		return true, true
 	}
