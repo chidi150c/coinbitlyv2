@@ -49,9 +49,9 @@ func main() {
     ts.CSVWriter = csv.NewWriter(appfile)
 	// // Write headers to the CSV file
 	headers := []string{
-    	// "Date","DiffL95S15","DiffL8S4","RoCL8","RoCS4","MA5DiffL95S15","MA5DiffL8S4","StdDevL95",
-		// "StdDevS15","LaggedL95EMA","LaggedS15EMA","ProfitLoss","CurrentPrice","StochRSI",
-		// "SmoothKRSI","MACDLine","MACDSigLine","MACDHist","OBV","ATR","Label",
+    	"Date","DiffL95S15","DiffL8S4","RoCL8","RoCS4","MA5DiffL95S15","MA5DiffL8S4","StdDevL95",
+		"StdDevS15","LaggedL95EMA","LaggedS15EMA","ProfitLoss","CurrentPrice","StochRSI",
+		"SmoothKRSI","MACDLine","MACDSigLine","MACDHist","OBV","ATR","Label",
 	}
 	err = ts.CSVWriter.Write(headers)
 	if err != nil {

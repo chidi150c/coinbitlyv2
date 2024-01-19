@@ -661,8 +661,8 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 
 func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 	// Execute the trade if entry conditions are met.
-	passed := false
 	v := 0.0
+	passed := false
 	targetCrossed := false
 	if len(ts.NextInvestBuYPrice) > 0 {
 		if ts.CurrentPrice <= ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] {
@@ -671,7 +671,12 @@ func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 	} else {
 		targetCrossed = true
 	}
-	if targetCrossed && ts.EntryRule(dp, "Entry") {
+
+	///////////////////////////////////////////////////////////////
+	strategy := ts.StrategyProcessing(dp)
+	////////////////////////////////////////////////////////////////
+
+	if (strategy == "buy") && targetCrossed {
 		// Execute the buy order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(dp, "Buy")
 		if err != nil {
@@ -687,10 +692,7 @@ func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 		}
 		// Close the trade if exit conditions are met.
 		passed = true
-	} else if targetCrossed {
-		passed = true                           //To takecare of EMA Calculation and Grphing
-		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
-	}
+	} 
 	targetCrossed = false
 	for ts.Index, v = range ts.NextProfitSeLLPrice {
 		if ts.CurrentPrice > v {
@@ -699,7 +701,7 @@ func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 		}
 	}
 	ts.RiskFactor = float64(ts.Index)
-	if targetCrossed && ts.ExitRule(dp, "Exit") {
+	if (strategy == "sell") && targetCrossed{
 		// Execute the sell order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(dp, "Sell")
 		if err != nil {
@@ -714,8 +716,7 @@ func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 		}
 		passed = true
 	}
-	if !passed {
-		ts.EntryRule(dp, "bypass")              //To takecare of EMA Calculation and Grphing
+	if (strategy == "hold") || (!passed){                   //To takecare of EMA Calculation and Grphing
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
 	dp.ProfitLoss = ts.TotalProfitLoss
@@ -1152,7 +1153,7 @@ func (ts *TradingSystem) RiskManagement(dp *model.DataPoint) {
 		ts.TargetStopLoss = mainValue * 0.007
 	}
 }
-func (ts *TradingSystem) AIAnalysis(dp *model.DataPoint, Action string) (buySignal, sellSignal bool) {
+func (ts *TradingSystem) AIAnalysis(dp *model.DataPoint) (buySignal, sellSignal bool) {
 	// Create an instance of DataPointRequest and populate it with data
 	if strings.Contains(ts.RDBServices.loadExchFrom, "TestnetWithOutAI"){
 		ts.Log.Printf("ATAnalysis reached with: %v", dp)
@@ -1196,7 +1197,7 @@ func (ts *TradingSystem) AIAnalysis(dp *model.DataPoint, Action string) (buySign
 	}
 
 	// Use the prediction as needed
-	ts.Log.Printf("Received prediction: %d ts.DataPoint %d ts.CurrentPrice %.8f, Action %s", prediction.Prediction, ts.DataPoint, ts.CurrentPrice, Action)
+	ts.Log.Printf("Received prediction: %d ts.DataPoint %d ts.CurrentPrice %.8f", prediction.Prediction, ts.DataPoint, ts.CurrentPrice)
 
 	if prediction.Prediction == -1 {
 		return false, true
@@ -1209,7 +1210,7 @@ func (ts *TradingSystem) AIAnalysis(dp *model.DataPoint, Action string) (buySign
 // TechnicalAnalysis(): This function performs technical analysis using the
 // calculated moving averages (short and long EMA), RSI, MACD line, and Bollinger
 // Bands. It determines the buy and sell signals based on various strategy rules.
-func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint, Action string) (buySignal, sellSignal bool) {
+func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySignal, sellSignal bool) {
 	var HD []model.Candle
 	ch0 := make(chan bool)
 	go func (ch0 chan bool)  {
@@ -1385,42 +1386,29 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint, Action st
 		dataPoint.DiffL95S15 = L95EMA0 - S15EMA0
 		dataPoint.DiffL8S4 = L8EMA0 - S4EMA0
 
-		if Action == "Entry" {
-			if (ts.CrossUPTime != time.Time{}) && (ts.CurrentPrice < S15EMA0) {
-				buySignal = true
-				dataPoint.Label = 1
-				ts.Log.Printf("TAB1 Signalled: BuY: at currentPrice: %.8f, CrossL95S15UP %v Secs", ts.CurrentPrice, time.Since(ts.CrossUPTime).Seconds())
-			} else if (MarketUpGoingUp && PriceDownGoingUp) || (MarketDownGoingUp && PriceUpGoingUp) {
-				buySignal = true
-				dataPoint.Label = 1
-				ts.Log.Printf("TAB3 Signalled: BuY: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
-			} else if MarketDownGoneDown {
-				buySignal = true
-				dataPoint.Label = 1
-				ts.Log.Printf("TAB4 Signalled: BuY: at currentPrice: %.8f, MarketDownGoneDown: %v,  DiffL95S15: %.8f", ts.CurrentPrice, MarketDownGoneDown, math.Abs(dataPoint.DiffL95S15))
-			} else {
-				dataPoint.Label = 0
-				ts.Log.Printf("TAB0 Signalled: Missed BuY: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v ((L95EMA0-S15EMA0) * 1.75 = %.8f < S15EMA0-ts.CurrentPrice = %.8f) = %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown, (L95EMA0-S15EMA0)*1.75, S15EMA0-ts.CurrentPrice, ((L95EMA0-S15EMA0)*1.75 < S15EMA0-ts.CurrentPrice))
-			}
+	//BUY CONDITION
+		if (ts.CrossUPTime != time.Time{}) && (ts.CurrentPrice < S15EMA0) {
+			buySignal = true
+			ts.Log.Printf("TAB1 Signalled: BuY: at currentPrice: %.8f, CrossL95S15UP %v Secs", ts.CurrentPrice, time.Since(ts.CrossUPTime).Seconds())
+		} else if (MarketUpGoingUp && PriceDownGoingUp) || (MarketDownGoingUp && PriceUpGoingUp) {
+			buySignal = true
+			ts.Log.Printf("TAB3 Signalled: BuY: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
+		} else if MarketDownGoneDown {
+			buySignal = true
+			ts.Log.Printf("TAB4 Signalled: BuY: at currentPrice: %.8f, MarketDownGoneDown: %v,  DiffL95S15: %.8f", ts.CurrentPrice, MarketDownGoneDown, math.Abs(dataPoint.DiffL95S15))
+		
+	//SELL CONDITION
+		}else if (MarketUpGoingDown && PriceDownGoingDown) || (MarketDownGoingDown && PriceUpGoingDown) {
+			sellSignal = true
+			ts.Log.Printf("TAS3 Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
+		} else if MarketUpGoneUp {
+			sellSignal = true
+			ts.Log.Printf("TAS4 Signalled: SeLL: at currentPrice: %.8f, MarketUpGoneUp: %v, DiffL95S15: %.8f", ts.CurrentPrice, MarketUpGoneUp, math.Abs(dataPoint.DiffL95S15))
+		} else {
+			ts.Log.Printf("TA0 Signalled: Missed: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
 		}
-		if Action == "Exit" {
-			if (MarketUpGoingDown && PriceDownGoingDown) || (MarketDownGoingDown && PriceUpGoingDown) {
-				sellSignal = true
-				dataPoint.Label = -1
-				ts.Log.Printf("TAS3 Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
-			} else if MarketUpGoneUp {
-				sellSignal = true
-				dataPoint.Label = -1
-				ts.Log.Printf("TAS4 Signalled: SeLL: at currentPrice: %.8f, MarketUpGoneUp: %v, DiffL95S15: %.8f", ts.CurrentPrice, MarketUpGoneUp, math.Abs(dataPoint.DiffL95S15))
-			} else {
-				dataPoint.Label = 0
-				ts.Log.Printf("TAS0 Signalled: Missed SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
-			}
-		}
-		if Action == "bypass" {
-			dataPoint.Label = 0
-			ts.Log.Printf("TAS00 Signalled: HoLD: at currentPrice: %.8f, MarketUpGoneUp: %v, MarketDownGoneDown: %v, DiffL95S15: %.8f", ts.CurrentPrice, MarketUpGoneUp, MarketDownGoneDown, math.Abs(dataPoint.DiffL95S15))
-		}
+	
+		
 		// Lagged Features (1-day lag)
 		if ts.DataPoint > 0 {
 			dataPoint.LaggedL95EMA = long95EMA[ts.DataPoint-1]
@@ -1562,19 +1550,21 @@ func (ts *TradingSystem) FundamentalAnalysis() (buySignal, sellSignal bool) {
 }
 
 // EntryRule defines the entry conditions for a trade.
-func (ts *TradingSystem) EntryRule(dataPoint *model.DataPoint, Action string) bool {
+func (ts *TradingSystem) StrategyProcessing(dataPoint *model.DataPoint) string {
 	// Combine the results of technical and fundamental analysis to decide entry conditions.
-	technicalBuy, _ := ts.TechnicalAnalysis(dataPoint, Action)
-	AIBuy, _ := ts.AIAnalysis(dataPoint, Action)
-	return technicalBuy && AIBuy
-}
-
-// ExitRule defines the exit conditions for a trade.
-func (ts *TradingSystem) ExitRule(dataPoint *model.DataPoint, Action string) bool {
-	// Combine the results of technical and fundamental analysis to decide exit conditions.
-	_, technicalSell := ts.TechnicalAnalysis(dataPoint, Action)
-	_, AISell := ts.AIAnalysis(dataPoint, Action)
-	return technicalSell && AISell
+	technicalBuy, technicalSell := ts.TechnicalAnalysis(dataPoint)
+	AIBuy, AISell := ts.AIAnalysis(dataPoint)
+	_, _ = AIBuy, AISell
+	if technicalBuy{
+		dataPoint.Label = 1
+		return "buy"
+	}else if technicalSell{
+		dataPoint.Label = -1
+		return "sell"
+	}else {
+		dataPoint.Label = 0
+		return "hold"
+	}
 }
 
 func (ts *TradingSystem) Reporting(from string) error {
