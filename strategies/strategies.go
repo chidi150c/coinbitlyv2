@@ -1361,8 +1361,8 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 		}(ch2)
 		go func(ch3 chan bool) {
 			// Historical Trends
-			dataPoint.RoCL8, _ = CalculateROC(long8EMA, 12)
-			dataPoint.RoCS4, _ = CalculateROC(short4EMA, 12)
+			dataPoint.RoCL8, _ = CalculateROC(ema4, 12)
+			dataPoint.RoCS4, _ = CalculateROC(ema4, 12)
 			<-ch0
 			var (
 				highs []float64
@@ -1411,8 +1411,9 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 		
 		// Lagged Features (1-day lag)
 		if ts.DataPoint > 0 {
-			dataPoint.LaggedL95EMA = long95EMA[ts.DataPoint-1]
-			dataPoint.LaggedS15EMA = short15EMA[ts.DataPoint-1]
+			// Assume ema95 is your calculated 95-period EMA slice
+			dataPoint.LaggedL95EMA = getLaggedValue(long95EMA, 15)
+			dataPoint.LaggedS15EMA = getLaggedValue(short15EMA, 15)
 		}
 		dataPoint.Date = time.Now()
 		<-ch1
@@ -1455,6 +1456,14 @@ func rollingMean(data []float64, window int) float64 {
 	data = data[len(data)-window:]
 
 	return stat.Mean(data, nil)
+}
+
+func getLaggedValue(ema []float64, lag int) float64 {
+    if len(ema) > lag {
+        // Return the value 'lag' periods ago
+        return ema[len(ema)-1-lag]
+    }
+    return 0.0 // or handle this case as needed
 }
 
 // Function to calculate rolling standard deviation with handling for NaN
