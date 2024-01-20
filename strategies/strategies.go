@@ -1349,8 +1349,10 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 
 		go func(ch1 chan bool) {
 			// Moving Averages of Differences
-			dataPoint.MA5DiffL95S15 = rollingMean(rollingDiff(long95EMA[len(long95EMA)-window:], short15EMA[len(short15EMA)-window:]), window)
-			dataPoint.MA5DiffL8S4 = rollingMean(rollingDiff(long8EMA[len(long8EMA)-window:], short4EMA[len(short4EMA)-window:]), window)
+			// Calculate Moving Average of Differential
+			MA5Diff := calculateMovingAverage(rollingDiff(long95EMA[len(long95EMA)-window:], short15EMA[len(short15EMA)-window:]), 5)
+			dataPoint.MA5DiffL95S15 = MA5Diff[len(MA5Diff)-1]
+			dataPoint.MA5DiffL8S4 = MA5Diff[len(MA5Diff)-2]
 			ch1 <- true
 		}(ch1)
 		go func(ch2 chan bool) {
@@ -1386,6 +1388,15 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 		dataPoint.DiffL95S15 = L95EMA0 - S15EMA0
 		dataPoint.DiffL8S4 = L8EMA0 - S4EMA0
 
+		// Lagged Features (1-day lag)
+		if ts.DataPoint > 0 {
+			// Assume ema95 is your calculated 95-period EMA slice
+			dataPoint.LaggedL95EMA = getLaggedValue(long95EMA, 15)
+			dataPoint.LaggedS15EMA = getLaggedValue(short15EMA, 15)
+		}
+		dataPoint.Date = time.Now()
+		<-ch1
+
 	//BUY CONDITION
 		if (ts.CrossUPTime != time.Time{}) && (ts.CurrentPrice < S15EMA0) {
 			buySignal = true
@@ -1396,6 +1407,9 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 		} else if MarketDownGoneDown {
 			buySignal = true
 			ts.Log.Printf("TAB4 Signalled: BuY: at currentPrice: %.8f, MarketDownGoneDown: %v,  DiffL95S15: %.8f", ts.CurrentPrice, MarketDownGoneDown, math.Abs(dataPoint.DiffL95S15))
+		} else if dataPoint.MA5DiffL95S15 > 0 && dataPoint.MA5DiffL8S4 <= 0 {
+			buySignal = true
+			ts.Log.Printf("TAB5 Signalled: BuY: at currentPrice: %.8f, (MA5DiffL95S15 %.8f > 0 && MA5DiffL8S4 %.8f <= 0) = %v ", ts.CurrentPrice, dataPoint.MA5DiffL95S15, dataPoint.MA5DiffL8S4, (dataPoint.MA5DiffL95S15 > 0 && dataPoint.MA5DiffL8S4 <= 0))
 		
 	//SELL CONDITION
 		}else if (MarketUpGoingDown && PriceDownGoingDown) || (MarketDownGoingDown && PriceUpGoingDown) {
@@ -1404,19 +1418,12 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 		} else if MarketUpGoneUp {
 			sellSignal = true
 			ts.Log.Printf("TAS4 Signalled: SeLL: at currentPrice: %.8f, MarketUpGoneUp: %v, DiffL95S15: %.8f", ts.CurrentPrice, MarketUpGoneUp, math.Abs(dataPoint.DiffL95S15))
+		} else if dataPoint.MA5DiffL95S15 < 0 && dataPoint.MA5DiffL8S4 >= 0 {
+			sellSignal = true
+			ts.Log.Printf("TAS5 Signalled: SeLL: at currentPrice: %.8f, (MA5DiffL95S15 %.8f < 0 && MA5DiffL8S4 %.8f >= 0) = %v", ts.CurrentPrice, dataPoint.MA5DiffL95S15, dataPoint.MA5DiffL8S4, (dataPoint.MA5DiffL95S15 < 0 && dataPoint.MA5DiffL8S4 >= 0))
 		} else {
 			ts.Log.Printf("TA0 Signalled: Missed: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
 		}
-	
-		
-		// Lagged Features (1-day lag)
-		if ts.DataPoint > 0 {
-			// Assume ema95 is your calculated 95-period EMA slice
-			dataPoint.LaggedL95EMA = getLaggedValue(long95EMA, 15)
-			dataPoint.LaggedS15EMA = getLaggedValue(short15EMA, 15)
-		}
-		dataPoint.Date = time.Now()
-		<-ch1
 		<-ch2
 		<-ch3
 		<-otherTAChan
@@ -1424,6 +1431,30 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 	}
 	return buySignal, sellSignal
 }
+// Function to calculate moving average
+func calculateMovingAverage(data []float64, period int) []float64 {
+    ma := make([]float64, len(data))
+    var sum float64
+
+    for i := 0; i < period; i++ {
+        sum += data[i]
+        ma[i] = sum / float64(i+1)
+    }
+
+    for i := period; i < len(data); i++ {
+        sum += data[i] - data[i-period]
+        ma[i] = sum / float64(period)
+    }
+
+    return ma
+}
+		
+		// Incorporate in trading logic
+		// if currentEMA15 > laggedEMA95 {
+		// 	// Possible buy signal
+		// } else if currentEMA15 < laggedEMA95 {
+		// 	// Possible sell signal
+		// }
 
 		//Stochastic RSI	
 		// buySignal = (stochRSI[ts.DataPoint] > ts.StRSIOverbought && smoothKRSI[ts.DataPoint-md.StochRSIPeriod-md.SmoothK] > ts.StRSIOverbought)
