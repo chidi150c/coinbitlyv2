@@ -681,13 +681,16 @@ func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 		resp, err := ts.ExecuteStrategy(dp, "Buy")
 		if err != nil {
 			// fmt.Println("Error executing buy order:", err)
+			dp.Label2 = 0
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 		} else if strings.Contains(resp, "BUY") {
 			// Record Signal for plotting graph later
+			dp.Label2 = 1
 			ts.Signals = append(ts.Signals, "Buy")
 			ts.Log.Println(resp)
 			ts.TradeCount++
 		} else {
+			dp.Label2 = 0
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Positio
 		}
 		// Close the trade if exit conditions are met.
@@ -705,18 +708,22 @@ func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 		// Execute the sell order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(dp, "Sell")
 		if err != nil {
+			dp.Label2 = 0
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 		} else if strings.Contains(resp, "SELL") {
 			// Record Signal for plotting graph later.
+			dp.Label2 = -1
 			ts.Signals = append(ts.Signals, "Sell")
 			ts.Log.Println(resp)
 			ts.TradeCount++
 		} else {
+			dp.Label2 = 0
 			ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 		}
 		passed = true
 	}
 	if (strategy == "hold") || (!passed){                   //To takecare of EMA Calculation and Grphing
+		dp.Label2 = 0
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
 	dp.ProfitLoss = ts.TotalProfitLoss
@@ -1200,10 +1207,13 @@ func (ts *TradingSystem) AIAnalysis(dp *model.DataPoint) (buySignal, sellSignal 
 	ts.Log.Printf("Received prediction: %d ts.DataPoint %d ts.CurrentPrice %.8f", prediction.Prediction, ts.DataPoint, ts.CurrentPrice)
 
 	if prediction.Prediction == -1 {
+		dp.Label2 = -1
 		return false, true
 	} else if prediction.Prediction == 1 {
+		dp.Label2 = 1
 		return true, false
 	}
+	dp.Label2 = 0
 	return false, false
 }
 
