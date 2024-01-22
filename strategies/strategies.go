@@ -481,6 +481,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		ts.DataPoint++
 		ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 		ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
+		dataPoint.Date = time.Now()
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		ts.Trading(dataPoint, loadExchFrom)
@@ -498,7 +499,6 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			return
 		}
 		if (len(ts.EntryPrice) > 0) && ((ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] > ts.CurrentPrice) || (ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < ts.CurrentPrice)) {
-			// time.Sleep(ts.EpochTime / 5)
 			if !ts.InTrade {
 				ts.LowestPrice = math.MaxFloat64
 				ts.StartTime = time.Now()
@@ -506,9 +506,8 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 				ts.StartTime = time.Now()
 				ts.HighestPrice = 0.0
 			}
-		} else {
-			time.Sleep(ts.EpochTime)
 		}
+		
 		if (len(ts.EntryPrice) > 0) && (ts.LowestPrice > ts.CurrentPrice) {
 			ts.LowestPrice = ts.CurrentPrice
 		}
@@ -550,6 +549,10 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		} else {
 			ts.RiskPositionPercentage = ts.HighestPrice // Define risk management parameter 5% balance
 		}
+		if time.Since(dataPoint.Date) > time.Minute{
+			ts.Log.Printf("Time inconsistency as interval %.2fsecs is significantly larger than 60secs", time.Since(dataPoint.Date).Seconds())
+		}
+		time.Sleep(ts.EpochTime-(time.Since(dataPoint.Date)))
 	}
 }
 func deleteElement(slice []float64, index int) []float64 {
@@ -1404,7 +1407,6 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 			dataPoint.LaggedL95EMA = getLaggedValue(long95EMA, 15)
 			dataPoint.LaggedS15EMA = getLaggedValue(short15EMA, 15)
 		}
-		dataPoint.Date = time.Now()
 		<-ch1
 
 	//BUY CONDITION
