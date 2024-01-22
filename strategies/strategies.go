@@ -498,7 +498,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			return
 		}
 		if (len(ts.EntryPrice) > 0) && ((ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] > ts.CurrentPrice) || (ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] < ts.CurrentPrice)) {
-			time.Sleep(ts.EpochTime / 5)
+			// time.Sleep(ts.EpochTime / 5)
 			if !ts.InTrade {
 				ts.LowestPrice = math.MaxFloat64
 				ts.StartTime = time.Now()
