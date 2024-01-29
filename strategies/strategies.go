@@ -486,10 +486,10 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		ts.Trading(dataPoint, loadExchFrom)
 
-		err = ts.DataPointtoCSV(dataPoint)
-		if err != nil {
-			fmt.Printf("Error creating Writing to CSV File %v", err)
-		}
+		// err = ts.DataPointtoCSV(dataPoint)
+		// if err != nil {
+		// 	fmt.Printf("Error creating Writing to CSV File %v", err)
+		// }
 
 		ts.TickerQueueAdjustment() //At this point you have all three(ts.ClosingPrices, ts.Timestamps and ts.Signals) assigned
 
@@ -637,10 +637,10 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 
 		ts.Trading(dataPoint, loadExchFrom)
 
-		err = ts.DataPointtoCSV(dataPoint)
-		if err != nil {
-			fmt.Printf("Error creating Writing to CSV File %v", err)
-		}
+		// err = ts.DataPointtoCSV(dataPoint)
+		// if err != nil {
+		// 	fmt.Printf("Error creating Writing to CSV File %v", err)
+		// }
 		// time.Sleep(ts.EpochTime)
 	}
 	err = ts.Reporting("Backtesting")
@@ -732,8 +732,6 @@ func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 	dp.ProfitLoss = ts.TotalProfitLoss
 	dp.ProfitLoss = ts.TotalProfitLoss
 	dp.CurrentPrice = ts.CurrentPrice
-	ts.TargetProfit = ts.TargetProfit
-	ts.TargetStopLoss = ts.TargetStopLoss
 }
 
 // ExecuteStrategy executes the trade based on the provided trade action and current price.
@@ -1605,8 +1603,8 @@ func (ts *TradingSystem) FundamentalAnalysis() (buySignal, sellSignal bool) {
 func (ts *TradingSystem) StrategyProcessing(dataPoint *model.DataPoint) string {
 	// Combine the results of technical and fundamental analysis to decide entry conditions.
 	technicalBuy, technicalSell := ts.TechnicalAnalysis(dataPoint)
-	AIBuy, AISell := ts.AIAnalysis(dataPoint)
-	_, _ = AIBuy, AISell
+	// AIBuy, AISell := ts.AIAnalysis(dataPoint)
+	// _, _ = AIBuy, AISell
 	if technicalBuy{
 		dataPoint.Label = 1
 		return "buy"
