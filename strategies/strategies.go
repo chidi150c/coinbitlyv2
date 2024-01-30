@@ -657,7 +657,7 @@ func (ts *TradingSystem) Backtest(loadExchFrom string) {
 	ts.ShutDown(sigchnl)
 
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Backtest: ", err)
 	}
 
 }

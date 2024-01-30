@@ -375,6 +375,6 @@ func (dbs *RDBServices) DeleteDBTradingSystem(tradeID uint) (err error) {
 	if !ok {
 		return fmt.Errorf("Invalid4 response format %v and resp: %v", ms, response)
 	}
-	fmt.Printf("%v\n", ms)
+	fmt.Printf("DeleteDBTradingSystem: %v\n", ms)
 	return err
 }

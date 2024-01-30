@@ -164,7 +164,7 @@ func (h TradeHandler) ImageReceiverHandler(w http.ResponseWriter, r *http.Reques
 		imagePath := "./webclient/assets/line_chart_with_signals.png"
 		imageData, err := loadImageData(imagePath)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Unable to loag ImageData", err)
 			return
 		}
 
