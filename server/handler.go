@@ -122,6 +122,7 @@ func (h TradeHandler) updateZoomHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h TradeHandler) realTimeTradingSystemFeed(w http.ResponseWriter, r *http.Request) {
+	log.Println("realTimeTradingSystemFeed: WebSocket upgrade")
 	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, "Failed to upgrade connection to WebSocket", http.StatusInternalServerError)
