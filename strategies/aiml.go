@@ -39,7 +39,6 @@ func (ts *TradingSystem)DataPointtoCSV(data *model.DataPoint)error { //fundament
 		fmt.Sprintf("%f", data.ATR),
 		fmt.Sprintf("%d", data.Label),
 		fmt.Sprintf("%d", data.Label2),
-		fmt.Sprintf("%d", data.Label3),
 	})
 	if err != nil {
         ts.Log.Printf("Writing Data to CSV ERROR %v", err)

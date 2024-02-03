@@ -31,7 +31,6 @@ type DataPoint struct {
 	ATR float64
 	Label           int
 	Label2          int
-	Label3          int
 }
 	// CrossL95S15DN     bool
 	// CrossL8S4UP     bool

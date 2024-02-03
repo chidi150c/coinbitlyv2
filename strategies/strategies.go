@@ -482,6 +482,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		ts.ClosingPrices = append(ts.ClosingPrices, ts.CurrentPrice)
 		ts.Timestamps = append(ts.Timestamps, time.Now().Unix())
 		dataPoint.Date = time.Now()
+		ts.EpochTime = time.Second * 60
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		//Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading Trading
 		ts.Trading(dataPoint, loadExchFrom)
@@ -544,6 +545,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 				}
 			}
 		}
+		//just for UI display
 		if !ts.InTrade {
 			ts.RiskPositionPercentage = ts.LowestPrice // Define risk management parameter 5% balance
 		} else {
@@ -669,10 +671,12 @@ func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 	targetCrossed := false
 	if len(ts.NextInvestBuYPrice) > 0 {
 		if ts.CurrentPrice <= ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] {
-			targetCrossed = true
+			targetCrossed = true 
+			ts.EpochTime = time.Second * 30
 		}
 	} else {
 		targetCrossed = true
+		ts.EpochTime = time.Second * 30
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -703,6 +707,7 @@ func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 	for ts.Index, v = range ts.NextProfitSeLLPrice {
 		if ts.CurrentPrice > v {
 			targetCrossed = true
+			ts.EpochTime = time.Second * 20
 			break
 		}
 	}
