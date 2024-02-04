@@ -67,7 +67,7 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string, ag *aiagents
 		ai:        ag,
 	}
 	h.mux.Get("/ImageReceiver/ws", h.ImageReceiverHandler)
-	h.mux.Get("/generate/ws", h.GenerateContent)
+	h.mux.Get("/chat_generate", h.GenerateContent)
 	h.mux.Get("/FeedsTradingSystem/ws", h.realTimeTradingSystemFeed)
 	h.mux.Post("/updateZoom", h.updateZoomHandler)
 	// Add an OPTIONS route for /updateZoom
@@ -155,13 +155,6 @@ Loop:
 }
 
 func (h TradeHandler) GenerateContent(w http.ResponseWriter, r *http.Request) {
-	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		http.Error(w, "Failed to upgrade connection to WebSocket", http.StatusInternalServerError)
-		log.Println("ImageReceiverHandler: WebSocket upgrade error:", err)
-		return
-	}
-	defer conn.Close()
 	go h.ai.LiveChat("Flutter")
 Loop:
 	for {
@@ -170,7 +163,8 @@ Loop:
 			break Loop
 		case generated := <-h.ai.GenContentChan:
 			// Send the JSON data to the WebSocket client
-			if err = conn.WriteMessage(websocket.TextMessage, []byte(generated)); err != nil {
+			_, err := w.Write([]byte(generated))
+			if err != nil {
 				log.Println("GenerateContent: WebSocket write error:", err)
 				break Loop
 			}
