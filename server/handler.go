@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"go/constant"
 	"image"
 	"image/png"
 	"log"
