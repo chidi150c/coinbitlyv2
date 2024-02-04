@@ -24,6 +24,5 @@ func (g *AgentWorker) LiveChat(input string){
 	if err != nil{
 		log.Fatalln(err)
 	}
-	log.Println(content)
 	g.GenContentChan <-content
 }

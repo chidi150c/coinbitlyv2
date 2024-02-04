@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"go/constant"
 	"image"
 	"image/png"
 	"log"
@@ -178,6 +179,7 @@ func (h TradeHandler) GenerateContent(w http.ResponseWriter, r *http.Request) {
     // Await generated content or timeout
     select {
     case generated := <-h.ai.GenContentChan:
+		log.Println("content2 = ", generated)
         // Successfully received generated content, send it as the response
         w.Write([]byte(generated)) // Consider proper error handling here
         return // Ensure to return after writing the response

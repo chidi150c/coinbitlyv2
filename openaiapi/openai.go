@@ -109,8 +109,6 @@ func (a *OpenAI)AIModelAPI(userInput string)(string, error){
 	if err != nil {
 		return "", fmt.Errorf("Error reading the response body: %v", err)
 	}
-
-	fmt.Println("responseBody = ", string(responseBody))
 	// Parse the JSON response
 	var response OpenAIResponse
 	if err := json.Unmarshal(responseBody, &response); err != nil {
