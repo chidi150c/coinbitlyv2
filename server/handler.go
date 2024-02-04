@@ -26,6 +26,10 @@ import (
 type SocketService struct {
 	Upgrader websocket.Upgrader
 }
+// Define a struct to parse the incoming JSON request
+type RequestBody struct {
+    UserInput string `json:"user_input"`
+}
 
 // parseTemplate applies a given file to the body of the base template.
 func NewSocketService(HostSite string) SocketService {
@@ -155,24 +159,35 @@ Loop:
 }
 
 func (h TradeHandler) GenerateContent(w http.ResponseWriter, r *http.Request) {
-	go h.ai.LiveChat("Flutter")
-Loop:
-	for {
-		select {
-		case <-time.After(time.Second * 10):
-			break Loop
-		case generated := <-h.ai.GenContentChan:
-			// Send the JSON data to the WebSocket client
-			_, err := w.Write([]byte(generated))
-			if err != nil {
-				log.Println("GenerateContent: WebSocket write error:", err)
-				break Loop
-			}
-		}
-	}
-	log.Println("GenerateContent: going away!!!")
-	return
+    // Only handle POST requests
+    if r.Method != "POST" {
+        http.Error(w, "Method is not supported.", http.StatusMethodNotAllowed)
+        return
+    }
+
+    // Parse the JSON body of the request
+    var requestBody RequestBody
+    err := json.NewDecoder(r.Body).Decode(&requestBody)
+    if err != nil {
+        http.Error(w, "Error parsing JSON request body.", http.StatusBadRequest)
+        return
+    }
+
+    // Start asynchronous content generation based on user input
+    go h.ai.LiveChat(requestBody.UserInput)
+
+    // Await generated content or timeout
+    select {
+    case generated := <-h.ai.GenContentChan:
+        // Successfully received generated content, send it as the response
+        w.Write([]byte(generated)) // Consider proper error handling here
+        return // Ensure to return after writing the response
+    case <-time.After(time.Second * 10): // Timeout
+        http.Error(w, "Request timed out.", http.StatusRequestTimeout)
+        return
+    }
 }
+
 func (h TradeHandler) ImageReceiverHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
