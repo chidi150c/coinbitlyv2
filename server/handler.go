@@ -71,7 +71,7 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string, ag *aiagents
 		ai:        ag,
 	}
 	h.mux.Get("/ImageReceiver/ws", h.ImageReceiverHandler)
-	h.mux.Get("/chat_generate", h.GenerateContent)
+	h.mux.Post("/chat_generate", h.GenerateContent)
 	h.mux.Get("/FeedsTradingSystem/ws", h.realTimeTradingSystemFeed)
 	h.mux.Post("/updateZoom", h.updateZoomHandler)
 	// Add an OPTIONS route for /updateZoom
