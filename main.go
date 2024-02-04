@@ -9,7 +9,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"coinbitly.com/aiagents"
 	"coinbitly.com/config"
+	"coinbitly.com/openaiapi"
 	"coinbitly.com/server"
 	"coinbitly.com/strategies"
 )
@@ -22,9 +24,13 @@ func main() {
 	//You specify whether you're performing live trading or not 
 	liveTrading := true
  
-	config := config.NewExchangeConfigs()[loadExchFrom]
+	exchconf := config.NewExchangeConfigs()[loadExchFrom]
+
+	m := config.NewModelConfigs()["gpt3"]
+	aim := openaiapi.NewOpenAI(m.ApiKey, m.Url, m.Model, []openaiapi.Message{})
+	wkr := aiagents.NewAgentWorker(aim)
     //You're initializing your trading system using the strategies.NewTradingSystem function. 
-	ts, err := strategies.NewTradingSystem(config.BaseCurrency, liveTrading, loadExchFrom)
+	ts, err := strategies.NewTradingSystem(exchconf.BaseCurrency, liveTrading, loadExchFrom)
 	if err != nil {
 		log.Fatal("Error initializing trading system:", err)
 		return
@@ -72,7 +78,7 @@ func main() {
 	//Then, you open the server using the server.Open() method.
 	addrp := os.Getenv("PORT4")
 	hostsite := os.Getenv("HOSTSITE")
-	th := server.NewTradeHandler(ts, hostsite)
+	th := server.NewTradeHandler(ts, hostsite, wkr)
 	server := server.NewServer(addrp, th)
 
 	// Create a channel to listen for OS signals

@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"coinbitly.com/aiagents"
 	"coinbitly.com/strategies"
 	"coinbitly.com/webclient"
 	"github.com/go-chi/chi"
@@ -52,24 +53,27 @@ type TradeHandler struct {
 	WebSocket SocketService
 	HostSite  string
 	ts        *strategies.TradingSystem
+	ai        *aiagents.AgentWorker
 }
 
 //NewTradeHandler returns a new instance of *TradeHandler
-func NewTradeHandler(ts *strategies.TradingSystem, HostSite string) TradeHandler {
+func NewTradeHandler(ts *strategies.TradingSystem, HostSite string, ag *aiagents.AgentWorker) TradeHandler {
 	h := TradeHandler{
 		mux:       chi.NewRouter(),
 		RESTAPI:   webclient.NewWebService(),
 		WebSocket: NewSocketService(HostSite),
 		HostSite:  os.Getenv("HOSTSITE"),
 		ts:        ts,
+		ai:        ag,
 	}
 	h.mux.Get("/ImageReceiver/ws", h.ImageReceiverHandler)
+	h.mux.Get("/generate/ws", h.GenerateContent)
 	h.mux.Get("/FeedsTradingSystem/ws", h.realTimeTradingSystemFeed)
 	h.mux.Post("/updateZoom", h.updateZoomHandler)
 	// Add an OPTIONS route for /updateZoom
 	h.mux.Options("/updateZoom", func(w http.ResponseWriter, r *http.Request) {
 		// Add an OPTIONS route for /updateZoom
-    	w.Header().Set("Access-Control-Allow-Origin", "http://resoledge.com") //Adjust localhost:35259
+		w.Header().Set("Access-Control-Allow-Origin", "http://resoledge.com") //Adjust localhost:35259
 		w.Header().Set("Access-Control-Allow-Methods", "POST")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		w.WriteHeader(http.StatusOK)
@@ -79,7 +83,7 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string) TradeHandler
 
 //TradeHandler implements ServeHTTP method making it a Handler
 func (h TradeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-    log.Printf("Received request: %s %s", r.Method, r.URL.Path)
+	log.Printf("Received request: %s %s", r.Method, r.URL.Path)
 	if strings.HasPrefix(r.URL.Path, "/favicon.ico") {
 		http.NotFoundHandler().ServeHTTP(w, r)
 	} else if strings.HasPrefix(r.URL.Path, "/images/") {
@@ -103,7 +107,7 @@ func (h TradeHandler) updateZoomHandler(w http.ResponseWriter, r *http.Request) 
 
 	// Update the zoom parameter in your TradingSystem
 	h.ts.Mu.Lock()
-	if zoomValue.Zoom < 499 && zoomValue.Zoom > 0{
+	if zoomValue.Zoom < 499 && zoomValue.Zoom > 0 {
 		h.ts.Zoom = zoomValue.Zoom
 	}
 	h.ts.Mu.Unlock()
@@ -150,6 +154,31 @@ Loop:
 	return
 }
 
+func (h TradeHandler) GenerateContent(w http.ResponseWriter, r *http.Request) {
+	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		http.Error(w, "Failed to upgrade connection to WebSocket", http.StatusInternalServerError)
+		log.Println("ImageReceiverHandler: WebSocket upgrade error:", err)
+		return
+	}
+	defer conn.Close()
+	go h.ai.LiveChat("Flutter")
+Loop:
+	for {
+		select {
+		case <-time.After(time.Second * 10):
+			break Loop
+		case generated := <-h.ai.GenContentChan:
+			// Send the JSON data to the WebSocket client
+			if err = conn.WriteMessage(websocket.TextMessage, []byte(generated)); err != nil {
+				log.Println("GenerateContent: WebSocket write error:", err)
+				break Loop
+			}
+		}
+	}
+	log.Println("GenerateContent: going away!!!")
+	return
+}
 func (h TradeHandler) ImageReceiverHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
 	if err != nil {

@@ -22,7 +22,12 @@ type ExchConfig struct {
 	CandleEndTime   int64
 	InitialCapital  float64
 }
-
+type ModelConfig struct{	
+    UserInput string
+	ApiKey string
+	Url string
+	Model string
+}
 const (
 	timeRange int = -1
 )
@@ -105,4 +110,14 @@ func NewExchangeConfigs() map[string]*ExchConfig {
 		},
 	}
 	return ExchConfigs
+}
+func NewModelConfigs() map[string]ModelConfig{
+	return map[string]ModelConfig{
+		"gpt3": {
+			UserInput : "your_topic_here", // Replace with your actual input
+			ApiKey : os.Getenv("OPENAI_API_KEY"), // Ensure you have set your API key in your environment variables
+			Url : "https://api.openai.com/v1/chat/completions",
+			Model: "gpt-3.5-turbo",
+		},
+	}
 }
