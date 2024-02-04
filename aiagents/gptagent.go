@@ -23,6 +23,7 @@ func (g *AgentWorker) LiveChat(input string){
 	content, err := g.Agent.AIModelAPI(input)
 	if err != nil{
 		log.Fatalln(err)
-	}	
+	}
+	log.Println(content)
 	g.GenContentChan <-content
 }
