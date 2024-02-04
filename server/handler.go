@@ -172,7 +172,6 @@ func (h TradeHandler) GenerateContent(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Error parsing JSON request body.", http.StatusBadRequest)
         return
     }
-	log.Println("userinput = ", requestBody.UserInput)
     // Start asynchronous content generation based on user input
     go h.ai.LiveChat(requestBody.UserInput)
 
