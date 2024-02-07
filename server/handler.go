@@ -73,30 +73,11 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string, ag *aiagents
 	}
 	// Create a CORS handler
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:35259"}), // Add your React app's origin(s) here
+		handlers.AllowedOrigins([]string{"https://resoledge.com"}), // Add your React app's origin(s) here
 		handlers.AllowCredentials(),
 		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}), // Add the allowed HTTP methods
 		handlers.AllowedHeaders([]string{"Content-Type"}),
 	)
-
-		// Use the CORS handler with your router
-		http.Handle("/", corsHandler(router))
-	
-		// Start your server
-		http.ListenAndServe(":5000", nil)
-	
-
-	
-
-
-
-
-
-
-
-
-
-
 
 	h.mux.Get("/ImageReceiver/ws", h.ImageReceiverHandler)
 	h.mux.Post("/chat_generate", h.GenerateContent)
@@ -110,6 +91,8 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string, ag *aiagents
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		w.WriteHeader(http.StatusOK)
 	})
+	
+	h.mux.Use(corsHandler)
 	return h
 }
 
