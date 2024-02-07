@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"encoding/base64"
+	"github.com/gorilla/handlers"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -57,7 +58,7 @@ type TradeHandler struct {
 	WebSocket SocketService
 	HostSite  string
 	ts        *strategies.TradingSystem
-	ai        *aiagents.AgentWorker
+	Ai        *aiagents.AgentWorker
 }
 
 //NewTradeHandler returns a new instance of *TradeHandler
@@ -68,8 +69,35 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string, ag *aiagents
 		WebSocket: NewSocketService(HostSite),
 		HostSite:  os.Getenv("HOSTSITE"),
 		ts:        ts,
-		ai:        ag,
+		Ai:        ag,
 	}
+	// Create a CORS handler
+	corsHandler := handlers.CORS(
+		handlers.AllowedOrigins([]string{"http://localhost:35259"}), // Add your React app's origin(s) here
+		handlers.AllowCredentials(),
+		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}), // Add the allowed HTTP methods
+		handlers.AllowedHeaders([]string{"Content-Type"}),
+	)
+
+		// Use the CORS handler with your router
+		http.Handle("/", corsHandler(router))
+	
+		// Start your server
+		http.ListenAndServe(":5000", nil)
+	
+
+	
+
+
+
+
+
+
+
+
+
+
+
 	h.mux.Get("/ImageReceiver/ws", h.ImageReceiverHandler)
 	h.mux.Post("/chat_generate", h.GenerateContent)
 	h.mux.Get("/FeedsTradingSystem/ws", h.realTimeTradingSystemFeed)
@@ -173,16 +201,15 @@ func (h TradeHandler) GenerateContent(w http.ResponseWriter, r *http.Request) {
         return
     }
     // Start asynchronous content generation based on user input
-    go h.ai.LiveChat(requestBody.UserInput)
+    go h.Ai.LiveChat(requestBody.UserInput)
 
     // Await generated content or timeout
     select {
-    case generated := <-h.ai.GenContentChan:
-		log.Println("content2 = ", generated)
+    case generated := <-h.Ai.GenContentChan:
         // Successfully received generated content, send it as the response
         w.Write([]byte(generated)) // Consider proper error handling here
         return // Ensure to return after writing the response
-    case <-time.After(time.Second * 10): // Timeout
+    case <-time.After(time.Second * 60): // Timeout
         http.Error(w, "Request timed out.", http.StatusRequestTimeout)
         return
     }
