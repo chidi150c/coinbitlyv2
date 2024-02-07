@@ -73,7 +73,7 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string, ag *aiagents
 	}
 	// Create a CORS handler
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:35259"}), // Add your React app's origin(s) here
+		handlers.AllowedOrigins([]string{"https://resoledge.com"}), // Add your React app's origin(s) here
 		handlers.AllowCredentials(),
 		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}), // Add the allowed HTTP methods
 		handlers.AllowedHeaders([]string{"Content-Type"}),
@@ -88,7 +88,7 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string, ag *aiagents
 	// Add an OPTIONS route for /updateZoom
 	h.mux.Options("/updateZoom", func(w http.ResponseWriter, r *http.Request) {
 		// Add an OPTIONS route for /updateZoom
-		w.Header().Set("Access-Control-Allow-Origin", "http://resoledge.com") //Adjust localhost:35259
+		w.Header().Set("Access-Control-Allow-Origin", "https://resoledge.com") //Adjust localhost:35259
 		w.Header().Set("Access-Control-Allow-Methods", "POST")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		w.WriteHeader(http.StatusOK)
