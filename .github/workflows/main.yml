@@ -62,7 +62,8 @@ jobs:
             # # Remove images with specific labels
             docker rmi $(docker images -q my-golang-app) || true
 
-            # # # # Build and run Docker image with encapsulated environment
+            # Build the new Docker image from the Dockerfile in the current directory
+            docker build -t my-golang-app:latest .
              
             docker run -d --name my-golang-app --network my-network -p 35260:35260 my-golang-app
 
