@@ -14,7 +14,6 @@ RUN go build -o myapp
 ENV PORT4=35260
 ENV HOSTSITE=https://resoledge.com
 
-
 # Expose the port using the environment variable PORT
 EXPOSE $PORT4
 
