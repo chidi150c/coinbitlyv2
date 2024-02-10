@@ -874,34 +874,7 @@ func (ts *TradingSystem) ExecuteStrategy(dp *model.DataPoint, tradeAction string
 		return resp, nil
 	case "Sell":
 		ts.Log.Printf("Trying to SeLL now, currentPrice: %.8f, Target Profit: %.8f", ts.CurrentPrice, ts.TargetProfit)
-		suplemented := false
-		floatHd := 0.0
-		Asset := (ts.BaseBalance * ts.CurrentPrice) + ts.QuoteBalance
-		qpcent := (ts.QuoteBalance / Asset) * 100.0
 		quantity := ts.EntryQuantity[ts.Index]
-		//Deciding whether to execute a supplemental sell if quote percentage falls below the 20% threshold.
-		if (len(ts.EntryPrice) >= 2) && (ts.InTrade && ts.StopLossTrigered) {
-			localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
-			v := 0.0
-			ts.Log.Printf("Asset Calculated: %.8f QuotePercentage: %.8f Index [%d] Pre-LocalProfitLoss %.8f", Asset, qpcent, ts.Index, localProfitLoss)
-			for ts.SupIndex, v = range ts.EntryQuantity {
-				if ts.SupIndex != ts.Index {
-					ts.SupQuantity = CalculateQuantity(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, -localProfitLoss*Qfactor(qpcent))
-					ts.Log.Printf("SupIndex[%d] Calculated SupQuantity: %.8f Position Quantity: %.8f", ts.SupIndex, ts.SupQuantity, v)
-					if v > ts.SupQuantity {
-						qpcent = quantity + ts.SupQuantity
-						floatHd = math.Floor(qpcent/ts.MiniQty) * ts.MiniQty
-						if ts.SupQuantity > (qpcent - floatHd) {
-							ts.SupQuantity -= qpcent - floatHd
-							quantity += ts.SupQuantity
-							suplemented = true
-							ts.Log.Printf("Finally Suplemented SupIndex[%d] SupQuantity: %.8f ", ts.SupIndex, ts.SupQuantity)
-							break
-						}
-					}
-				}
-			}
-		}
 
 		quantity = math.Floor(quantity/ts.MiniQty) * ts.MiniQty
 		if ts.BaseBalance < quantity {
@@ -963,16 +936,7 @@ func (ts *TradingSystem) ExecuteStrategy(dp *model.DataPoint, tradeAction string
 		// Update the totalP&L, quote and base balances after the trade.
 		ts.QuoteBalance += totalCost
 		ts.BaseBalance -= quantity
-		localProfitLoss := 0.0
-		if suplemented == true {
-			pl := CalculateProfitLoss(ts.EntryPrice[ts.SupIndex], ts.CurrentPrice, ts.SupQuantity)
-			quantity -= ts.SupQuantity
-			ts.EntryQuantity[ts.SupIndex] -= ts.SupQuantity
-			localProfitLoss = CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity) + pl
-			ts.Log.Printf("STOPLOST!!! Suplemented with Entry [%d] for Quantity: %.8f to Remain %.8f for Asset Balance ratio 40:60", ts.SupIndex, ts.SupQuantity, ts.EntryQuantity[ts.SupIndex])
-		} else {
-			localProfitLoss = CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
-		}
+		localProfitLoss := CalculateProfitLoss(ts.EntryPrice[ts.Index], ts.CurrentPrice, quantity)
 		// ts.Log.Printf("Profit Before Global: %v, Local: %v\n",ts.TotalProfitLoss, localProfitLoss)
 		ts.TotalProfitLoss += localProfitLoss
 		dp.ProfitLoss = ts.TotalProfitLoss
@@ -1143,9 +1107,9 @@ func (ts *TradingSystem) RiskManagement(dp *model.DataPoint) {
 		ts.TargetProfit = mainValue * 0.002
 		ts.TargetStopLoss = mainValue * 0.0045
 	case 3:
-		ts.RiskCost += 55.0 + 19.5 + 15.0
+		ts.RiskCost += (55.0 + 19.5 + 15.0) * 1.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		ts.TargetProfit = mainValue * 0.0025
+		ts.TargetProfit = (mainValue * 0.0025) * 1.5
 		ts.TargetStopLoss = mainValue * 0.005
 	case 4:
 		ts.RiskCost += (60.0 + 22.0 + 17.5) * 2.0
