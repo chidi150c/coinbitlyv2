@@ -48,15 +48,15 @@ func (e *APIServices) FetchCandles(symbol, interval string, startTime, endTime i
 		}
 		mcandles = append(mcandles, ct)
 	}
-	fmt.Println()
+	// fmt.Println()
 	// fmt.Println("Candles fetched =", mcandles, " = ", len(mcandles), "counts")
-	fmt.Println()
+	// fmt.Println()
 	return mcandles, nil
 }
 func (e *APIServices) FetchTicker(symbol string) (CurrentPrice float64, err error) {
 	ticker, err := fetchTickerData(symbol, e.BaseURL, e.ApiVersion, e.ApiKey)
 	if err != nil {
-		fmt.Println("Error fetching ticker data:", err)
+		fmt.Println("Error fetching ticker data:", err, "LoadFrom: ", e.loadExchFrom)
 		return 0.0, err
 	}
 	// Display the ticker data
@@ -102,7 +102,7 @@ func (e *APIServices) FetchExchangeEntities(symbol string) (minQty, maxQty, step
 }
 
 func (e *APIServices) PlaceLimitOrder(symbol, side string, price, quantity float64) (orderResp model.Response, err error) {
-	if strings.Contains(e.loadExchFrom, "Testnet"){
+	if strings.Contains(e.loadExchFrom, "Testnet") {
 		return model.Response{
 			OrderID:            int64(23211),
 			ExecutedQty:        quantity,
@@ -111,7 +111,7 @@ func (e *APIServices) PlaceLimitOrder(symbol, side string, price, quantity float
 			CumulativeQuoteQty: quantity * price,
 			Status:             "",
 		}, err
-	 }
+	}
 	orderType := "LIMIT"
 	timeInForce := "GTC"
 	Price := fmt.Sprintf("%.8f", price)

@@ -73,7 +73,7 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string, ag *aiagents
 	}
 	// Create a CORS handler
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"https://resoledge.com"}), // Add your React app's origin(s) here
+		handlers.AllowedOrigins([]string{"https://resoledge.com", "http://localhost:3000"}), // Add your React app's origin(s) here
 		handlers.AllowCredentials(),
 		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}), // Add the allowed HTTP methods
 		handlers.AllowedHeaders([]string{"Content-Type"}),
@@ -190,12 +190,55 @@ func (h TradeHandler) GenerateContent(w http.ResponseWriter, r *http.Request) {
     select {
     case generated := <-h.Ai.GenContentChan:
         // Successfully received generated content, send it as the response
-        w.Write([]byte(generated)) // Consider proper error handling here
-        return // Ensure to return after writing the response
+		// Process the generated string to structure it as needed
+        contentStruct, err := processContent(generated)
+        if err != nil {
+            http.Error(w, "Error processing content.", http.StatusInternalServerError)
+            return
+        }
+
+        jsonResponse, err := json.Marshal(contentStruct)
+        if err != nil {
+            http.Error(w, "Error creating JSON response.", http.StatusInternalServerError)
+            return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(jsonResponse) // Send the structured JSON response
+        return
     case <-time.After(time.Second * 60): // Timeout
         http.Error(w, "Request timed out.", http.StatusRequestTimeout)
         return
     }
+}
+// processContent takes the raw string from OpenAI and structures it into the desired format.
+func processContent(generated string) (*ContentStruct, error) {
+    parts := strings.Split(generated, ":")
+    if len(parts) < 4 {
+        return nil, errors.New("generated content format unexpected")
+    }
+
+    title := strings.TrimSpace(parts[0])
+    introduction := strings.TrimSpace(parts[1])
+    mainBodyRaw := strings.TrimSpace(parts[2])
+    conclusion := strings.TrimSpace(parts[3])
+
+    // Splitting the main body into subsections using ". " as a separator
+    mainBodySubs := strings.Split(mainBodyRaw, ". ")
+
+    return &ContentStruct{
+        Title:       title,
+        Introduction: introduction,
+        MainBody:    mainBodySubs, // This will be a slice of strings, each representing a subsection
+        Conclusion:  conclusion,
+    }, nil
+}
+
+type ContentStruct struct {
+    Title        string   `json:"title"`
+    Introduction string   `json:"introduction"`
+    MainBody     []string `json:"mainBody"`
+    Conclusion   string   `json:"conclusion"`
 }
 
 func (h TradeHandler) ImageReceiverHandler(w http.ResponseWriter, r *http.Request) {

@@ -16,20 +16,20 @@ import (
 	"coinbitly.com/strategies"
 )
 
-//Initialize Trading System:
+// Initialize Trading System:
 func main() {
- 
+
 	//You specify the source of Exch API (e.g., "HitBTC", "Binance", "BinanceTestnet" "BinanceTestnetWithDB" "BinanceTestnetWithDBRemote" "TestnetWithOutAI")
-	loadExchFrom := "Binance" 
-	//You specify whether you're performing live trading or not 
-	liveTrading := true
- 
+	loadExchFrom := "BinanceTestnet"
+	//You specify whether you're performing live trading or not
+	liveTrading := false
+
 	exchconf := config.NewExchangeConfigs()[loadExchFrom]
 
 	m := config.NewModelConfigs()["gpt3"]
 	aim := openaiapi.NewOpenAI(m.ApiKey, m.Url, m.Model, []openaiapi.Message{})
 	wkr := aiagents.NewAgentWorker(aim)
-    //You're initializing your trading system using the strategies.NewTradingSystem function. 
+	//You're initializing your trading system using the strategies.NewTradingSystem function.
 	ts, err := strategies.NewTradingSystem(exchconf.BaseCurrency, liveTrading, loadExchFrom)
 	if err != nil {
 		log.Fatal("Error initializing trading system:", err)
@@ -42,22 +42,22 @@ func main() {
 		log.Println("Error opening or creating log file:", err)
 		os.Exit(1)
 	}
-	
+
 	// Create a logger that writes to the log file
 	ts.Log = log.New(logFile, "", log.LstdFlags)
 
 	// Save data to CSV file
-    appfile, err := os.OpenFile("./webclient/assets/dataPoint.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-    if err != nil {
-        log.Fatal(err)
-    }  
-	
-    ts.CSVWriter = csv.NewWriter(appfile)
+	appfile, err := os.OpenFile("./webclient/assets/dataPoint.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ts.CSVWriter = csv.NewWriter(appfile)
 	// // Write headers to the CSV file
 	headers := []string{
-    	"Date","DiffL95S15","DiffL8S4","RoCL8","RoCS4","MA5DiffL95S15","MA5DiffL8S4","StdDevL95",
-		"StdDevS15","LaggedL95EMA","LaggedS15EMA","ProfitLoss","CurrentPrice","StochRSI",
-		"SmoothKRSI","MACDLine","MACDSigLine","MACDHist","OBV","ATR","Label","Label2","Label3",
+		"Date", "DiffL95S15", "DiffL8S4", "RoCL8", "RoCS4", "MA5DiffL95S15", "MA5DiffL8S4", "StdDevL95",
+		"StdDevS15", "LaggedL95EMA", "LaggedS15EMA", "ProfitLoss", "CurrentPrice", "StochRSI",
+		"SmoothKRSI", "MACDLine", "MACDSigLine", "MACDHist", "OBV", "ATR", "Label", "Label2", "Label3",
 	}
 	err = ts.CSVWriter.Write(headers)
 	if err != nil {
@@ -67,14 +67,14 @@ func main() {
 	ts.Log.Println("started.................................")
 
 	//Depending on whether you're performing live trading or not, you're either calling the LiveTrade or Backtesting
-	switch liveTrading{
+	switch liveTrading {
 	case true:
-		go ts.LiveTrade(loadExchFrom)  //, loadDBFrom)
+		go ts.LiveTrade(loadExchFrom) //, loadDBFrom)
 	default:
-		go ts.Backtest(loadExchFrom)  //, loadDBFrom)
+		go ts.Backtest(loadExchFrom) //, loadDBFrom)
 	}
 	//Setup and Start Web Server:
-	//You're setting up the web server by creating a server.NewTradeHandler() and server.NewServer(addrp, th) instance. 
+	//You're setting up the web server by creating a server.NewTradeHandler() and server.NewServer(addrp, th) instance.
 	//Then, you open the server using the server.Open() method.
 	addrp := os.Getenv("PORT4")
 	hostsite := os.Getenv("HOSTSITE")
@@ -111,9 +111,9 @@ func main() {
 		if err := appfile.Close(); err != nil {
 			log.Printf("Error while closing AppData file: %v", err)
 		}
-		
+
 		log.Println("Server shut down gracefully.")
-		time.Sleep(time.Second * 6) 
+		time.Sleep(time.Second * 6)
 		os.Exit(0)
 	}()
 

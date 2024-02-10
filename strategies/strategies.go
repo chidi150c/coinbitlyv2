@@ -243,7 +243,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom string
 			time.Sleep(time.Millisecond * 300)
 		}
 	}()
-	if !strings.Contains(loadExchFrom, "Remote") {
+	if (!strings.Contains(loadExchFrom, "Remote")) && (loadExchFrom != "BinanceTestnet") {
 		//Updating TS to the Database
 		go func() { //Goroutine to store TS into Database
 			log.Printf("Ready to send TS to Database")
@@ -411,6 +411,9 @@ func (ts *TradingSystem) LiveUpdate(loadExchFrom, LoadDataFrom string) error {
 	ts.DBServices = DB
 	ts.APIServices = exch
 	ts.CurrentPrice, err = exch.FetchTicker(ts.Symbol)
+	if err != nil {
+		return err
+	}
 	ts.MiniQty, ts.MaxQty, ts.StepSize, ts.MinNotional, err = exch.FetchExchangeEntities(ts.Symbol)
 	if err != nil {
 		return err
@@ -508,7 +511,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 				ts.HighestPrice = 0.0
 			}
 		}
-		
+
 		if (len(ts.EntryPrice) > 0) && (ts.LowestPrice > ts.CurrentPrice) {
 			ts.LowestPrice = ts.CurrentPrice
 		}
@@ -530,7 +533,7 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 			//NextBuy Re-Adjustment
 			nextInvBuYPrice := (-(ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
 			if time.Since(ts.StartTime) > elapseTime(ts.TradingLevel) {
-				if len(ts.EntryPrice) < 5 {
+				if len(ts.EntryPrice) <= 3 {
 					before := ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1]
 					ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] = ts.LowestPrice
 					ts.Log.Printf("NextInvestBuYPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1])
@@ -551,10 +554,10 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		} else {
 			ts.RiskPositionPercentage = ts.HighestPrice // Define risk management parameter 5% balance
 		}
-		if time.Since(dataPoint.Date) > time.Minute{
+		if time.Since(dataPoint.Date) > time.Minute {
 			ts.Log.Printf("Time inconsistency as interval %.2fsecs is significantly larger than 60secs", time.Since(dataPoint.Date).Seconds())
 		}
-		time.Sleep(ts.EpochTime-(time.Since(dataPoint.Date)))
+		time.Sleep(ts.EpochTime - (time.Since(dataPoint.Date)))
 	}
 }
 func deleteElement(slice []float64, index int) []float64 {
@@ -671,7 +674,7 @@ func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 	targetCrossed := false
 	if len(ts.NextInvestBuYPrice) > 0 {
 		if ts.CurrentPrice <= ts.NextInvestBuYPrice[len(ts.NextInvestBuYPrice)-1] {
-			targetCrossed = true 
+			targetCrossed = true
 			ts.EpochTime = time.Second * 30
 		}
 	} else {
@@ -702,7 +705,7 @@ func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 		}
 		// Close the trade if exit conditions are met.
 		passed = true
-	} 
+	}
 	targetCrossed = false
 	for ts.Index, v = range ts.NextProfitSeLLPrice {
 		if ts.CurrentPrice > v {
@@ -712,7 +715,7 @@ func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 		}
 	}
 	ts.RiskFactor = float64(ts.Index)
-	if (strategy == "sell") && targetCrossed{
+	if (strategy == "sell") && targetCrossed {
 		// Execute the sell order using the ExecuteStrategy function.
 		resp, err := ts.ExecuteStrategy(dp, "Sell")
 		if err != nil {
@@ -730,7 +733,7 @@ func (ts *TradingSystem) Trading(dp *model.DataPoint, loadExchFrom string) {
 		}
 		passed = true
 	}
-	if (strategy == "hold") || (!passed){                   //To takecare of EMA Calculation and Grphing
+	if (strategy == "hold") || (!passed) { //To takecare of EMA Calculation and Grphing
 		dp.Label2 = 0
 		ts.Signals = append(ts.Signals, "Hold") // No Signal - Hold Position
 	}
@@ -1142,12 +1145,12 @@ func (ts *TradingSystem) RiskManagement(dp *model.DataPoint) {
 	case 3:
 		ts.RiskCost += 55.0 + 19.5 + 15.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		ts.TargetProfit = mainValue * 0.0025
+		ts.TargetProfit = (mainValue * 0.0025) * 1.5
 		ts.TargetStopLoss = mainValue * 0.005
 	case 4:
 		ts.RiskCost += (60.0 + 22.0 + 17.5) * 2.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		ts.TargetProfit = (mainValue * 0.003) * 2.0
+		ts.TargetProfit = (mainValue * 0.003) * 1.5
 		ts.TargetStopLoss = mainValue * 0.0055
 	case 5:
 		ts.RiskCost += 65.0 + 24.5 + 19.5
@@ -1168,7 +1171,7 @@ func (ts *TradingSystem) RiskManagement(dp *model.DataPoint) {
 }
 func (ts *TradingSystem) AIAnalysis(dp *model.DataPoint) (buySignal, sellSignal bool) {
 	// Create an instance of DataPointRequest and populate it with data
-	if strings.Contains(ts.RDBServices.loadExchFrom, "TestnetWithOutAI"){
+	if strings.Contains(ts.RDBServices.loadExchFrom, "TestnetWithOutAI") {
 		ts.Log.Printf("ATAnalysis reached with: %v", dp)
 		return true, true
 	}
@@ -1197,7 +1200,6 @@ func (ts *TradingSystem) AIAnalysis(dp *model.DataPoint) (buySignal, sellSignal 
 		return true, true
 	}
 
-	
 	// // Log raw response data for debugging
 	// ts.Log.Printf("Raw response data: %s", string(responseData))
 
@@ -1229,18 +1231,18 @@ func (ts *TradingSystem) AIAnalysis(dp *model.DataPoint) (buySignal, sellSignal 
 func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySignal, sellSignal bool) {
 	var HD []model.Candle
 	ch0 := make(chan bool)
-	go func (ch0 chan bool)  {
+	go func(ch0 chan bool) {
 		var err error
 		CandleStartTime := time.Now().Add(time.Duration(-1) * 20 * time.Minute).Unix()
-		CandleEndTime :=   time.Now().Add(time.Duration(-1) * 0 * time.Hour).Unix()
-		CandleInterval :=  "1m"
+		CandleEndTime := time.Now().Add(time.Duration(-1) * 0 * time.Hour).Unix()
+		CandleInterval := "1m"
 		HD, err = ts.APIServices.FetchCandles(ts.Symbol, CandleInterval, CandleStartTime, CandleEndTime)
-		if err != nil{
+		if err != nil {
 			log.Fatalf("Error Fetching Candle in TA goroutine: %v", err)
 		}
-	ch0 <- true
-	}(ch0)	
-	
+		ch0 <- true
+	}(ch0)
+
 	// Calculate moving averages (MA) using historical data.
 	ch1 := make(chan bool)
 	ch2 := make(chan bool)
@@ -1281,7 +1283,7 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 
 		window := 20
 		// Determine the buy and sell signals based on the moving averages, RSI, MACD line, and Bollinger Bands.
-	
+
 		ts.ShortPeriod = 15
 		ts.LongPeriod = 95
 		ts.Container1 = short15EMA
@@ -1340,7 +1342,6 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 			ch3 <- true
 		}(ch3)
 
-		
 		MarketDownGoingDown := false
 		MarketDownGoingUp := false
 		MarketUpGoingUp := false
@@ -1383,12 +1384,12 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 			dataPoint.RoCS4, _ = CalculateROC(ema4, 12)
 			<-ch0
 			var (
-				highs []float64
-				lows []float64
-				closes []float64 
+				highs   []float64
+				lows    []float64
+				closes  []float64
 				volumes []float64
 			)
-			for _, v := range HD{
+			for _, v := range HD {
 				highs = append(highs, v.High)
 				lows = append(lows, v.Low)
 				closes = append(closes, v.Close)
@@ -1396,10 +1397,10 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 			}
 			//note length of closes must be greeater than 14 in this case is 20
 			dataPoint.ATR = AverageTrueRange(highs, lows, closes, 14)
-			dataPoint.OBV =	OnBalanceVolume(closes, volumes)
+			dataPoint.OBV = OnBalanceVolume(closes, volumes)
 			ch3 <- true
 		}(ch3)
-		
+
 		// Derived Metrics
 		dataPoint.DiffL95S15 = L95EMA0 - S15EMA0
 		dataPoint.DiffL8S4 = L8EMA0 - S4EMA0
@@ -1412,7 +1413,7 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 		}
 		<-ch1
 
-	//BUY CONDITION
+		//BUY CONDITION
 		if (ts.CrossUPTime != time.Time{}) && (ts.CurrentPrice < S15EMA0) {
 			buySignal = true
 			ts.Log.Printf("TAB1 Signalled: BuY: at currentPrice: %.8f, CrossL95S15UP %v Secs", ts.CurrentPrice, time.Since(ts.CrossUPTime).Seconds())
@@ -1425,9 +1426,9 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 		} else if dataPoint.MA5DiffL95S15 > 0 && dataPoint.MA5DiffL8S4 <= 0 {
 			buySignal = true
 			ts.Log.Printf("TAB5 Signalled: BuY: at currentPrice: %.8f, (MA5DiffL95S15 %.8f > 0 && MA5DiffL8S4 %.8f <= 0) = %v ", ts.CurrentPrice, dataPoint.MA5DiffL95S15, dataPoint.MA5DiffL8S4, (dataPoint.MA5DiffL95S15 > 0 && dataPoint.MA5DiffL8S4 <= 0))
-		
-	//SELL CONDITION
-		}else if (MarketUpGoingDown && PriceDownGoingDown) || (MarketDownGoingDown && PriceUpGoingDown) {
+
+			//SELL CONDITION
+		} else if (MarketUpGoingDown && PriceDownGoingDown) || (MarketDownGoingDown && PriceUpGoingDown) {
 			sellSignal = true
 			ts.Log.Printf("TAS3 Signalled: SeLL: at currentPrice: %.8f, PriceDownGoingDown: %v, PriceDownGoingUp: %v, PriceUpGoingUp: %v, PriceUpGoingDown: %v, MarketDownGoingDown: %v, MarketDownGoingUp: %v, MarketUpGoingUp: %v, MarketUpGoingDown: %v", ts.CurrentPrice, PriceDownGoingDown, PriceDownGoingUp, PriceUpGoingUp, PriceUpGoingDown, MarketDownGoingDown, MarketDownGoingUp, MarketUpGoingUp, MarketUpGoingDown)
 		} else if MarketUpGoneUp {
@@ -1446,44 +1447,45 @@ func (ts *TradingSystem) TechnicalAnalysis(dataPoint *model.DataPoint) (buySigna
 	}
 	return buySignal, sellSignal
 }
+
 // Function to calculate moving average
 func calculateMovingAverage(data []float64, period int) []float64 {
-    ma := make([]float64, len(data))
-    var sum float64
+	ma := make([]float64, len(data))
+	var sum float64
 
-    for i := 0; i < period; i++ {
-        sum += data[i]
-        ma[i] = sum / float64(i+1)
-    }
+	for i := 0; i < period; i++ {
+		sum += data[i]
+		ma[i] = sum / float64(i+1)
+	}
 
-    for i := period; i < len(data); i++ {
-        sum += data[i] - data[i-period]
-        ma[i] = sum / float64(period)
-    }
+	for i := period; i < len(data); i++ {
+		sum += data[i] - data[i-period]
+		ma[i] = sum / float64(period)
+	}
 
-    return ma
+	return ma
 }
-		
-		// Incorporate in trading logic
-		// if currentEMA15 > laggedEMA95 {
-		// 	// Possible buy signal
-		// } else if currentEMA15 < laggedEMA95 {
-		// 	// Possible sell signal
-		// }
 
-		//Stochastic RSI	
-		// buySignal = (stochRSI[ts.DataPoint] > ts.StRSIOverbought && smoothKRSI[ts.DataPoint-md.StochRSIPeriod-md.SmoothK] > ts.StRSIOverbought)
-		// sellSignal = (stochRSI[ts.DataPoint] < md.StRSIOversold && smoothKRSI[ts.DataPoint-md.StochRSIPeriod-md.SmoothK] < md.StRSIOversold)
-		//EMA
-		// buySignal = (shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] >= longEMA[ts.DataPoint])
-		// sellSignal = (shortEMA[ts.DataPoint-1] >= longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
-		//RSI
-		// buySignal = (rsi[ts.DataPoint-1] < md.RSIOversold)
-		// sellSignal = (rsi[ts.DataPoint-1] > md.RSIOverbought)
-		//MACD
-		// buySignal = (macdLine[ts.DataPoint-1] <= signalLine[ts.DataPoint] && macdLine[ts.DataPoint] > signalLine[ts.DataPoint] && macdHistogram[ts.DataPoint] > 0)
-		// sellSignal = (macdLine[ts.DataPoint-1] >= signalLine[ts.DataPoint] && macdLine[ts.DataPoint] < signalLine[ts.DataPoint] && macdHistogram[ts.DataPoint] < 0)
-		
+// Incorporate in trading logic
+// if currentEMA15 > laggedEMA95 {
+// 	// Possible buy signal
+// } else if currentEMA15 < laggedEMA95 {
+// 	// Possible sell signal
+// }
+
+//Stochastic RSI
+// buySignal = (stochRSI[ts.DataPoint] > ts.StRSIOverbought && smoothKRSI[ts.DataPoint-md.StochRSIPeriod-md.SmoothK] > ts.StRSIOverbought)
+// sellSignal = (stochRSI[ts.DataPoint] < md.StRSIOversold && smoothKRSI[ts.DataPoint-md.StochRSIPeriod-md.SmoothK] < md.StRSIOversold)
+//EMA
+// buySignal = (shortEMA[ts.DataPoint-1] < longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] >= longEMA[ts.DataPoint])
+// sellSignal = (shortEMA[ts.DataPoint-1] >= longEMA[ts.DataPoint-1] && shortEMA[ts.DataPoint] < longEMA[ts.DataPoint])
+//RSI
+// buySignal = (rsi[ts.DataPoint-1] < md.RSIOversold)
+// sellSignal = (rsi[ts.DataPoint-1] > md.RSIOverbought)
+//MACD
+// buySignal = (macdLine[ts.DataPoint-1] <= signalLine[ts.DataPoint] && macdLine[ts.DataPoint] > signalLine[ts.DataPoint] && macdHistogram[ts.DataPoint] > 0)
+// sellSignal = (macdLine[ts.DataPoint-1] >= signalLine[ts.DataPoint] && macdLine[ts.DataPoint] < signalLine[ts.DataPoint] && macdHistogram[ts.DataPoint] < 0)
+
 func rollingDiff(L, S []float64) (diff []float64) {
 	for k, v := range L {
 		diff = append(diff, v-S[k])
@@ -1505,11 +1507,11 @@ func rollingMean(data []float64, window int) float64 {
 }
 
 func getLaggedValue(ema []float64, lag int) float64 {
-    if len(ema) > lag {
-        // Return the value 'lag' periods ago
-        return ema[len(ema)-1-lag]
-    }
-    return 0.0 // or handle this case as needed
+	if len(ema) > lag {
+		// Return the value 'lag' periods ago
+		return ema[len(ema)-1-lag]
+	}
+	return 0.0 // or handle this case as needed
 }
 
 // Function to calculate rolling standard deviation with handling for NaN
@@ -1559,42 +1561,44 @@ func CalculateROC(data []float64, period int) (float64, error) {
 	roc := (mostRecentPrice - previousPrice) / previousPrice * 100
 	return roc, nil
 }
+
 // SimpleMovingAverage calculates the simple moving average for a slice of data
 func SimpleMovingAverage(data []float64, period int) float64 {
-    if len(data) < period {
-        return 0 // or handle error as per your need
-    }
+	if len(data) < period {
+		return 0 // or handle error as per your need
+	}
 
-    sum := 0.0
-    for _, value := range data[len(data)-period:] {
-        sum += value
-    }
+	sum := 0.0
+	for _, value := range data[len(data)-period:] {
+		sum += value
+	}
 
-    return sum / float64(period)
+	return sum / float64(period)
 }
 func OnBalanceVolume(closes, volumes []float64) int64 {
-    obv := int64(0)
+	obv := int64(0)
 
-    for i := 1; i < len(closes); i++ {
-        if closes[i] > closes[i-1] {
-            obv += int64(volumes[i])
-        } else if closes[i] < closes[i-1] {
-            obv -= int64(volumes[i])
-        }
-    }
-    return obv
+	for i := 1; i < len(closes); i++ {
+		if closes[i] > closes[i-1] {
+			obv += int64(volumes[i])
+		} else if closes[i] < closes[i-1] {
+			obv -= int64(volumes[i])
+		}
+	}
+	return obv
 }
 
 func AverageTrueRange(highs, lows, closes []float64, period int) float64 {
-    trs := make([]float64, len(closes)-1)
-    for i := 1; i < len(closes); i++ {
-        tr1 := highs[i] - lows[i]
-        tr2 := math.Abs(highs[i] - closes[i-1])
-        tr3 := math.Abs(lows[i] - closes[i-1])
-        trs[i-1] = math.Max(math.Max(tr1, tr2), tr3)
-    }
-    return SimpleMovingAverage(trs, period)
+	trs := make([]float64, len(closes)-1)
+	for i := 1; i < len(closes); i++ {
+		tr1 := highs[i] - lows[i]
+		tr2 := math.Abs(highs[i] - closes[i-1])
+		tr3 := math.Abs(lows[i] - closes[i-1])
+		trs[i-1] = math.Max(math.Max(tr1, tr2), tr3)
+	}
+	return SimpleMovingAverage(trs, period)
 }
+
 // FundamentalAnalysis performs fundamental analysis and generates trading signals.
 func (ts *TradingSystem) FundamentalAnalysis() (buySignal, sellSignal bool) {
 	// Implement your fundamental analysis logic here.
@@ -1610,13 +1614,13 @@ func (ts *TradingSystem) StrategyProcessing(dataPoint *model.DataPoint) string {
 	technicalBuy, technicalSell := ts.TechnicalAnalysis(dataPoint)
 	// AIBuy, AISell := ts.AIAnalysis(dataPoint)
 	// _, _ = AIBuy, AISell
-	if technicalBuy{
+	if technicalBuy {
 		dataPoint.Label = 1
 		return "buy"
-	}else if technicalSell{
+	} else if technicalSell {
 		dataPoint.Label = -1
 		return "sell"
-	}else {
+	} else {
 		dataPoint.Label = 0
 		return "hold"
 	}
@@ -1717,6 +1721,7 @@ func CalculateMACD(SignalMACDPeriod int, closingPrices []float64, timeStamps []i
 
 	return macdLine, signalLine, macdHistogram, err
 }
+
 // CalculateMACD calculates the Moving Average Convergence Divergence (MACD) and MACD Histogram for the given data and periods.
 func CalculateMACDV2(SignalMACDPeriod int, closingPrices []float64, LongPeriod, ShortPeriod int) (MACDLine, SignalLine, MACDHistogram float64, err error) {
 	if LongPeriod <= 0 || len(closingPrices) < LongPeriod {
@@ -1745,7 +1750,8 @@ func CalculateMACDV2(SignalMACDPeriod int, closingPrices []float64, LongPeriod, 
 
 	return macdLine[len(macdLine)-1], signalLine[len(signalLine)-1], macdHistogram[len(macdHistogram)-1], err
 }
-//CandleExponentialMovingAverage calculates EMA from condles
+
+// CandleExponentialMovingAverage calculates EMA from condles
 func CandleExponentialMovingAverage(closingPrices []float64, LongPeriod, ShortPeriod int) (long8EMA, short4EMA []float64, err error) {
 	if LongPeriod <= 0 || len(closingPrices) < LongPeriod || closingPrices == nil {
 		return nil, nil, fmt.Errorf("Error Calculating Candle EMA: not enoguh data for period %v", LongPeriod)
@@ -1765,7 +1771,7 @@ func CandleExponentialMovingAverage(closingPrices []float64, LongPeriod, ShortPe
 	return long8EMA, short4EMA, nil
 }
 
-//CandleExponentialMovingAverage calculates EMA from condles
+// CandleExponentialMovingAverage calculates EMA from condles
 func CandleExponentialMovingAverageV2(closingPrices []float64, ShortPeriod int) (short4EMA []float64, err error) {
 	if ShortPeriod <= 0 || len(closingPrices) < ShortPeriod || closingPrices == nil {
 		return nil, fmt.Errorf("Error Calculating Candle EMA: not enoguh data for period %v", ShortPeriod)
@@ -1781,7 +1787,7 @@ func CandleExponentialMovingAverageV2(closingPrices []float64, ShortPeriod int) 
 	return short4EMA, nil
 }
 
-//CandleExponentialMovingAverage calculates EMA from condles
+// CandleExponentialMovingAverage calculates EMA from condles
 func CandleExponentialMovingAverageV1(closingPrices []float64, ShortPeriod int) (short4EMA []float64) {
 	if ShortPeriod <= 0 || len(closingPrices) < ShortPeriod || closingPrices == nil {
 		return nil
@@ -1906,6 +1912,7 @@ func StochasticRSI(rsi []float64, period, smoothK, smoothD int) ([]float64, []fl
 
 	return emaSmoothK, emaSmoothD, nil
 }
+
 // StochasticRSI calculates the Stochastic RSI for a given RSI data series, period, and SmoothK, SmoothD.
 func StochasticRSIV2(rsi []float64, period, smoothK, smoothD int) (float64, float64, error) {
 	if period <= 0 || len(rsi) < period+1 {
@@ -1945,6 +1952,7 @@ func StochasticRSIV2(rsi []float64, period, smoothK, smoothD int) (float64, floa
 
 	return emaSmoothK[len(emaSmoothK)-1], emaSmoothD[len(emaSmoothD)-1], nil
 }
+
 // CalculateRSI calculates the Relative Strength Index for a given data series and period.
 func CalculateRSI(data []float64, period int) ([]float64, error) {
 	if period <= 0 || len(data) < period+1 {
