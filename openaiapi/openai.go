@@ -64,16 +64,27 @@ var _ model.AIAgent = &OpenAI{}
 func (a *OpenAI)AIModelAPI(userInput string)(string, error){
 
 	// Construct the request payload
+	// messages := []Message{
+	// 	{"system", "You are an informative and concise assistant tasked with creating educational content. Generate a tutorial on " + userInput + " with the following structure: Title, Introduction, Main Body, and Conclusion."},
+	// 	{"user", "Please start with the Title."},
+	// 	{"system", "The title should be catchy and reflect the content of the tutorial."},
+	// 	{"user", "Next, provide the Introduction."},
+	// 	{"system", "The introduction should briefly introduce " + userInput + " and mention what the tutorial will cover."},
+	// 	{"user", "Now, let's move on to the Main Body."},
+	// 	{"system", "The main body should contain detailed content on " + userInput + " setup, key concepts, and fundamental widgets each not more than 500 characters. Include examples where possible."},
+	// 	{"user", "Finally, conclude the tutorial."},
+	// 	{"system", "The conclusion, in less than 500 characters, should summarize what was learned and encourage further exploration of " + userInput + "."},
+	// }
 	messages := []Message{
-		{"system", "You are an informative and concise assistant tasked with creating educational content. Generate a tutorial on " + userInput + " with the following structure: Title, Introduction, Main Body, and Conclusion."},
+		{"system", "You are an informative and concise assistant tasked with creating educational content. Generate a comprehensive tutorial on " + userInput + "."},
 		{"user", "Please start with the Title."},
-		{"system", "The title should be catchy and reflect the content of the tutorial."},
+		{"system", "The title should be engaging and descriptive of the tutorial's content."},
 		{"user", "Next, provide the Introduction."},
-		{"system", "The introduction should briefly introduce " + userInput + " and mention what the tutorial will cover."},
-		{"user", "Now, let's move on to the Main Body."},
-		{"system", "The main body should contain detailed content on " + userInput + " setup, key concepts, and fundamental widgets each not more than 500 characters. Include examples where possible."},
-		{"user", "Finally, conclude the tutorial."},
-		{"system", "The conclusion, in less than 500 characters, should summarize what was learned and encourage further exploration of " + userInput + "."},
+		{"system", "The introduction should set the context for " + userInput + " and outline the objectives of the tutorial."},
+		{"user", "Proceed with the Main Body."},
+		{"system", "In the main body, elaborate on the following sections: Overview of " + userInput + ", Practical Applications, Step-by-Step Instructions, Best Practices, Common Pitfalls, and Troubleshooting Tips. Each section should be comprehensive yet concise."},
+		{"user", "Finally, wrap up with the Conclusion."},
+		{"system", "The conclusion should recap the key takeaways of the tutorial and suggest next steps for the reader to continue learning about " + userInput + "."},
 	}
 	requestBody := CompletionRequest{
 		Model:    a.Model,
@@ -83,13 +94,13 @@ func (a *OpenAI)AIModelAPI(userInput string)(string, error){
 	// Marshal the request body to JSON
 	jsonBody, err := json.Marshal(requestBody)
 	if err != nil {
-		return "", fmt.Errorf("Error marshalling the request body: %v", err)
+		return "", fmt.Errorf("error marshalling the request body: %v", err)
 	}
 
 	// Create a new HTTP request
 	req, err := http.NewRequest("POST", a.Url, bytes.NewBuffer(jsonBody))
 	if err != nil {
-		return "", fmt.Errorf("Error creating the request: %v", err)
+		return "", fmt.Errorf("error creating the request: %v", err)
 	}
 
 	// Set headers

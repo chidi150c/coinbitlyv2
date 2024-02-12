@@ -624,7 +624,9 @@ func elapseTimeSeLL(level int) time.Duration {
 // and updates the current balance after each trade.
 func (ts *TradingSystem) Backtest(loadExchFrom string) {
 	sigchnl := make(chan os.Signal, 1)
-	signal.Notify(sigchnl)
+	signal.Notify(sigchnl, syscall.SIGINT)
+	fmt.Println("App started. Press Ctrl+C to exit.")
+	go ts.ShutDown(sigchnl)
 
 	fmt.Println("App started. Press Ctrl+C to exit.")
 	var err error

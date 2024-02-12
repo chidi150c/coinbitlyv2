@@ -3,7 +3,6 @@ package server
 import (
 	"bytes"
 	"encoding/base64"
-	"github.com/gorilla/handlers"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -14,6 +13,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/gorilla/handlers"
 
 	"coinbitly.com/aiagents"
 	"coinbitly.com/strategies"
@@ -184,63 +185,30 @@ func (h TradeHandler) GenerateContent(w http.ResponseWriter, r *http.Request) {
         return
     }
     // Start asynchronous content generation based on user input
-    go h.Ai.LiveChat(requestBody.UserInput)
+    c, err := h.Ai.GenerateCourseContent(requestBody.UserInput)
+	if err != nil{
+		log.Fatalf("Error Generating Course content: %v", err)
+	}
+	// cs := make([]*model.Course,0)
+	// cs = append(cs, c)
+	jsonResponse, err := json.Marshal(c)
+	if err != nil {
+		http.Error(w, "Error creating JSON response.", http.StatusInternalServerError)
+		return
+	}
 
-    // Await generated content or timeout
-    select {
-    case generated := <-h.Ai.GenContentChan:
-        // Successfully received generated content, send it as the response
-		// Process the generated string to structure it as needed
-        contentStruct, err := processContent(generated)
-        if err != nil {
-            http.Error(w, "Error processing content.", http.StatusInternalServerError)
-            return
-        }
-
-        jsonResponse, err := json.Marshal(contentStruct)
-        if err != nil {
-            http.Error(w, "Error creating JSON response.", http.StatusInternalServerError)
-            return
-        }
-
-        w.Header().Set("Content-Type", "application/json")
-        w.Write(jsonResponse) // Send the structured JSON response
-        return
-    case <-time.After(time.Second * 60): // Timeout
-        http.Error(w, "Request timed out.", http.StatusRequestTimeout)
-        return
-    }
-}
-// processContent takes the raw string from OpenAI and structures it into the desired format.
-func processContent(generated string) (*ContentStruct, error) {
-    parts := strings.Split(generated, ":")
-    if len(parts) < 4 {
-        return nil, errors.New("generated content format unexpected")
-    }
-
-    title := strings.TrimSpace(parts[0])
-    introduction := strings.TrimSpace(parts[1])
-    mainBodyRaw := strings.TrimSpace(parts[2])
-    conclusion := strings.TrimSpace(parts[3])
-
-    // Splitting the main body into subsections using ". " as a separator
-    mainBodySubs := strings.Split(mainBodyRaw, ". ")
-
-    return &ContentStruct{
-        Title:       title,
-        Introduction: introduction,
-        MainBody:    mainBodySubs, // This will be a slice of strings, each representing a subsection
-        Conclusion:  conclusion,
-    }, nil
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResponse) // Send the structured JSON response
+	return
 }
 
-type ContentStruct struct {
-    Title        string   `json:"title"`
-    Introduction string   `json:"introduction"`
-    MainBody     []string `json:"mainBody"`
-    Conclusion   string   `json:"conclusion"`
+type Course struct{
+	Id int `json:"id"`
+	Title string `json:"title"`
+	Intro string `json:"intro"`
+	ImageUrl string `json:"imageUrl"`
 }
-
+	
 func (h TradeHandler) ImageReceiverHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := h.WebSocket.Upgrader.Upgrade(w, r, nil)
 	if err != nil {

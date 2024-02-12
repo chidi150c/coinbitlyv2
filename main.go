@@ -20,15 +20,16 @@ import (
 func main() {
 
 	//You specify the source of Exch API (e.g., "HitBTC", "Binance", "BinanceTestnet" "BinanceTestnetWithDB" "BinanceTestnetWithDBRemote" "TestnetWithOutAI")
-	loadExchFrom := "Binance"
+	loadExchFrom := "BinanceTestnet"
 	//You specify whether you're performing live trading or not
-	liveTrading := true
+	liveTrading := false
 
 	exchconf := config.NewExchangeConfigs()[loadExchFrom]
 
 	m := config.NewModelConfigs()["gpt3"]
 	aim := openaiapi.NewOpenAI(m.ApiKey, m.Url, m.Model, []openaiapi.Message{})
-	wkr := aiagents.NewAgentWorker(aim)
+	cdb := aiagents.NewCourseDBService()
+	wkr := aiagents.NewAgentWorker(aim, cdb)
 	//You're initializing your trading system using the strategies.NewTradingSystem function.
 	ts, err := strategies.NewTradingSystem(exchconf.BaseCurrency, liveTrading, loadExchFrom)
 	if err != nil {
