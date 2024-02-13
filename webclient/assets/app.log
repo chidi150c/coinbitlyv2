@@ -5604,3 +5604,511 @@
 2024/02/12 10:42:29 TAB4 Signalled: BuY: at currentPrice: 47487.87000000, MarketDownGoneDown: true,  DiffL95S15: 172.83411977
 2024/02/12 10:42:30 Legnth of Historical Data is = 20
 2024/02/12 10:42:30 Entry order placed with ID: 23211 Commission: 0.00000104 CumulativeQuoteQty: 65.53326060 ExecutedPrice: 47487.87000000 ExecutedQty: 0.00138000 Status: 
+2024/02/13 12:15:48 started.................................
+2024/02/13 12:15:48 TA0 Signalled: Missed: at currentPrice: 47649.55000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:15:49 Legnth of Historical Data is = 20
+2024/02/13 12:15:49 TA0 Signalled: Missed: at currentPrice: 47600.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:15:53 Legnth of Historical Data is = 20
+2024/02/13 12:15:53 TAS4 Signalled: SeLL: at currentPrice: 47606.36000000, MarketUpGoneUp: true, DiffL95S15: 173.23589119
+2024/02/13 12:15:59 Legnth of Historical Data is = 20
+2024/02/13 12:15:59 TA0 Signalled: Missed: at currentPrice: 47555.15000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:00 Legnth of Historical Data is = 20
+2024/02/13 12:16:00 TA0 Signalled: Missed: at currentPrice: 47568.24000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:00 Legnth of Historical Data is = 20
+2024/02/13 12:16:00 TA0 Signalled: Missed: at currentPrice: 47576.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:00 Legnth of Historical Data is = 20
+2024/02/13 12:16:00 TAS3 Signalled: SeLL: at currentPrice: 47562.55000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:01 Legnth of Historical Data is = 20
+2024/02/13 12:16:01 TAS3 Signalled: SeLL: at currentPrice: 47542.36000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:01 Legnth of Historical Data is = 19
+2024/02/13 12:16:01 TAS3 Signalled: SeLL: at currentPrice: 47573.40000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:01 Legnth of Historical Data is = 19
+2024/02/13 12:16:01 TA0 Signalled: Missed: at currentPrice: 47574.76000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:02 Legnth of Historical Data is = 19
+2024/02/13 12:16:02 TA0 Signalled: Missed: at currentPrice: 47553.48000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:02 Legnth of Historical Data is = 19
+2024/02/13 12:16:02 TA0 Signalled: Missed: at currentPrice: 47584.94000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:02 Legnth of Historical Data is = 19
+2024/02/13 12:16:02 TA0 Signalled: Missed: at currentPrice: 47580.39000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:02 Legnth of Historical Data is = 19
+2024/02/13 12:16:02 TA0 Signalled: Missed: at currentPrice: 47566.03000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:03 Legnth of Historical Data is = 19
+2024/02/13 12:16:03 TAS3 Signalled: SeLL: at currentPrice: 47522.74000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:03 Legnth of Historical Data is = 19
+2024/02/13 12:16:03 TAS3 Signalled: SeLL: at currentPrice: 47505.29000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:03 Legnth of Historical Data is = 19
+2024/02/13 12:16:03 TAS3 Signalled: SeLL: at currentPrice: 47509.08000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:04 Legnth of Historical Data is = 19
+2024/02/13 12:16:04 TAS3 Signalled: SeLL: at currentPrice: 47508.80000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:04 Legnth of Historical Data is = 19
+2024/02/13 12:16:04 TAS3 Signalled: SeLL: at currentPrice: 47500.04000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:04 Legnth of Historical Data is = 19
+2024/02/13 12:16:04 TA0 Signalled: Missed: at currentPrice: 47536.14000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:05 Legnth of Historical Data is = 19
+2024/02/13 12:16:05 TA0 Signalled: Missed: at currentPrice: 47510.73000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:05 Legnth of Historical Data is = 19
+2024/02/13 12:16:05 TA0 Signalled: Missed: at currentPrice: 47484.11000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:05 Legnth of Historical Data is = 19
+2024/02/13 12:16:05 TA0 Signalled: Missed: at currentPrice: 47492.45000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:06 Legnth of Historical Data is = 19
+2024/02/13 12:16:06 TAS3 Signalled: SeLL: at currentPrice: 47455.29000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:06 Legnth of Historical Data is = 19
+2024/02/13 12:16:06 TAS3 Signalled: SeLL: at currentPrice: 47480.50000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:06 Legnth of Historical Data is = 19
+2024/02/13 12:16:06 TAS3 Signalled: SeLL: at currentPrice: 47474.12000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:06 Legnth of Historical Data is = 19
+2024/02/13 12:16:06 TA0 Signalled: Missed: at currentPrice: 47495.35000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:07 Legnth of Historical Data is = 19
+2024/02/13 12:16:07 TA0 Signalled: Missed: at currentPrice: 47508.08000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:07 Legnth of Historical Data is = 19
+2024/02/13 12:16:07 TA0 Signalled: Missed: at currentPrice: 47514.37000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:07 Legnth of Historical Data is = 19
+2024/02/13 12:16:07 TA0 Signalled: Missed: at currentPrice: 47518.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:08 Legnth of Historical Data is = 19
+2024/02/13 12:16:08 TA0 Signalled: Missed: at currentPrice: 47512.93000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:08 Legnth of Historical Data is = 19
+2024/02/13 12:16:08 TA0 Signalled: Missed: at currentPrice: 47494.70000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:08 Legnth of Historical Data is = 19
+2024/02/13 12:16:08 TA0 Signalled: Missed: at currentPrice: 47547.03000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:16:09 Legnth of Historical Data is = 19
+2024/02/13 12:16:09 TA0 Signalled: Missed: at currentPrice: 47565.98000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:09 Legnth of Historical Data is = 19
+2024/02/13 12:16:09 TA0 Signalled: Missed: at currentPrice: 47590.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:09 Legnth of Historical Data is = 19
+2024/02/13 12:16:09 TA0 Signalled: Missed: at currentPrice: 47584.32000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:09 Legnth of Historical Data is = 19
+2024/02/13 12:16:09 TA0 Signalled: Missed: at currentPrice: 47574.14000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:10 Legnth of Historical Data is = 19
+2024/02/13 12:16:10 TA0 Signalled: Missed: at currentPrice: 47569.63000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:10 Legnth of Historical Data is = 19
+2024/02/13 12:16:10 TA0 Signalled: Missed: at currentPrice: 47576.92000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:10 Legnth of Historical Data is = 19
+2024/02/13 12:16:10 TA0 Signalled: Missed: at currentPrice: 47599.00000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:11 Legnth of Historical Data is = 19
+2024/02/13 12:16:11 TA0 Signalled: Missed: at currentPrice: 47614.02000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:11 Legnth of Historical Data is = 19
+2024/02/13 12:16:11 TA0 Signalled: Missed: at currentPrice: 47621.54000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:11 Legnth of Historical Data is = 19
+2024/02/13 12:16:11 TA0 Signalled: Missed: at currentPrice: 47591.11000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:11 Legnth of Historical Data is = 19
+2024/02/13 12:16:11 TA0 Signalled: Missed: at currentPrice: 47583.58000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:12 Legnth of Historical Data is = 19
+2024/02/13 12:16:12 TA0 Signalled: Missed: at currentPrice: 47596.18000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:12 Legnth of Historical Data is = 20
+2024/02/13 12:16:12 TA0 Signalled: Missed: at currentPrice: 47599.88000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:12 Legnth of Historical Data is = 20
+2024/02/13 12:16:12 TA0 Signalled: Missed: at currentPrice: 47600.12000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:12 Legnth of Historical Data is = 20
+2024/02/13 12:16:12 TAS4 Signalled: SeLL: at currentPrice: 47588.25000000, MarketUpGoneUp: true, DiffL95S15: 81.79635195
+2024/02/13 12:16:13 Legnth of Historical Data is = 20
+2024/02/13 12:16:13 TA0 Signalled: Missed: at currentPrice: 47622.64000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:13 Legnth of Historical Data is = 20
+2024/02/13 12:16:13 TA0 Signalled: Missed: at currentPrice: 47639.98000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:13 Legnth of Historical Data is = 20
+2024/02/13 12:16:13 TA0 Signalled: Missed: at currentPrice: 47636.00000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:13 Legnth of Historical Data is = 20
+2024/02/13 12:16:13 TA0 Signalled: Missed: at currentPrice: 47657.49000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:14 Legnth of Historical Data is = 20
+2024/02/13 12:16:14 TA0 Signalled: Missed: at currentPrice: 47669.32000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:14 Legnth of Historical Data is = 20
+2024/02/13 12:16:14 TA0 Signalled: Missed: at currentPrice: 47720.18000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:14 Legnth of Historical Data is = 20
+2024/02/13 12:16:14 TA0 Signalled: Missed: at currentPrice: 47720.11000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:14 Legnth of Historical Data is = 20
+2024/02/13 12:16:14 TA0 Signalled: Missed: at currentPrice: 47761.58000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:15 Legnth of Historical Data is = 20
+2024/02/13 12:16:15 TA0 Signalled: Missed: at currentPrice: 47781.39000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:15 Legnth of Historical Data is = 20
+2024/02/13 12:16:15 TA0 Signalled: Missed: at currentPrice: 47777.52000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:15 Legnth of Historical Data is = 20
+2024/02/13 12:16:15 TA0 Signalled: Missed: at currentPrice: 47826.03000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:16 Legnth of Historical Data is = 20
+2024/02/13 12:16:16 TA0 Signalled: Missed: at currentPrice: 47855.72000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:16 Legnth of Historical Data is = 20
+2024/02/13 12:16:16 TA0 Signalled: Missed: at currentPrice: 47855.74000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:16 Legnth of Historical Data is = 20
+2024/02/13 12:16:16 TA0 Signalled: Missed: at currentPrice: 47894.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:16 Legnth of Historical Data is = 20
+2024/02/13 12:16:16 TA0 Signalled: Missed: at currentPrice: 47915.22000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:17 Legnth of Historical Data is = 20
+2024/02/13 12:16:17 TA0 Signalled: Missed: at currentPrice: 47958.04000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:17 Legnth of Historical Data is = 20
+2024/02/13 12:16:17 TA0 Signalled: Missed: at currentPrice: 48034.95000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:17 Legnth of Historical Data is = 20
+2024/02/13 12:16:17 TA0 Signalled: Missed: at currentPrice: 48058.00000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:17 Legnth of Historical Data is = 20
+2024/02/13 12:16:17 TA0 Signalled: Missed: at currentPrice: 48129.85000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:18 Legnth of Historical Data is = 20
+2024/02/13 12:16:18 TA0 Signalled: Missed: at currentPrice: 40909.09000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:16:18 Legnth of Historical Data is = 20
+2024/02/13 12:16:18 TA0 Signalled: Missed: at currentPrice: 48011.88000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:16:18 Legnth of Historical Data is = 20
+2024/02/13 12:16:18 TA0 Signalled: Missed: at currentPrice: 47964.11000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:16:18 Legnth of Historical Data is = 20
+2024/02/13 12:16:18 TA0 Signalled: Missed: at currentPrice: 47969.58000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:16:19 Legnth of Historical Data is = 20
+2024/02/13 12:16:19 TA0 Signalled: Missed: at currentPrice: 48075.99000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: true, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:16:19 Legnth of Historical Data is = 20
+2024/02/13 12:16:19 TA0 Signalled: Missed: at currentPrice: 48089.64000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: true, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:16:19 Legnth of Historical Data is = 20
+2024/02/13 12:16:19 TA0 Signalled: Missed: at currentPrice: 48004.59000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: true, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:16:20 Legnth of Historical Data is = 20
+2024/02/13 12:16:20 TA0 Signalled: Missed: at currentPrice: 47986.09000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:16:20 Legnth of Historical Data is = 20
+2024/02/13 12:16:20 TA0 Signalled: Missed: at currentPrice: 47948.43000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:16:20 Legnth of Historical Data is = 20
+2024/02/13 12:16:20 TA0 Signalled: Missed: at currentPrice: 47976.88000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:16:20 Legnth of Historical Data is = 20
+2024/02/13 12:16:20 TA0 Signalled: Missed: at currentPrice: 47943.24000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:21 Legnth of Historical Data is = 20
+2024/02/13 12:16:21 TA0 Signalled: Missed: at currentPrice: 47950.00000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:21 Legnth of Historical Data is = 20
+2024/02/13 12:16:21 TA0 Signalled: Missed: at currentPrice: 47919.20000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:21 Legnth of Historical Data is = 20
+2024/02/13 12:16:21 TA0 Signalled: Missed: at currentPrice: 47896.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:21 Legnth of Historical Data is = 20
+2024/02/13 12:16:21 TA0 Signalled: Missed: at currentPrice: 47807.96000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:16:22 Legnth of Historical Data is = 20
+2024/02/13 12:16:22 TAB1 Signalled: BuY: at currentPrice: 47781.00000000, CrossL95S15UP 0.8039793 Secs
+2024/02/13 12:16:22 Legnth of Historical Data is = 20
+2024/02/13 12:16:22 Entry order placed with ID: 23211 Commission: 0.00000104 CumulativeQuoteQty: 65.93778000 ExecutedPrice: 47781.00000000 ExecutedQty: 0.00138000 Status: 
+2024/02/13 12:20:04 started.................................
+2024/02/13 12:20:04 TA0 Signalled: Missed: at currentPrice: 47576.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:04 Legnth of Historical Data is = 19
+2024/02/13 12:20:04 TAS3 Signalled: SeLL: at currentPrice: 47562.55000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:05 Legnth of Historical Data is = 19
+2024/02/13 12:20:05 TAS3 Signalled: SeLL: at currentPrice: 47542.36000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:05 Legnth of Historical Data is = 19
+2024/02/13 12:20:05 TAS3 Signalled: SeLL: at currentPrice: 47573.40000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:05 Legnth of Historical Data is = 19
+2024/02/13 12:20:05 TA0 Signalled: Missed: at currentPrice: 47574.76000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:05 Legnth of Historical Data is = 19
+2024/02/13 12:20:05 TA0 Signalled: Missed: at currentPrice: 47553.48000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:06 Legnth of Historical Data is = 19
+2024/02/13 12:20:06 TA0 Signalled: Missed: at currentPrice: 47584.94000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:06 Legnth of Historical Data is = 19
+2024/02/13 12:20:06 TA0 Signalled: Missed: at currentPrice: 47580.39000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:06 Legnth of Historical Data is = 19
+2024/02/13 12:20:06 TA0 Signalled: Missed: at currentPrice: 47566.03000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:06 Legnth of Historical Data is = 19
+2024/02/13 12:20:06 TAS3 Signalled: SeLL: at currentPrice: 47522.74000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:07 Legnth of Historical Data is = 19
+2024/02/13 12:20:07 TAS3 Signalled: SeLL: at currentPrice: 47505.29000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:07 Legnth of Historical Data is = 19
+2024/02/13 12:20:07 TAS3 Signalled: SeLL: at currentPrice: 47509.08000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:07 Legnth of Historical Data is = 19
+2024/02/13 12:20:07 TAS3 Signalled: SeLL: at currentPrice: 47508.80000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:07 Legnth of Historical Data is = 19
+2024/02/13 12:20:07 TAS3 Signalled: SeLL: at currentPrice: 47500.04000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:08 Legnth of Historical Data is = 19
+2024/02/13 12:20:08 TA0 Signalled: Missed: at currentPrice: 47536.14000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:08 Legnth of Historical Data is = 19
+2024/02/13 12:20:08 TA0 Signalled: Missed: at currentPrice: 47510.73000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:08 Legnth of Historical Data is = 19
+2024/02/13 12:20:08 TA0 Signalled: Missed: at currentPrice: 47484.11000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:08 Legnth of Historical Data is = 19
+2024/02/13 12:20:08 TA0 Signalled: Missed: at currentPrice: 47492.45000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:09 Legnth of Historical Data is = 19
+2024/02/13 12:20:09 TAS3 Signalled: SeLL: at currentPrice: 47455.29000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:09 Legnth of Historical Data is = 19
+2024/02/13 12:20:09 TAS3 Signalled: SeLL: at currentPrice: 47480.50000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:09 Legnth of Historical Data is = 19
+2024/02/13 12:20:09 TAS3 Signalled: SeLL: at currentPrice: 47474.12000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:09 Legnth of Historical Data is = 19
+2024/02/13 12:20:09 TA0 Signalled: Missed: at currentPrice: 47495.35000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:10 Legnth of Historical Data is = 19
+2024/02/13 12:20:10 TA0 Signalled: Missed: at currentPrice: 47508.08000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:10 Legnth of Historical Data is = 19
+2024/02/13 12:20:10 TA0 Signalled: Missed: at currentPrice: 47514.37000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:10 Legnth of Historical Data is = 19
+2024/02/13 12:20:10 TA0 Signalled: Missed: at currentPrice: 47518.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:10 Legnth of Historical Data is = 19
+2024/02/13 12:20:10 TA0 Signalled: Missed: at currentPrice: 47512.93000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:11 Legnth of Historical Data is = 19
+2024/02/13 12:20:11 TA0 Signalled: Missed: at currentPrice: 47494.70000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:11 Legnth of Historical Data is = 19
+2024/02/13 12:20:11 TA0 Signalled: Missed: at currentPrice: 47547.03000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 12:20:11 Legnth of Historical Data is = 19
+2024/02/13 12:20:11 TA0 Signalled: Missed: at currentPrice: 47565.98000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:11 Legnth of Historical Data is = 19
+2024/02/13 12:20:11 TA0 Signalled: Missed: at currentPrice: 47590.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:12 Legnth of Historical Data is = 19
+2024/02/13 12:20:12 TA0 Signalled: Missed: at currentPrice: 47584.32000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:12 Legnth of Historical Data is = 19
+2024/02/13 12:20:12 TA0 Signalled: Missed: at currentPrice: 47574.14000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:12 Legnth of Historical Data is = 19
+2024/02/13 12:20:12 TA0 Signalled: Missed: at currentPrice: 47569.63000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:13 Legnth of Historical Data is = 19
+2024/02/13 12:20:13 TA0 Signalled: Missed: at currentPrice: 47576.92000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:13 Legnth of Historical Data is = 19
+2024/02/13 12:20:13 TA0 Signalled: Missed: at currentPrice: 47599.00000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:13 Legnth of Historical Data is = 20
+2024/02/13 12:20:13 TA0 Signalled: Missed: at currentPrice: 47614.02000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:13 Legnth of Historical Data is = 20
+2024/02/13 12:20:13 TA0 Signalled: Missed: at currentPrice: 47621.54000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:14 Legnth of Historical Data is = 20
+2024/02/13 12:20:14 TA0 Signalled: Missed: at currentPrice: 47591.11000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:14 Legnth of Historical Data is = 20
+2024/02/13 12:20:14 TA0 Signalled: Missed: at currentPrice: 47583.58000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:14 Legnth of Historical Data is = 20
+2024/02/13 12:20:14 TA0 Signalled: Missed: at currentPrice: 47596.18000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:14 Legnth of Historical Data is = 20
+2024/02/13 12:20:14 TA0 Signalled: Missed: at currentPrice: 47599.88000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:15 Legnth of Historical Data is = 20
+2024/02/13 12:20:15 TA0 Signalled: Missed: at currentPrice: 47600.12000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:15 Legnth of Historical Data is = 20
+2024/02/13 12:20:15 TAS4 Signalled: SeLL: at currentPrice: 47588.25000000, MarketUpGoneUp: true, DiffL95S15: 82.55522438
+2024/02/13 12:20:15 Legnth of Historical Data is = 20
+2024/02/13 12:20:15 TA0 Signalled: Missed: at currentPrice: 47622.64000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:15 Legnth of Historical Data is = 20
+2024/02/13 12:20:15 TA0 Signalled: Missed: at currentPrice: 47639.98000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:16 Legnth of Historical Data is = 20
+2024/02/13 12:20:16 TA0 Signalled: Missed: at currentPrice: 47636.00000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:16 Legnth of Historical Data is = 20
+2024/02/13 12:20:16 TA0 Signalled: Missed: at currentPrice: 47657.49000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:16 Legnth of Historical Data is = 20
+2024/02/13 12:20:16 TA0 Signalled: Missed: at currentPrice: 47669.32000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:16 Legnth of Historical Data is = 20
+2024/02/13 12:20:16 TA0 Signalled: Missed: at currentPrice: 47720.18000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:17 Legnth of Historical Data is = 20
+2024/02/13 12:20:17 TA0 Signalled: Missed: at currentPrice: 47720.11000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:17 Legnth of Historical Data is = 20
+2024/02/13 12:20:17 TA0 Signalled: Missed: at currentPrice: 47761.58000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:17 Legnth of Historical Data is = 20
+2024/02/13 12:20:17 TA0 Signalled: Missed: at currentPrice: 47781.39000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:17 Legnth of Historical Data is = 20
+2024/02/13 12:20:17 TA0 Signalled: Missed: at currentPrice: 47777.52000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:18 Legnth of Historical Data is = 20
+2024/02/13 12:20:18 TA0 Signalled: Missed: at currentPrice: 47826.03000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:18 Legnth of Historical Data is = 20
+2024/02/13 12:20:18 TA0 Signalled: Missed: at currentPrice: 47855.72000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:18 Legnth of Historical Data is = 20
+2024/02/13 12:20:18 TA0 Signalled: Missed: at currentPrice: 47855.74000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:18 Legnth of Historical Data is = 20
+2024/02/13 12:20:18 TA0 Signalled: Missed: at currentPrice: 47894.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:19 Legnth of Historical Data is = 20
+2024/02/13 12:20:19 TA0 Signalled: Missed: at currentPrice: 47915.22000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:19 Legnth of Historical Data is = 20
+2024/02/13 12:20:19 TA0 Signalled: Missed: at currentPrice: 47958.04000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:19 Legnth of Historical Data is = 20
+2024/02/13 12:20:19 TA0 Signalled: Missed: at currentPrice: 48034.95000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:19 Legnth of Historical Data is = 20
+2024/02/13 12:20:19 TA0 Signalled: Missed: at currentPrice: 48058.00000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:20 Legnth of Historical Data is = 20
+2024/02/13 12:20:20 TA0 Signalled: Missed: at currentPrice: 48129.85000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:20 Legnth of Historical Data is = 20
+2024/02/13 12:20:20 TA0 Signalled: Missed: at currentPrice: 40909.09000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:20:20 Legnth of Historical Data is = 20
+2024/02/13 12:20:20 TA0 Signalled: Missed: at currentPrice: 48011.88000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:20:20 Legnth of Historical Data is = 20
+2024/02/13 12:20:20 TA0 Signalled: Missed: at currentPrice: 47964.11000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:20:21 Legnth of Historical Data is = 20
+2024/02/13 12:20:21 TA0 Signalled: Missed: at currentPrice: 47969.58000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:20:21 Legnth of Historical Data is = 20
+2024/02/13 12:20:21 TA0 Signalled: Missed: at currentPrice: 48075.99000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: true, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:20:21 Legnth of Historical Data is = 20
+2024/02/13 12:20:21 TA0 Signalled: Missed: at currentPrice: 48089.64000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: true, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:20:21 Legnth of Historical Data is = 20
+2024/02/13 12:20:21 TA0 Signalled: Missed: at currentPrice: 48004.59000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: true, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:20:22 Legnth of Historical Data is = 20
+2024/02/13 12:20:22 TA0 Signalled: Missed: at currentPrice: 47986.09000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:20:22 Legnth of Historical Data is = 20
+2024/02/13 12:20:22 TA0 Signalled: Missed: at currentPrice: 47948.43000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:20:22 Legnth of Historical Data is = 20
+2024/02/13 12:20:22 TA0 Signalled: Missed: at currentPrice: 47976.88000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 12:20:22 Legnth of Historical Data is = 20
+2024/02/13 12:20:22 TA0 Signalled: Missed: at currentPrice: 47943.24000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:23 Legnth of Historical Data is = 20
+2024/02/13 12:20:23 TA0 Signalled: Missed: at currentPrice: 47950.00000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:23 Legnth of Historical Data is = 20
+2024/02/13 12:20:23 TA0 Signalled: Missed: at currentPrice: 47919.20000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:23 Legnth of Historical Data is = 20
+2024/02/13 12:20:23 TA0 Signalled: Missed: at currentPrice: 47896.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:23 Legnth of Historical Data is = 20
+2024/02/13 12:20:23 TA0 Signalled: Missed: at currentPrice: 47807.96000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 12:20:24 Legnth of Historical Data is = 20
+2024/02/13 12:20:24 TAB1 Signalled: BuY: at currentPrice: 47781.00000000, CrossL95S15UP 0.7485227 Secs
+2024/02/13 12:20:24 Legnth of Historical Data is = 20
+2024/02/13 12:20:24 Entry order placed with ID: 23211 Commission: 0.00000104 CumulativeQuoteQty: 65.93778000 ExecutedPrice: 47781.00000000 ExecutedQty: 0.00138000 Status: 
+2024/02/13 13:21:41 started.................................
+2024/02/13 13:21:41 TA0 Signalled: Missed: at currentPrice: 48129.85000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 13:21:42 Legnth of Historical Data is = 20
+2024/02/13 13:21:42 TA0 Signalled: Missed: at currentPrice: 40909.09000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:21:42 Legnth of Historical Data is = 20
+2024/02/13 13:21:42 TA0 Signalled: Missed: at currentPrice: 48011.88000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:21:42 Legnth of Historical Data is = 20
+2024/02/13 13:21:42 TA0 Signalled: Missed: at currentPrice: 47964.11000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:21:42 Legnth of Historical Data is = 20
+2024/02/13 13:21:42 TA0 Signalled: Missed: at currentPrice: 47969.58000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:21:43 Legnth of Historical Data is = 20
+2024/02/13 13:21:43 TA0 Signalled: Missed: at currentPrice: 48075.99000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: true, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:21:43 Legnth of Historical Data is = 20
+2024/02/13 13:21:43 TA0 Signalled: Missed: at currentPrice: 48089.64000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: true, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:21:43 Legnth of Historical Data is = 20
+2024/02/13 13:21:43 TA0 Signalled: Missed: at currentPrice: 48004.59000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: true, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:21:43 Legnth of Historical Data is = 20
+2024/02/13 13:21:43 TA0 Signalled: Missed: at currentPrice: 47986.09000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:21:44 Legnth of Historical Data is = 20
+2024/02/13 13:21:44 TA0 Signalled: Missed: at currentPrice: 47948.43000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:21:44 Legnth of Historical Data is = 20
+2024/02/13 13:21:44 TA0 Signalled: Missed: at currentPrice: 47976.88000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:21:44 Legnth of Historical Data is = 20
+2024/02/13 13:21:44 TA0 Signalled: Missed: at currentPrice: 47943.24000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 13:21:44 Legnth of Historical Data is = 20
+2024/02/13 13:21:44 TA0 Signalled: Missed: at currentPrice: 47950.00000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 13:21:45 Legnth of Historical Data is = 20
+2024/02/13 13:21:45 TA0 Signalled: Missed: at currentPrice: 47919.20000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 13:21:45 Legnth of Historical Data is = 20
+2024/02/13 13:21:45 TA0 Signalled: Missed: at currentPrice: 47896.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 13:21:45 Legnth of Historical Data is = 20
+2024/02/13 13:21:45 TA0 Signalled: Missed: at currentPrice: 47807.96000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 13:21:46 Legnth of Historical Data is = 20
+2024/02/13 13:21:46 TAB1 Signalled: BuY: at currentPrice: 47781.00000000, CrossL95S15UP 0.754215 Secs
+2024/02/13 13:21:46 Legnth of Historical Data is = 20
+2024/02/13 13:21:46 Entry order placed with ID: 23211 Commission: 0.00000104 CumulativeQuoteQty: 65.93778000 ExecutedPrice: 47781.00000000 ExecutedQty: 0.00138000 Status: 
+2024/02/13 13:27:14 started.................................
+2024/02/13 13:27:14 TA0 Signalled: Missed: at currentPrice: 48089.64000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: true, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:27:15 Legnth of Historical Data is = 20
+2024/02/13 13:27:15 TA0 Signalled: Missed: at currentPrice: 48004.59000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: true, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:27:15 Legnth of Historical Data is = 20
+2024/02/13 13:27:15 TA0 Signalled: Missed: at currentPrice: 47986.09000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:27:15 Legnth of Historical Data is = 20
+2024/02/13 13:27:15 TA0 Signalled: Missed: at currentPrice: 47948.43000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:27:16 Legnth of Historical Data is = 20
+2024/02/13 13:27:16 TA0 Signalled: Missed: at currentPrice: 47976.88000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 13:27:16 Legnth of Historical Data is = 20
+2024/02/13 13:27:16 TA0 Signalled: Missed: at currentPrice: 47943.24000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 13:27:16 Legnth of Historical Data is = 20
+2024/02/13 13:27:16 TA0 Signalled: Missed: at currentPrice: 47950.00000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 13:27:16 Legnth of Historical Data is = 20
+2024/02/13 13:27:16 TA0 Signalled: Missed: at currentPrice: 47919.20000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 13:27:17 Legnth of Historical Data is = 20
+2024/02/13 13:27:17 TA0 Signalled: Missed: at currentPrice: 47896.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 13:27:17 Legnth of Historical Data is = 20
+2024/02/13 13:27:17 TA0 Signalled: Missed: at currentPrice: 47807.96000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 13:27:17 Legnth of Historical Data is = 20
+2024/02/13 13:27:17 TAB1 Signalled: BuY: at currentPrice: 47781.00000000, CrossL95S15UP 0.8013674 Secs
+2024/02/13 13:27:17 Legnth of Historical Data is = 20
+2024/02/13 13:27:17 Entry order placed with ID: 23211 Commission: 0.00000104 CumulativeQuoteQty: 65.93778000 ExecutedPrice: 47781.00000000 ExecutedQty: 0.00138000 Status: 
+2024/02/13 14:03:33 started.................................
+2024/02/13 14:03:33 TAS4 Signalled: SeLL: at currentPrice: 47972.82000000, MarketUpGoneUp: true, DiffL95S15: 229.25996428
+2024/02/13 14:03:34 Legnth of Historical Data is = 20
+2024/02/13 14:03:34 TAS4 Signalled: SeLL: at currentPrice: 47990.99000000, MarketUpGoneUp: true, DiffL95S15: 226.30923704
+2024/02/13 14:03:34 Legnth of Historical Data is = 20
+2024/02/13 14:03:34 TA0 Signalled: Missed: at currentPrice: 47978.00000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:34 Legnth of Historical Data is = 20
+2024/02/13 14:03:34 TA0 Signalled: Missed: at currentPrice: 47925.42000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:34 Legnth of Historical Data is = 20
+2024/02/13 14:03:34 TA0 Signalled: Missed: at currentPrice: 47929.81000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:35 Legnth of Historical Data is = 20
+2024/02/13 14:03:35 TAS3 Signalled: SeLL: at currentPrice: 47894.72000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:35 Legnth of Historical Data is = 20
+2024/02/13 14:03:35 TAS3 Signalled: SeLL: at currentPrice: 47898.50000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:35 Legnth of Historical Data is = 20
+2024/02/13 14:03:35 TAS3 Signalled: SeLL: at currentPrice: 47908.41000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:35 Legnth of Historical Data is = 20
+2024/02/13 14:03:35 TAS3 Signalled: SeLL: at currentPrice: 47870.04000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:36 Legnth of Historical Data is = 20
+2024/02/13 14:03:36 TA0 Signalled: Missed: at currentPrice: 47882.33000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:36 Legnth of Historical Data is = 20
+2024/02/13 14:03:36 TA0 Signalled: Missed: at currentPrice: 47901.70000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:36 Legnth of Historical Data is = 20
+2024/02/13 14:03:36 TA0 Signalled: Missed: at currentPrice: 47919.38000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:36 Legnth of Historical Data is = 20
+2024/02/13 14:03:36 TA0 Signalled: Missed: at currentPrice: 47926.60000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:37 Legnth of Historical Data is = 20
+2024/02/13 14:03:37 TA0 Signalled: Missed: at currentPrice: 47940.72000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:37 Legnth of Historical Data is = 20
+2024/02/13 14:03:37 TA0 Signalled: Missed: at currentPrice: 47907.17000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:37 Legnth of Historical Data is = 20
+2024/02/13 14:03:37 TA0 Signalled: Missed: at currentPrice: 47923.44000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:37 Legnth of Historical Data is = 20
+2024/02/13 14:03:37 TA0 Signalled: Missed: at currentPrice: 47957.50000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:38 Legnth of Historical Data is = 20
+2024/02/13 14:03:38 TA0 Signalled: Missed: at currentPrice: 47961.66000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:38 Legnth of Historical Data is = 20
+2024/02/13 14:03:38 TA0 Signalled: Missed: at currentPrice: 47998.63000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 14:03:38 Legnth of Historical Data is = 20
+2024/02/13 14:03:38 TA0 Signalled: Missed: at currentPrice: 47988.48000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 14:03:38 Legnth of Historical Data is = 20
+2024/02/13 14:03:38 TA0 Signalled: Missed: at currentPrice: 47942.47000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: true, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: true, MarketUpGoingDown: false
+2024/02/13 14:03:39 Legnth of Historical Data is = 20
+2024/02/13 14:03:39 TAS4 Signalled: SeLL: at currentPrice: 47937.17000000, MarketUpGoneUp: true, DiffL95S15: 128.05206106
+2024/02/13 14:03:39 Legnth of Historical Data is = 20
+2024/02/13 14:03:39 TA0 Signalled: Missed: at currentPrice: 47932.01000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:39 Legnth of Historical Data is = 20
+2024/02/13 14:03:39 TA0 Signalled: Missed: at currentPrice: 47959.54000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: true, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:39 Legnth of Historical Data is = 20
+2024/02/13 14:03:39 TA0 Signalled: Missed: at currentPrice: 47934.94000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:40 Legnth of Historical Data is = 20
+2024/02/13 14:03:40 TA0 Signalled: Missed: at currentPrice: 47913.06000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:40 Legnth of Historical Data is = 20
+2024/02/13 14:03:40 TA0 Signalled: Missed: at currentPrice: 47941.95000000, PriceDownGoingDown: false, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:40 Legnth of Historical Data is = 20
+2024/02/13 14:03:40 TAS3 Signalled: SeLL: at currentPrice: 47962.01000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:40 Legnth of Historical Data is = 20
+2024/02/13 14:03:40 TA0 Signalled: Missed: at currentPrice: 47914.91000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:41 Legnth of Historical Data is = 20
+2024/02/13 14:03:41 TA0 Signalled: Missed: at currentPrice: 47936.14000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:41 Legnth of Historical Data is = 20
+2024/02/13 14:03:41 TA0 Signalled: Missed: at currentPrice: 47954.00000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:41 Legnth of Historical Data is = 20
+2024/02/13 14:03:41 TA0 Signalled: Missed: at currentPrice: 47913.99000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:42 Legnth of Historical Data is = 20
+2024/02/13 14:03:42 TAS3 Signalled: SeLL: at currentPrice: 47903.49000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:42 Legnth of Historical Data is = 20
+2024/02/13 14:03:42 TAS3 Signalled: SeLL: at currentPrice: 47902.26000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:42 Legnth of Historical Data is = 20
+2024/02/13 14:03:42 TAS3 Signalled: SeLL: at currentPrice: 47898.81000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:42 Legnth of Historical Data is = 20
+2024/02/13 14:03:42 TAS3 Signalled: SeLL: at currentPrice: 47921.57000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:43 Legnth of Historical Data is = 20
+2024/02/13 14:03:43 TA0 Signalled: Missed: at currentPrice: 47916.03000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:43 Legnth of Historical Data is = 20
+2024/02/13 14:03:43 TA0 Signalled: Missed: at currentPrice: 47893.42000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:43 Legnth of Historical Data is = 20
+2024/02/13 14:03:43 TA0 Signalled: Missed: at currentPrice: 47890.02000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:43 Legnth of Historical Data is = 20
+2024/02/13 14:03:43 TAS3 Signalled: SeLL: at currentPrice: 47845.21000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:44 Legnth of Historical Data is = 20
+2024/02/13 14:03:44 TAS3 Signalled: SeLL: at currentPrice: 47832.07000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:44 Legnth of Historical Data is = 20
+2024/02/13 14:03:44 TAS3 Signalled: SeLL: at currentPrice: 47714.93000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:44 Legnth of Historical Data is = 20
+2024/02/13 14:03:44 TAS3 Signalled: SeLL: at currentPrice: 47776.03000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:44 Legnth of Historical Data is = 20
+2024/02/13 14:03:44 TAS3 Signalled: SeLL: at currentPrice: 47760.02000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:45 Legnth of Historical Data is = 20
+2024/02/13 14:03:45 TAS3 Signalled: SeLL: at currentPrice: 47763.92000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: true
+2024/02/13 14:03:45 Legnth of Historical Data is = 20
+2024/02/13 14:03:45 TA0 Signalled: Missed: at currentPrice: 47763.92000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:45 Legnth of Historical Data is = 20
+2024/02/13 14:03:45 TA0 Signalled: Missed: at currentPrice: 47763.92000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:45 Legnth of Historical Data is = 20
+2024/02/13 14:03:45 TA0 Signalled: Missed: at currentPrice: 47768.98000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: false, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:46 Legnth of Historical Data is = 20
+2024/02/13 14:03:46 TA0 Signalled: Missed: at currentPrice: 47663.06000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:46 Legnth of Historical Data is = 20
+2024/02/13 14:03:46 TA0 Signalled: Missed: at currentPrice: 47654.01000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:46 Legnth of Historical Data is = 20
+2024/02/13 14:03:46 TA0 Signalled: Missed: at currentPrice: 47660.01000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:46 Legnth of Historical Data is = 20
+2024/02/13 14:03:46 TA0 Signalled: Missed: at currentPrice: 47688.00000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:47 Legnth of Historical Data is = 20
+2024/02/13 14:03:47 TA0 Signalled: Missed: at currentPrice: 47724.00000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:47 Legnth of Historical Data is = 20
+2024/02/13 14:03:47 TA0 Signalled: Missed: at currentPrice: 47724.14000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:47 Legnth of Historical Data is = 20
+2024/02/13 14:03:47 TA0 Signalled: Missed: at currentPrice: 47721.24000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:47 Legnth of Historical Data is = 20
+2024/02/13 14:03:47 TA0 Signalled: Missed: at currentPrice: 47679.85000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:48 Legnth of Historical Data is = 20
+2024/02/13 14:03:48 TA0 Signalled: Missed: at currentPrice: 47662.49000000, PriceDownGoingDown: false, PriceDownGoingUp: true, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:48 Legnth of Historical Data is = 20
+2024/02/13 14:03:48 TA0 Signalled: Missed: at currentPrice: 47662.86000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:48 Legnth of Historical Data is = 20
+2024/02/13 14:03:48 TA0 Signalled: Missed: at currentPrice: 47704.98000000, PriceDownGoingDown: true, PriceDownGoingUp: false, PriceUpGoingUp: false, PriceUpGoingDown: false, MarketDownGoingDown: true, MarketDownGoingUp: false, MarketUpGoingUp: false, MarketUpGoingDown: false
+2024/02/13 14:03:48 Legnth of Historical Data is = 20
+2024/02/13 14:03:48 TAB4 Signalled: BuY: at currentPrice: 47727.84000000, MarketDownGoneDown: true,  DiffL95S15: 86.56642512
+2024/02/13 14:03:49 Legnth of Historical Data is = 20
+2024/02/13 14:03:49 Entry order placed with ID: 23211 Commission: 0.00000104 CumulativeQuoteQty: 65.86441920 ExecutedPrice: 47727.84000000 ExecutedQty: 0.00138000 Status: 

@@ -84,6 +84,7 @@ func NewTradeHandler(ts *strategies.TradingSystem, HostSite string, ag *aiagents
 
 	h.mux.Get("/ImageReceiver/ws", h.ImageReceiverHandler)
 	h.mux.Post("/chat_generate", h.GenerateContent)
+	h.mux.Get("/courses/{courseId}", h.detailedCourseHandler)
 	h.mux.Get("/FeedsTradingSystem/ws", h.realTimeTradingSystemFeed)
 	h.mux.Post("/updateZoom", h.updateZoomHandler)
 	// Add an OPTIONS route for /updateZoom
@@ -169,6 +170,33 @@ Loop:
 	log.Println("realTimeTradingSystemFeed: going away!!!")
 	return
 }
+func (h TradeHandler)detailedCourseHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract the courseId from URL parameters
+	courseID := chi.URLParam(r, "courseId")
+	
+	// Convert courseId to integer
+	id := 0
+	_, err := fmt.Sscanf(courseID, "%d", &id)
+	if err != nil {
+		http.Error(w, "Invalid courseId", http.StatusBadRequest)
+		return
+	}
+	course, err := h.Ai.Store.ReadDB(int(id))
+	if err != nil{
+		log.Fatalf("error: detailedCourseHandler: Store.ReadDB: %v", err)		
+	}
+		
+	// Convert the course data to JSON
+	jsonResponse, err := json.Marshal(course)
+	if err != nil {
+		http.Error(w, "Error creating JSON response", http.StatusInternalServerError)
+		return
+	}
+
+	// Set the Content-Type header and send the response
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResponse)
+}                
 
 func (h TradeHandler) GenerateContent(w http.ResponseWriter, r *http.Request) {
     // Only handle POST requests

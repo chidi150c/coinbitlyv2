@@ -27,7 +27,7 @@ func (g *AgentWorker) GenerateCourseContent(input string)(*model.Course, error){
 	if err != nil{
 		log.Fatalln(err)
 	}
-	log.Println(content)
+	// log.Println(content)
 	course := g.Store.CreateDB()
 	course, err = processContent(content, course)
 	if err != nil{

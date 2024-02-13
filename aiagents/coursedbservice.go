@@ -2,16 +2,19 @@ package aiagents
 
 import (
 	"fmt"
+	"log"
+
 	"coinbitly.com/model"
 )
 
 type CourseDBService struct{
-	DB []*model.Course
+	nextId int
+	DB map[int]*model.Course
 }
 
 func NewCourseDBService ()*CourseDBService{
 	return &CourseDBService{
-		DB: make([]*model.Course,0),
+		DB: make(map[int]*model.Course,0),
 	}
 }
 
@@ -24,8 +27,9 @@ func (c *CourseDBService)CreateDB()*model.Course{
 		Intro:    "",
 		ImageUrl: "",
 	}
-	c.DB = append(c.DB, course)
-	course.Id = len(c.DB)-1
+	c.DB[c.nextId] = course
+	course.Id = c.nextId
+	c.nextId++
 	return course
 }
 
@@ -42,10 +46,13 @@ func (c *CourseDBService)UpdateDB(course *model.Course)error{
 	var (
 		err error
 	)
-	if ok := c.DB[course.Id] ; ok != nil{
-		c.DB[course.Id] = course
-	}else{
+	cse, ok := c.DB[course.Id] 
+	if (!ok){
 		return fmt.Errorf("course with ID: %d does not exist", course.Id)
+	}else if cse.Id != course.Id{
+		log.Fatalf("course with ID: %d does not exist", course.Id)
+	}else{		
+		c.DB[course.Id] = course
 	}
 	return err
 }

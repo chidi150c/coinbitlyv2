@@ -1111,12 +1111,12 @@ func (ts *TradingSystem) RiskManagement(dp *model.DataPoint) {
 	case 3:
 		ts.RiskCost += (55.0 + 19.5 + 15.0) * 1.5
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		ts.TargetProfit = (mainValue * 0.0025) * 1.5
+		ts.TargetProfit = (mainValue * 0.0025) * 2.5
 		ts.TargetStopLoss = mainValue * 0.005
 	case 4:
 		ts.RiskCost += (60.0 + 22.0 + 17.5) * 2.0
 		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		ts.TargetProfit = (mainValue * 0.003) * 2.0
+		ts.TargetProfit = (mainValue * 0.003) * 5.0
 		ts.TargetStopLoss = mainValue * 0.0055
 	case 5:
 		ts.RiskCost += 65.0 + 24.5 + 19.5
