@@ -98,6 +98,7 @@ type TradingSystem struct {
 	SupIndex    int
 	SupQuantity float64
 	CrossUPTime time.Time
+	Season string
 }
 
 // NewTradingSystem(): This function initializes the TradingSystem and fetches
@@ -172,6 +173,7 @@ func NewTradingSystem(BaseCurrency string, liveTrading bool, loadExchFrom string
 	ts.MaxDataSize = 500
 	ts.ShutDownCh = make(chan string)
 	ts.EpochTime = time.Second * 60
+	ts.Season = "Up" //or "Down"
 	ts.StartTime = time.Now()
 	ts.LowestPrice = math.MaxFloat64
 	ts.DBStoreTicker = time.NewTicker(ts.EpochTime)
@@ -518,17 +520,17 @@ func (ts *TradingSystem) LiveTrade(loadExchFrom string) {
 		if (len(ts.EntryPrice) > 0) && (ts.HighestPrice < ts.CurrentPrice) {
 			ts.HighestPrice = ts.CurrentPrice
 		}
-		if ts.InTrade && (len(ts.EntryPrice) > 0) {
-			//NextSell Re-Adjustment
-			nextProfitSeLLPrice := ((ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
-			commissionAtProfitSeLLPrice := nextProfitSeLLPrice * ts.EntryQuantity[len(ts.EntryQuantity)-1] * ts.CommissionPercentage
-			if ((nextProfitSeLLPrice + commissionAtProfitSeLLPrice) < ts.HighestPrice) && (time.Since(ts.StartTime) > elapseTimeSeLL(ts.TradingLevel)) {
-				before := ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1]
-				ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.HighestPrice
-				ts.Log.Printf("NextProfitSeLLPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
-				ts.StartTime = time.Now()
-				ts.HighestPrice = 0.0
-			}
+		if (ts.InTrade && (len(ts.EntryPrice) > 0)){
+			// //NextSell Re-Adjustment
+			// nextProfitSeLLPrice := ((ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
+			// commissionAtProfitSeLLPrice := nextProfitSeLLPrice * ts.EntryQuantity[len(ts.EntryQuantity)-1] * ts.CommissionPercentage
+			// if ((nextProfitSeLLPrice + commissionAtProfitSeLLPrice) < ts.HighestPrice) && (time.Since(ts.StartTime) > elapseTimeSeLL(ts.TradingLevel)) {
+			// 	before := ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1]
+			// 	ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1] = ts.HighestPrice
+			// 	ts.Log.Printf("NextProfitSeLLPrice Re-adjusted!!! from Before: %.8f to Now: %.8f", before, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
+			// 	ts.StartTime = time.Now()
+			// 	ts.HighestPrice = 0.0
+			// }
 		} else if len(ts.EntryPrice) > 0 {
 			//NextBuy Re-Adjustment
 			nextInvBuYPrice := (-(ts.EntryCostLoss[len(ts.EntryCostLoss)-1]) / ts.EntryQuantity[len(ts.EntryQuantity)-1]) + ts.EntryPrice[len(ts.EntryPrice)-1]
@@ -953,8 +955,8 @@ func (ts *TradingSystem) ExecuteStrategy(dp *model.DataPoint, tradeAction string
 		ts.StartTime = time.Now()
 		ts.LowestPrice = math.MaxFloat64
 		ts.HighestPrice = 0.0
-		resp := fmt.Sprintf("- SELL at ts.CurrentPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, SupposedIndex: [%d], QBal: %.8f, BBal: %.8f, \nGlobalP&L: %.2f localP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d \n",
-			ts.CurrentPrice, ts.Index, ts.EntryPrice[ts.Index], ts.Index, ts.EntryQuantity[ts.Index], len(ts.EntryPrice)-1, ts.QuoteBalance, ts.BaseBalance, ts.TotalProfitLoss, localProfitLoss, orderResp.Commission, ts.RiskPositionPercentage, ts.DataPoint)
+		resp := fmt.Sprintf("- SELL at ts.CurrentPrice: %.8f, EntryPrice[%d]: %.8f, EntryQuantity[%d]: %.8f, SupposedIndex: [%d], QBal: %.8f, BBal: %.8f, \nGlobalP&L: %.2f localP&L: %.2f SellCommission: %.8f PosPcent: %.8f tsDataPt: %d prev-NextProfitSeLLPrice %.8f\n",
+			ts.CurrentPrice, ts.Index, ts.EntryPrice[ts.Index], ts.Index, ts.EntryQuantity[ts.Index], len(ts.EntryPrice)-1, ts.QuoteBalance, ts.BaseBalance, ts.TotalProfitLoss, localProfitLoss, orderResp.Commission, ts.RiskPositionPercentage, ts.DataPoint, ts.NextProfitSeLLPrice[len(ts.NextProfitSeLLPrice)-1])
 		if (len(ts.EntryPrice) - 1) > ts.Index {
 			ts.Log.Printf("Bursted:[%d] !!! at [%d]\n", ts.Index, len(ts.EntryPrice)-1)
 			ts.TLevelValue = ts.Index
@@ -1087,52 +1089,92 @@ func (ts *TradingSystem) RiskManagement(dp *model.DataPoint) {
 	if (!ts.InTrade) && (ts.StopLossTrigered) {
 		ts.TLevelValue = 0
 	}
-	switch ts.TLevelValue {
-	// case 0:
-	// 	ts.RiskCost += 35.0 + 10.0 + 5.0
-	// 	ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-	// 	ts.TargetProfit = mainValue * 0.00095
-	// 	ts.TargetStopLoss = mainValue * 0.003
-	case 0:
-		ts.RiskCost += 40.0 + 12.5 + 7.5
-		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		ts.TargetProfit = mainValue * 0.001
-		ts.TargetStopLoss = mainValue * 0.0035
-	case 1:
-		ts.RiskCost += 45.0 + 15. + 10.0
-		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		ts.TargetProfit = mainValue * 0.0015
-		ts.TargetStopLoss = mainValue * 0.004
-	case 2:
-		ts.RiskCost += 50.0 + 17.5 + 12.5
-		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		ts.TargetProfit = mainValue * 0.002
-		ts.TargetStopLoss = mainValue * 0.0045
-	case 3:
-		ts.RiskCost += (55.0 + 19.5 + 15.0) * 1.5
-		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		ts.TargetProfit = (mainValue * 0.0025) * 2.5
-		ts.TargetStopLoss = mainValue * 0.005
-	case 4:
-		ts.RiskCost += (60.0 + 22.0 + 17.5) * 2.0
-		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		ts.TargetProfit = (mainValue * 0.003) * 5.0
-		ts.TargetStopLoss = mainValue * 0.0055
-	case 5:
-		ts.RiskCost += 65.0 + 24.5 + 19.5
-		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		ts.TargetProfit = mainValue * 0.0035
-		ts.TargetStopLoss = mainValue * 0.006
-	case 6:
-		ts.RiskCost += 70.0 + 27.0 + 22.0
-		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		ts.TargetProfit = mainValue * 0.004
-		ts.TargetStopLoss = mainValue * 0.0065
-	default:
-		ts.RiskCost += 75.0 + 29.5 + 24.5
-		ts.PositionSize = ts.RiskCost / ts.CurrentPrice
-		ts.TargetProfit = mainValue * 0.0045
-		ts.TargetStopLoss = mainValue * 0.007
+	if ts.Season == "Down"{
+		switch ts.TLevelValue {
+		case 0:
+			ts.RiskCost += 40.0 + 12.5 + 7.5
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = mainValue * 0.001
+			ts.TargetStopLoss = mainValue * 0.0035
+		case 1:
+			ts.RiskCost += 45.0 + 15. + 10.0
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = mainValue * 0.0015
+			ts.TargetStopLoss = mainValue * 0.004
+		case 2:
+			ts.RiskCost += 50.0 + 17.5 + 12.5
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = mainValue * 0.002
+			ts.TargetStopLoss = mainValue * 0.0045
+		case 3:
+			ts.RiskCost += (55.0 + 19.5 + 15.0) * 1.5
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = (mainValue * 0.0025) * 2.5
+			ts.TargetStopLoss = mainValue * 0.005
+		case 4:
+			ts.RiskCost += (60.0 + 22.0 + 17.5) * 2.0
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = (mainValue * 0.003) * 5.0
+			ts.TargetStopLoss = mainValue * 0.0055
+		case 5:
+			ts.RiskCost += 65.0 + 24.5 + 19.5
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = mainValue * 0.0035
+			ts.TargetStopLoss = mainValue * 0.006
+		case 6:
+			ts.RiskCost += 70.0 + 27.0 + 22.0
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = mainValue * 0.004
+			ts.TargetStopLoss = mainValue * 0.0065
+		default:
+			ts.RiskCost += 75.0 + 29.5 + 24.5
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = mainValue * 0.0045
+			ts.TargetStopLoss = mainValue * 0.007
+		}
+	}else{
+		switch ts.TLevelValue {
+		case 4:
+			ts.RiskCost += 40.0 + 12.5 + 7.5
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = mainValue * 0.001
+			ts.TargetStopLoss = mainValue * 0.0035
+		case 3:
+			ts.RiskCost += 45.0 + 15. + 10.0
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = mainValue * 0.0015
+			ts.TargetStopLoss = mainValue * 0.004
+		case 2:
+			ts.RiskCost += 50.0 + 17.5 + 12.5
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = mainValue * 0.002
+			ts.TargetStopLoss = mainValue * 0.0045
+		case 1:
+			ts.RiskCost += (55.0 + 19.5 + 15.0) * 1.5
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = (mainValue * 0.0025) * 2.5
+			ts.TargetStopLoss = mainValue * 0.005
+		case 0:
+			ts.RiskCost += (60.0 + 22.0 + 17.5) * 2.0
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = (mainValue * 0.003) * 5.0
+			ts.TargetStopLoss = mainValue * 0.0055
+		case 5:
+			ts.RiskCost += 65.0 + 24.5 + 19.5
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = mainValue * 0.0035
+			ts.TargetStopLoss = mainValue * 0.006
+		case 6:
+			ts.RiskCost += 70.0 + 27.0 + 22.0
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = mainValue * 0.004
+			ts.TargetStopLoss = mainValue * 0.0065
+		default:
+			ts.RiskCost += 75.0 + 29.5 + 24.5
+			ts.PositionSize = ts.RiskCost / ts.CurrentPrice
+			ts.TargetProfit = mainValue * 0.0045
+			ts.TargetStopLoss = mainValue * 0.007
+		}
 	}
 }
 func (ts *TradingSystem) AIAnalysis(dp *model.DataPoint) (buySignal, sellSignal bool) {

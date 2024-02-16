@@ -30,7 +30,7 @@ type SocketService struct {
 }
 // Define a struct to parse the incoming JSON request
 type RequestBody struct {
-    UserInput string `json:"user_input"`
+    UserInput string `json:"query"`
 }
 
 // parseTemplate applies a given file to the body of the base template.
@@ -186,8 +186,12 @@ func (h TradeHandler)detailedCourseHandler(w http.ResponseWriter, r *http.Reques
 		log.Fatalf("error: detailedCourseHandler: Store.ReadDB: %v", err)		
 	}
 		
+	courseDetails, err := h.Ai.Agent.CourseDetailsAgent(course)
+	if err != nil{
+		log.Fatal(err)
+	}
 	// Convert the course data to JSON
-	jsonResponse, err := json.Marshal(course)
+	jsonResponse, err := json.Marshal(courseDetails)
 	if err != nil {
 		http.Error(w, "Error creating JSON response", http.StatusInternalServerError)
 		return
@@ -207,6 +211,7 @@ func (h TradeHandler) GenerateContent(w http.ResponseWriter, r *http.Request) {
 
     // Parse the JSON body of the request
     var requestBody RequestBody
+	log.Println(r.Body)
     err := json.NewDecoder(r.Body).Decode(&requestBody)
     if err != nil {
         http.Error(w, "Error parsing JSON request body.", http.StatusBadRequest)
